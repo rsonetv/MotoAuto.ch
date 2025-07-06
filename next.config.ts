@@ -1,16 +1,22 @@
+import { DefinePlugin } from "webpack"
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     appDir: true,
   },
 
-  webpack: (config) => {
-    // Some libraries expect global.self – alias it to globalThis.
+  webpack(config) {
+    // Make sure the plugins array exists
+    config.plugins = config.plugins || []
+
+    // Provide global.self → globalThis for libraries that expect it
     config.plugins.push(
-      new config.webpack.DefinePlugin({
+      new DefinePlugin({
         "global.self": "globalThis",
       }),
     )
+
     return config
   },
 
