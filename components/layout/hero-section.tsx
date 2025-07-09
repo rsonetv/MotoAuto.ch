@@ -26,35 +26,25 @@ export function HeroSection() {
   }
 
   return (
-    <section className="gradient-hero min-h-[60vh] flex items-center justify-center text-white">
+    <section className="gradient-hero min-h-[20vh] flex items-center justify-center text-white">
       <div className="container mx-auto px-4 text-center">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <h1 className="text-4xl md:text-6xl font-bold mb-8">
-            Znajdź swój <span className="text-yellow-400">wymarzony</span> pojazd
-          </h1>
-
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Wyszukaj BMW, Honda, Yamaha…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 py-4 text-lg bg-white text-gray-900 border-0 focus:ring-2 focus:ring-teal-500"
-                  aria-label="Wyszukaj pojazd"
-                />
-              </div>
-              <Button
-                type="submit"
-                size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold"
-                aria-label="Szukaj pojazdów"
-              >
-                Szukaj
-              </Button>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          <form onSubmit={handleSearch} className="flex items-center justify-center">
+            <Input
+              type="text"
+              placeholder="Wyszukaj pojazd..."
+              className="w-full md:w-auto rounded-l-md py-2" // Changed py-3 to py-2 for smaller height
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit" className="rounded-l-none">
+              <Search className="mr-2 h-4 w-4" />
+              Szukaj
+            </Button>
           </form>
         </motion.div>
       </div>

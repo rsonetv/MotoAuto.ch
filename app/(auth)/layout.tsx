@@ -1,7 +1,17 @@
-import { LoginForm } from "@/components/forms/login-form"
+import type React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 
-export default function LoginPage() {
+export const metadata: Metadata = {
+  title: "Autoryzacja - MotoAuto.ch",
+  description: "Zaloguj się lub zarejestruj w MotoAuto.ch",
+}
+
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -16,7 +26,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        <LoginForm />
+        {children}
       </div>
     </div>
   )
