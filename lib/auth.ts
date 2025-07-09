@@ -38,18 +38,6 @@ export const auth = {
     if (error) throw error
   },
 
-  async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
-    if (error) throw error
-  },
-
-  async updatePassword(password: string) {
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) throw error
-  },
-
   async getCurrentUser(): Promise<AuthUser | null> {
     const {
       data: { user },
