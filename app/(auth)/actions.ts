@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server"
 import { loginSchema, registerSchema, resetPasswordSchema, updatePasswordSchema } from "@/lib/validations"
 import { authRateLimit, registerRateLimit, resetPasswordRateLimit } from "@/lib/ratelimit"
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(prevState: any, formData: FormData) {
   const headersList = await headers()
   const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1"
 
@@ -19,10 +19,11 @@ export async function loginAction(formData: FormData) {
     }
   }
 
-  // Validate form data
+  // Validate form data - dodano obsługę "remember"
   const validatedFields = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
+    remember: formData.get("remember") === "on", // checkbox handling
   })
 
   if (!validatedFields.success) {
@@ -32,19 +33,33 @@ export async function loginAction(formData: FormData) {
     }
   }
 
-  const { email, password } = validatedFields.data
+  const { email, password, remember } = validatedFields.data
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
-      return {
-        error: "Nieprawidłowy email lub hasło",
+      // Sprawdzenie czy email jest zweryfikowany
+      if (error.message.includes("email not confirmed")) {
+        return {
+          error: "Potwierdź swój adres e-mail przed zalogowaniem",
+        }
       }
+      return {
+        error: "Nieprawidłowy e-mail lub hasło",
+      }
+    }
+
+    // Obsługa "Zapamiętaj mnie" - ustaw dłuższą sesję
+    if (remember && data.session) {
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      })
     }
   } catch (error) {
     return {
@@ -56,7 +71,7 @@ export async function loginAction(formData: FormData) {
   redirect("/dashboard")
 }
 
-export async function registerAction(formData: FormData) {
+export async function registerAction(prevState: any, formData: FormData) {
   const headersList = await headers()
   const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1"
 
@@ -85,19 +100,26 @@ export async function registerAction(formData: FormData) {
 
   const { email, password, name } = validatedFields.data
   const supabase = await createClient()
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
   try {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${origin}/auth/callback`,
         data: {
-          name,
+          full_name: name,
         },
       },
     })
 
     if (error) {
+      if (error.message.includes("already registered")) {
+        return {
+          error: "Użytkownik z tym adresem email już istnieje",
+        }
+      }
       return {
         error: error.message,
       }
@@ -109,11 +131,11 @@ export async function registerAction(formData: FormData) {
   }
 
   return {
-    success: "Sprawdź swoją skrzynkę email, aby potwierdzić konto",
+    success: "Sprawdź swoją skrzynkę email i kliknij link weryfikacyjny",
   }
 }
 
-export async function resetPasswordAction(formData: FormData) {
+export async function resetPasswordAction(prevState: any, formData: FormData) {
   const headersList = await headers()
   const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1"
 
@@ -139,10 +161,11 @@ export async function resetPasswordAction(formData: FormData) {
 
   const { email } = validatedFields.data
   const supabase = await createClient()
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/update-password`,
+      redirectTo: `${origin}/auth/update-password`,
     })
 
     if (error) {
@@ -161,7 +184,7 @@ export async function resetPasswordAction(formData: FormData) {
   }
 }
 
-export async function updatePasswordAction(formData: FormData) {
+export async function updatePasswordAction(prevState: any, formData: FormData) {
   // Validate form data
   const validatedFields = updatePasswordSchema.safeParse({
     password: formData.get("password"),
@@ -207,21 +230,15 @@ export async function signOutAction() {
 
 export async function signInWithOAuthAction(provider: "google" | "github") {
   const supabase = await createClient()
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      redirectTo: `${origin}/auth/callback`,
     },
   })
 
-  if (error) {
-    return {
-      error: error.message,
-    }
-  }
-
-  if (data.url) {
-    redirect(data.url)
-  }
+  if (error) throw error
+  redirect(data.url)
 }

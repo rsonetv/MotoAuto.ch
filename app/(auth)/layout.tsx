@@ -1,8 +1,15 @@
 import type React from "react"
+import { Toaster } from "sonner"
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <div className="min-h-screen bg-background">{children}</div>
+  return (
+    <>
+      {children}
+      <Toaster position="top-center" richColors />
+    </>
+  )
 }

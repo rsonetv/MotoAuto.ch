@@ -1,9 +1,9 @@
 import { Suspense } from "react"
-import { requireNoAuth } from "@/lib/auth"
-import { LoginForm } from "@/components/auth/login-form"
+import { requireGuest } from "@/lib/auth-helpers"
+import LoginForm from "@/components/auth/login-form"
 
 export default async function LoginPage() {
-  await requireNoAuth()
+  await requireGuest()
 
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">

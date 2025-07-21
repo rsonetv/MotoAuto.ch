@@ -1,18 +1,19 @@
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/supabase"
 
-export function createClient() {
-  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-}
-
-// Singleton pattern for client-side usage
-let supabaseClient: ReturnType<typeof createClient> | null = null
+// --- Singleton pattern (client-side) ---------------------------------
+let _supabase: ReturnType<typeof createClient<Database>> | null = null
 
 export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createClient()
+  if (!_supabase) {
+    _supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: true } },
+    )
   }
-  return supabaseClient
+  return _supabase
 }
 
-// Export for backward compatibility
+// Named export to match existing imports
 export const supabase = getSupabaseClient()

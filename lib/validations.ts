@@ -2,8 +2,9 @@ import { z } from "zod"
 
 // Auth validation schemas
 export const loginSchema = z.object({
-  email: z.string().min(1, "Email jest wymagany").email("Nieprawidłowy format email"),
-  password: z.string().min(1, "Hasło jest wymagane").min(8, "Hasło musi mieć co najmniej 8 znaków"),
+  email: z.string().email("Nieprawidłowy adres e-mail"),
+  password: z.string().min(1, "Hasło jest wymagane"),
+  remember: z.boolean().optional().default(false),
 })
 
 export const registerSchema = z
