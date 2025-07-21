@@ -1,182 +1,112 @@
-import { supabase } from "@/lib/supabase/client"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+import { cache } from "react"
+import type { User } from "@supabase/supabase-js"
 
-export interface AuthUser {
-  id: string
-  email: string
-  full_name?: string
-  avatar_url?: string
-  email_verified?: boolean
-  is_dealer?: boolean
-  dealer_name?: string
-  phone?: string
-}
+export const createClient = cache(async () => {
+  const cookieStore = await cookies()
 
-/**
- * Get current user with error handling
- */
-export async function getCurrentUser(): Promise<AuthUser | null> {
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
+  })
+})
+
+export const getUser = cache(async (): Promise<User | null> => {
+  const supabase = await createClient()
   try {
-    // First check if we have a session
     const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
-
-    if (sessionError) {
-      console.error("Session error:", sessionError)
-      return null
-    }
-
-    if (!session?.user) {
-      // No session is a normal state (user not logged in)
-      return null
-    }
-
-    // Get user profile from our profiles table
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .single()
-
-    if (profileError) {
-      console.error("Profile fetch error:", profileError)
-      // Return basic user info from auth if profile fetch fails
-      return {
-        id: session.user.id,
-        email: session.user.email || "",
-        full_name: session.user.user_metadata?.full_name,
-        avatar_url: session.user.user_metadata?.avatar_url,
-      }
-    }
-
-    return {
-      id: profile.id,
-      email: profile.email,
-      full_name: profile.full_name || undefined,
-      avatar_url: profile.avatar_url || undefined,
-      email_verified: profile.email_verified || false,
-      is_dealer: profile.is_dealer || false,
-      dealer_name: profile.dealer_name || undefined,
-      phone: profile.phone || undefined,
-    }
+      data: { user },
+    } = await supabase.auth.getUser()
+    return user
   } catch (error) {
-    console.error("Unexpected error in getCurrentUser:", error)
+    console.error("Error:", error)
     return null
   }
-}
+})
 
-/**
- * Sign up a new user
- */
-export async function signUp(email: string, password: string, fullName?: string) {
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName || "",
-        },
-      },
-    })
+export const getCurrentUser = cache(async (): Promise<User | null> => {
+  return await getUser()
+})
 
-    if (error) {
-      throw error
-    }
-
-    return { user: data.user, session: data.session }
-  } catch (error) {
-    console.error("Sign up error:", error)
-    throw error
+export const requireUser = cache(async (): Promise<User> => {
+  const user = await getUser()
+  if (!user) {
+    redirect("/auth/login")
   }
-}
+  return user
+})
 
-/**
- * Sign in an existing user
- */
-export async function signIn(email: string, password: string) {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      throw error
-    }
-
-    return { user: data.user, session: data.session }
-  } catch (error) {
-    console.error("Sign in error:", error)
-    throw error
+export const requireAnonymous = cache(async (): Promise<void> => {
+  const user = await getUser()
+  if (user) {
+    redirect("/dashboard")
   }
-}
+})
 
-/**
- * Sign out the current user
- */
-export async function signOut() {
-  try {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      throw error
-    }
-  } catch (error) {
-    console.error("Sign out error:", error)
-    throw error
+export const requireNoAuth = cache(async (): Promise<void> => {
+  const user = await getUser()
+  if (user) {
+    redirect("/dashboard")
   }
+})
+
+export const signIn = async (email: string, password: string) => {
+  const supabase = await createClient()
+  return await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 }
 
-/**
- * Update user profile
- */
-export async function updateProfile(updates: Partial<AuthUser>) {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error("No authenticated user")
-    }
+export const signUp = async (email: string, password: string, options?: { data?: any }) => {
+  const supabase = await createClient()
+  return await supabase.auth.signUp({
+    email,
+    password,
+    options,
+  })
+}
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: updates.full_name,
-        phone: updates.phone,
-        avatar_url: updates.avatar_url,
-        is_dealer: updates.is_dealer,
-        dealer_name: updates.dealer_name,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id)
+export const signOut = async () => {
+  const supabase = await createClient()
+  return await supabase.auth.signOut()
+}
 
-    if (error) {
-      throw error
-    }
+export const getProfile = cache(async (userId: string) => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
-    return true
-  } catch (error) {
-    console.error("Update profile error:", error)
-    throw error
+  if (error) {
+    console.error("Error fetching profile:", error)
+    return null
   }
+
+  return data
+})
+
+export const updateProfile = async (userId: string, updates: any) => {
+  const supabase = await createClient()
+  return await supabase.from("profiles").update(updates).eq("id", userId)
 }
 
-/**
- * Reset password
- */
-export async function resetPassword(email: string) {
-  try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
+export const isAdmin = cache(async (): Promise<boolean> => {
+  const user = await getUser()
+  if (!user) return false
 
-    if (error) {
-      throw error
-    }
-
-    return true
-  } catch (error) {
-    console.error("Reset password error:", error)
-    throw error
-  }
-}
+  const profile = await getProfile(user.id)
+  return profile?.role === "admin" || profile?.role === "super_admin"
+})

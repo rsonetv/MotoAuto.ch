@@ -6,6 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, XCircle, Loader2, Database, Car } from "lucide-react"
 
+/**
+ * Safely parse a fetch Response – tries JSON first, falls back to text
+ */
+async function parseApiResponse(res: Response) {
+  const contentType = res.headers.get("content-type") ?? ""
+  if (contentType.includes("application/json")) {
+    try {
+      return await res.json()
+    } catch {
+      /* no-op – will fall back to text below */
+    }
+  }
+  return { success: false, error: (await res.text()).slice(0, 500) }
+}
+
 interface SetupStep {
   id: string
   title: string
@@ -47,7 +62,7 @@ export default function AdminSetupPage() {
         },
       })
 
-      const result = await response.json()
+      const result = await parseApiResponse(response)
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || "Database setup failed")
@@ -73,7 +88,7 @@ export default function AdminSetupPage() {
         },
       })
 
-      const result = await response.json()
+      const result = await parseApiResponse(response)
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || "Sample data setup failed")

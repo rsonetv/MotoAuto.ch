@@ -1,34 +1,18 @@
-import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/types/database.types"
+import { createBrowserClient } from "@supabase/ssr"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables")
+export function createClient() {
+  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 }
-
-// Create a single supabase client for interacting with your database
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-})
 
 // Singleton pattern for client-side usage
-let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null
+let supabaseClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseClient() {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-      },
-    })
+  if (!supabaseClient) {
+    supabaseClient = createClient()
   }
-  return supabaseInstance
+  return supabaseClient
 }
+
+// Export for backward compatibility
+export const supabase = getSupabaseClient()
