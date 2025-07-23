@@ -1,112 +1,59 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import { cache } from "react"
+import { supabase } from "./supabase"
 import type { User } from "@supabase/supabase-js"
 
-export const createClient = cache(async () => {
-  const cookieStore = await cookies()
+export interface AuthUser extends User {
+  profile?: {
+    full_name?: string
+    avatar_url?: string
+    phone?: string
+  }
+}
 
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
+export const auth = {
+  async signUp(email: string, password: string, fullName: string) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
-})
+    })
+    if (error) throw error
+    return data
+  },
 
-export const getUser = cache(async (): Promise<User | null> => {
-  const supabase = await createClient()
-  try {
+  async signIn(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) throw error
+    return data
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+  },
+
+  async getCurrentUser(): Promise<AuthUser | null> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    return user
-  } catch (error) {
-    console.error("Error:", error)
-    return null
-  }
-})
+    return user as AuthUser
+  },
 
-export const getCurrentUser = cache(async (): Promise<User | null> => {
-  return await getUser()
-})
+  async updateProfile(updates: { full_name?: string; avatar_url?: string; phone?: string }) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: updates,
+    })
+    if (error) throw error
+    return data
+  },
 
-export const requireUser = cache(async (): Promise<User> => {
-  const user = await getUser()
-  if (!user) {
-    redirect("/auth/login")
-  }
-  return user
-})
-
-export const requireAnonymous = cache(async (): Promise<void> => {
-  const user = await getUser()
-  if (user) {
-    redirect("/dashboard")
-  }
-})
-
-export const requireNoAuth = cache(async (): Promise<void> => {
-  const user = await getUser()
-  if (user) {
-    redirect("/dashboard")
-  }
-})
-
-export const signIn = async (email: string, password: string) => {
-  const supabase = await createClient()
-  return await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  onAuthStateChange(callback: (user: AuthUser | null) => void) {
+    return supabase.auth.onAuthStateChange((_event, session) => callback((session?.user as AuthUser) || null))
+  },
 }
-
-export const signUp = async (email: string, password: string, options?: { data?: any }) => {
-  const supabase = await createClient()
-  return await supabase.auth.signUp({
-    email,
-    password,
-    options,
-  })
-}
-
-export const signOut = async () => {
-  const supabase = await createClient()
-  return await supabase.auth.signOut()
-}
-
-export const getProfile = cache(async (userId: string) => {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-
-  if (error) {
-    console.error("Error fetching profile:", error)
-    return null
-  }
-
-  return data
-})
-
-export const updateProfile = async (userId: string, updates: any) => {
-  const supabase = await createClient()
-  return await supabase.from("profiles").update(updates).eq("id", userId)
-}
-
-export const isAdmin = cache(async (): Promise<boolean> => {
-  const user = await getUser()
-  if (!user) return false
-
-  const profile = await getProfile(user.id)
-  return profile?.role === "admin" || profile?.role === "super_admin"
-})

@@ -1,109 +1,118 @@
-;/import { NextResponse } from "next/eerrsv
-"
-
+import { type NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-admin"
+import { readFileSync } from "fs"
+import { join } from "path"
 
-const setupSQL = `
--- Enable the pgvector extension so we can work with embeddings
-create extension if not exists vector;
-
--- Create a table to store our documents
-create table documents (
-  id uuid primary key default uuid_generate_v4(),
-  content text,
-  metadata jsonb
-);
-
--- Create a table to store our embeddings
-create table embeddings (
-  id uuid primary key default uuid_generate_v4(),
-  document_id uuid references documents not null,
-  embedding vector(1536)
-);
-
--- Enable Row Level Security (RLS) on the tables
-alter table documents enable row level security;
-alter table embeddings enable row level security;
-
--- Create a policy that allows users to insert their own documents
-create policy "Enable insert for authenticated users only" on documents for
-insert
-  with check (auth.role() = 'authenticated');
-
--- Create a policy that allows users to select their own documents
-create policy "Enable read access for authenticated users only" on documents for
-select
-  using (auth.role() = 'authenticated');
-
--- Create a policy that allows users to insert their own embeddings
-create policy "Enable insert for authenticated users only" on embeddings for
-insert
-  with check (auth.role() = 'authenticated');
-
--- Create a policy that allows users to select their own embeddings
-create policy "Enable read access for authenticated users only" on embeddings for
-select
-  using (auth.role() = 'authenticated');
-
--- Create a function to handle new documents
-create or replace function handle_new_document() returns trigger as $$
-begin
-  -- You can perform any additional actions here, such as updating a search index
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- Create a trigger that calls the handle_new_document function when a new document is inserted
-create trigger on documents after
-insert on documents for each row
-  execute procedure handle_new_document();
-`
-
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // ------------------------------------------------------------------
-    // 1. QUICK connectivity test – can we read from the DB?
-    // ------------------------------------------------------------------
-    const ping = await supabaseAdmin.from("profiles").select("id").limit(1)
-    if (ping.error) {
-      console.error("Ping failed:", ping.error)
+    console.log("🚀 Starting enhanced database setup with JSON schema validation...")
+
+    // Read and execute the enhanced setup script
+    const setupScriptPath = join(process.cwd(), "scripts", "setup-database-with-jsonschema.sql")
+    const setupScript = readFileSync(setupScriptPath, "utf8")
+
+    // Execute the setup script
+    const { error: setupError } = await supabaseAdmin.rpc("exec_sql", {
+      sql: setupScript,
+    })
+
+    if (setupError) {
+      console.error("❌ Database setup failed:", setupError)
       return NextResponse.json(
-        { success: false, error: "Cannot reach Supabase with service role key" },
+        {
+          error: "Database setup failed",
+          details: setupError.message,
+        },
         { status: 500 },
       )
     }
 
-    // ------------------------------------------------------------------
-    // 2. Run the whole schema-creation script via Supabase REST RPC
-    //    execute_sql is a helper that ships with every Supabase project.
-    //    It takes a JSON object { sql: "<your-sql>" }.
-    // ------------------------------------------------------------------
-    const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/execute_sql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // execute_sql requires an apikey + auth Bearer header
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ sql: setupSQL }),
+    console.log("✅ Enhanced database schema created successfully")
+
+    // Read and execute integrity check functions
+    const integrityScriptPath = join(process.cwd(), "scripts", "integrity-check-functions.sql")
+    const integrityScript = readFileSync(integrityScriptPath, "utf8")
+
+    const { error: integrityError } = await supabaseAdmin.rpc("exec_sql", {
+      sql: integrityScript,
     })
 
-    const { error } = await res.json()
-
-    if (!res.ok || error) {
-      console.error("execute_sql error:", error)
-      return NextResponse.json({ success: false, error: error?.message ?? "execute_sql failed" }, { status: 500 })
+    if (integrityError) {
+      console.error("❌ Integrity functions setup failed:", integrityError)
+      return NextResponse.json(
+        {
+          error: "Integrity functions setup failed",
+          details: integrityError.message,
+        },
+        { status: 500 },
+      )
     }
+
+    console.log("✅ Integrity check functions created successfully")
+
+    // Verify pg_jsonschema extension is working
+    const { data: schemaTest, error: schemaError } = await supabaseAdmin.rpc("get_profile_schema")
+
+    if (schemaError) {
+      console.error("❌ JSON schema validation setup failed:", schemaError)
+      return NextResponse.json(
+        {
+          error: "JSON schema validation setup failed",
+          details: schemaError.message,
+        },
+        { status: 500 },
+      )
+    }
+
+    console.log("✅ JSON schema validation is working correctly")
+
+    // Test data validation
+    const testProfile = {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      email: "test@example.com",
+      email_verified: true,
+      is_dealer: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    const { data: validationResult, error: validationError } = await supabaseAdmin.rpc("validate_profile_data", {
+      profile_data: testProfile,
+    })
+
+    if (validationError || !validationResult) {
+      console.error("❌ Data validation test failed:", validationError)
+      return NextResponse.json(
+        {
+          error: "Data validation test failed",
+          details: validationError?.message || "Validation returned false",
+        },
+        { status: 500 },
+      )
+    }
+
+    console.log("✅ Data validation test passed")
 
     return NextResponse.json({
       success: true,
-      message: "Database setup completed successfully",
+      message: "Enhanced database with JSON schema validation setup completed successfully",
+      features: [
+        "pg_jsonschema extension enabled",
+        "Comprehensive CHECK constraints implemented",
+        "JSON schema validation functions created",
+        "Data integrity monitoring functions installed",
+        "Row Level Security policies configured",
+        "Performance indexes optimized",
+        "Automatic triggers for data consistency",
+      ],
     })
-  } catch (err) {
-    console.error("Setup database error:", err)
+  } catch (error) {
+    console.error("❌ Database setup error:", error)
     return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : "Unknown error" },
+      {
+        error: "Database setup failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 },
     )
   }
