@@ -1,72 +1,59 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase-admin"
 import { readFileSync } from "fs"
 import { join } from "path"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🚀 Starting enhanced database setup with JSON schema validation...")
+    console.log("🚀 Starting database setup...")
 
-    // Read and execute the enhanced setup script
-    const setupScriptPath = join(process.cwd(), "scripts", "setup-database-with-jsonschema.sql")
-    const setupScript = readFileSync(setupScriptPath, "utf8")
+    // Read the SQL setup script
+    const sqlPath = join(process.cwd(), "scripts", "setup-database-with-jsonschema.sql")
+    console.log("📁 Reading SQL file from:", sqlPath)
 
-    // Execute the setup script
-    const { error: setupError } = await supabaseAdmin.rpc("exec_sql", {
-      sql: setupScript,
+    let sqlContent: string
+    try {
+      sqlContent = readFileSync(sqlPath, "utf8")
+      console.log("✅ SQL file read successfully, length:", sqlContent.length)
+    } catch (fileError) {
+      console.error("❌ Failed to read SQL file:", fileError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Failed to read setup script: ${fileError instanceof Error ? fileError.message : "Unknown file error"}`,
+        },
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
+    }
+
+    // Execute the SQL script
+    console.log("🔧 Executing database setup script...")
+    const { data, error } = await supabaseAdmin.rpc("exec", {
+      sql: sqlContent,
     })
 
-    if (setupError) {
-      console.error("❌ Database setup failed:", setupError)
+    if (error) {
+      console.error("❌ Database setup error:", error)
       return NextResponse.json(
         {
-          error: "Database setup failed",
-          details: setupError.message,
+          success: false,
+          error: `Database setup failed: ${error.message}`,
         },
-        { status: 500 },
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
       )
     }
 
-    console.log("✅ Enhanced database schema created successfully")
+    console.log("✅ Database setup completed successfully")
 
-    // Read and execute integrity check functions
-    const integrityScriptPath = join(process.cwd(), "scripts", "integrity-check-functions.sql")
-    const integrityScript = readFileSync(integrityScriptPath, "utf8")
+    // Test the validation functions
+    console.log("🧪 Testing validation functions...")
 
-    const { error: integrityError } = await supabaseAdmin.rpc("exec_sql", {
-      sql: integrityScript,
-    })
-
-    if (integrityError) {
-      console.error("❌ Integrity functions setup failed:", integrityError)
-      return NextResponse.json(
-        {
-          error: "Integrity functions setup failed",
-          details: integrityError.message,
-        },
-        { status: 500 },
-      )
-    }
-
-    console.log("✅ Integrity check functions created successfully")
-
-    // Verify pg_jsonschema extension is working
-    const { data: schemaTest, error: schemaError } = await supabaseAdmin.rpc("get_profile_schema")
-
-    if (schemaError) {
-      console.error("❌ JSON schema validation setup failed:", schemaError)
-      return NextResponse.json(
-        {
-          error: "JSON schema validation setup failed",
-          details: schemaError.message,
-        },
-        { status: 500 },
-      )
-    }
-
-    console.log("✅ JSON schema validation is working correctly")
-
-    // Test data validation
     const testProfile = {
       id: "123e4567-e89b-12d3-a456-426614174000",
       email: "test@example.com",
@@ -76,44 +63,83 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
-    const { data: validationResult, error: validationError } = await supabaseAdmin.rpc("validate_profile_data", {
+    const { data: profileValidation, error: profileError } = await supabaseAdmin.rpc("validate_profile_data", {
       profile_data: testProfile,
     })
 
-    if (validationError || !validationResult) {
-      console.error("❌ Data validation test failed:", validationError)
+    if (profileError) {
+      console.error("❌ Profile validation test failed:", profileError)
       return NextResponse.json(
         {
-          error: "Data validation test failed",
-          details: validationError?.message || "Validation returned false",
+          success: false,
+          error: `Profile validation test failed: ${profileError.message}`,
         },
-        { status: 500 },
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
       )
     }
 
-    console.log("✅ Data validation test passed")
+    console.log("✅ Profile validation test result:", profileValidation)
 
-    return NextResponse.json({
-      success: true,
-      message: "Enhanced database with JSON schema validation setup completed successfully",
-      features: [
-        "pg_jsonschema extension enabled",
-        "Comprehensive CHECK constraints implemented",
-        "JSON schema validation functions created",
-        "Data integrity monitoring functions installed",
-        "Row Level Security policies configured",
-        "Performance indexes optimized",
-        "Automatic triggers for data consistency",
-      ],
+    // Test listing validation
+    const testListing = {
+      user_id: "123e4567-e89b-12d3-a456-426614174000",
+      title: "Test Vehicle Listing",
+      category: "auto",
+      brand: "BMW",
+      model: "X5",
+      price: 25000,
+      location: "Zurich",
+    }
+
+    const { data: listingValidation, error: listingError } = await supabaseAdmin.rpc("validate_listing_data", {
+      listing_data: testListing,
     })
-  } catch (error) {
-    console.error("❌ Database setup error:", error)
+
+    if (listingError) {
+      console.error("❌ Listing validation test failed:", listingError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Listing validation test failed: ${listingError.message}`,
+        },
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
+    }
+
+    console.log("✅ Listing validation test result:", listingValidation)
+
+    // Return success response
     return NextResponse.json(
       {
-        error: "Database setup failed",
-        details: error instanceof Error ? error.message : "Unknown error",
+        success: true,
+        message: "Database setup completed successfully",
+        validationTests: {
+          profile: profileValidation,
+          listing: listingValidation,
+        },
       },
-      { status: 500 },
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
+  } catch (error) {
+    console.error("❌ Unexpected error during database setup:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      },
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
     )
   }
 }

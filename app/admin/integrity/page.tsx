@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,36 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, RefreshCw, Database, Shield, Activity, FileCheck } from "lucide-react"
+
+interface IntegrityError {
+  recordId: string | number
+  error: string
+}
+
+interface TableResult {
+  tableName: string
+  totalRecords: number
+  validRecords: number
+  invalidRecords: number
+  errors: IntegrityError[]
+}
+
+interface ReferentialIntegrity {
+  orphanedListings: number
+  orphanedBids: number
+  orphanedFavorites: number
+  details: string[]
+}
+
+interface ConsistencyIssue {
+  type: string
+  description: string
+  count: number
+}
+
+interface DataConsistency {
+  issues: ConsistencyIssue[]
+}
 
 interface IntegrityReport {
   timestamp: string
@@ -17,29 +47,16 @@ interface IntegrityReport {
     validRecords: number
     invalidRecords: number
   }
-  tableResults: Array<{
-    tableName: string
-    totalRecords: number
-    validRecords: number
-    invalidRecords: number
-    errors: Array<{
-      recordId: string | number
-      error: string
-    }>
-  }>
-  referentialIntegrity: {
-    orphanedListings: number
-    orphanedBids: number
-    orphanedFavorites: number
-    details: string[]
-  }
-  dataConsistency: {
-    issues: Array<{
-      type: string
-      description: string
-      count: number
-    }>
-  }
+  tableResults: TableResult[]
+  referentialIntegrity: ReferentialIntegrity
+  dataConsistency: DataConsistency
+}
+
+interface ApiResponse {
+  success: boolean
+  report?: IntegrityReport
+  message?: string
+  error?: string
 }
 
 export default function IntegrityMonitorPage() {
@@ -47,79 +64,157 @@ export default function IntegrityMonitorPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
 
-  const fetchIntegrityReport = async () => {
+  // Utility function for API calls with timeout
+  const makeApiCall = useCallback(
+    async (url: string, options: RequestInit = {}, timeoutMs = 30000): Promise<ApiResponse> => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+          headers: {
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
+        })
+
+        clearTimeout(timeoutId)
+
+        let result: ApiResponse
+        try {
+          result = await response.json()
+        } catch {
+          const textContent = await response.text()
+          result = {
+            success: false,
+            error: textContent || "Failed to parse response",
+          }
+        }
+
+        if (!response.ok) {
+          result.success = false
+          if (!result.error) {
+            result.error = `HTTP ${response.status}: ${response.statusText}`
+          }
+        }
+
+        return result
+      } catch (error) {
+        clearTimeout(timeoutId)
+
+        if (error instanceof Error) {
+          if (error.name === "AbortError") {
+            return {
+              success: false,
+              error: `Request timed out after ${timeoutMs / 1000} seconds`,
+            }
+          }
+          return {
+            success: false,
+            error: `Network error: ${error.message}`,
+          }
+        }
+
+        return {
+          success: false,
+          error: "Unknown network error occurred",
+        }
+      }
+    },
+    [],
+  )
+
+  const fetchIntegrityReport = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch("/api/admin/integrity-check", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("supabase.auth.token")}`,
+      console.log("Fetching integrity report...")
+      const result = await makeApiCall(
+        "/api/admin/integrity-check",
+        {
+          method: "GET",
         },
-      })
+        60000,
+      ) // 60 second timeout for integrity check
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch integrity report")
+      if (result.success && result.report) {
+        setReport(result.report)
+        setLastFetchTime(new Date())
+        console.log("Integrity report fetched successfully")
+      } else {
+        setError(result.error || "Failed to fetch integrity report")
+        console.error("Failed to fetch integrity report:", result.error)
       }
-
-      const data = await response.json()
-      setReport(data.report)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error")
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      setError(errorMessage)
+      console.error("Unexpected error fetching integrity report:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [makeApiCall])
 
-  const performAction = async (action: string) => {
-    setActionLoading(action)
-    setError(null)
+  const performAction = useCallback(
+    async (action: string) => {
+      setActionLoading(action)
+      setError(null)
 
-    try {
-      const response = await fetch("/api/admin/integrity-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("supabase.auth.token")}`,
-        },
-        body: JSON.stringify({ action }),
-      })
+      try {
+        console.log(`Performing action: ${action}`)
+        const result = await makeApiCall(
+          "/api/admin/integrity-check",
+          {
+            method: "POST",
+            body: JSON.stringify({ action }),
+          },
+          120000,
+        ) // 2 minute timeout for maintenance actions
 
-      if (!response.ok) {
-        throw new Error("Action failed")
+        if (result.success) {
+          console.log(`Action ${action} completed successfully:`, result.message)
+          // Refresh the report after successful action
+          await fetchIntegrityReport()
+        } else {
+          setError(result.error || `Failed to perform action: ${action}`)
+          console.error(`Action ${action} failed:`, result.error)
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : `Action ${action} failed`
+        setError(errorMessage)
+        console.error(`Unexpected error performing action ${action}:`, error)
+      } finally {
+        setActionLoading(null)
       }
+    },
+    [makeApiCall, fetchIntegrityReport],
+  )
 
-      const data = await response.json()
-
-      // Refresh the report after successful action
-      await fetchIntegrityReport()
-
-      // Show success message (you might want to add a toast notification here)
-      console.log("Action completed:", data.message)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Action failed")
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
+  // Auto-fetch report on component mount
   useEffect(() => {
     fetchIntegrityReport()
-  }, [])
+  }, [fetchIntegrityReport])
 
-  const getHealthScore = () => {
+  const getHealthScore = useCallback(() => {
     if (!report) return 0
     const { validRecords, invalidRecords } = report.summary
     const totalRecords = validRecords + invalidRecords
     return totalRecords > 0 ? Math.round((validRecords / totalRecords) * 100) : 100
-  }
+  }, [report])
 
-  const getHealthColor = (score: number) => {
+  const getHealthColor = useCallback((score: number) => {
     if (score >= 95) return "text-green-600"
     if (score >= 80) return "text-yellow-600"
     return "text-red-600"
-  }
+  }, [])
+
+  const formatTimestamp = useCallback((timestamp: string) => {
+    return new Date(timestamp).toLocaleString()
+  }, [])
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -127,17 +222,26 @@ export default function IntegrityMonitorPage() {
         <div>
           <h1 className="text-3xl font-bold">Database Integrity Monitor</h1>
           <p className="text-muted-foreground">Monitor and maintain data integrity with JSON schema validation</p>
+          {lastFetchTime && (
+            <p className="text-sm text-muted-foreground mt-1">Last updated: {lastFetchTime.toLocaleString()}</p>
+          )}
         </div>
         <Button onClick={fetchIntegrityReport} disabled={loading} className="flex items-center gap-2">
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh Report
+          {loading ? "Loading..." : "Refresh Report"}
         </Button>
       </div>
 
       {error && (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            <div className="font-medium">Error occurred:</div>
+            <div className="mt-1">{error}</div>
+            <Button onClick={() => setError(null)} variant="outline" size="sm" className="mt-2">
+              Dismiss
+            </Button>
+          </AlertDescription>
         </Alert>
       )}
 
@@ -211,8 +315,8 @@ export default function IntegrityMonitorPage() {
             </TabsList>
 
             <TabsContent value="tables" className="space-y-4">
-              {report.tableResults.map((table) => (
-                <Card key={table.tableName}>
+              {report.tableResults.map((table, tableIndex) => (
+                <Card key={`table-${table.tableName}-${tableIndex}`}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="capitalize">{table.tableName}</CardTitle>
@@ -228,8 +332,11 @@ export default function IntegrityMonitorPage() {
                     <CardContent>
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm">Validation Errors:</h4>
-                        {table.errors.slice(0, 5).map((error, index) => (
-                          <div key={index} className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-200">
+                        {table.errors.slice(0, 5).map((error, errorIndex) => (
+                          <div
+                            key={`error-${table.tableName}-${error.recordId}-${errorIndex}`}
+                            className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-200"
+                          >
                             <span className="font-mono text-xs">ID: {error.recordId}</span>
                             <p className="text-red-700">{error.error}</p>
                           </div>
@@ -276,8 +383,11 @@ export default function IntegrityMonitorPage() {
                   {report.referentialIntegrity.details.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium">Details:</h4>
-                      {report.referentialIntegrity.details.map((detail, index) => (
-                        <div key={index} className="text-sm bg-yellow-50 p-2 rounded border-l-2 border-yellow-200">
+                      {report.referentialIntegrity.details.map((detail, detailIndex) => (
+                        <div
+                          key={`referential-detail-${detailIndex}`}
+                          className="text-sm bg-yellow-50 p-2 rounded border-l-2 border-yellow-200"
+                        >
                           {detail}
                         </div>
                       ))}
@@ -305,9 +415,9 @@ export default function IntegrityMonitorPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {report.dataConsistency.issues.map((issue, index) => (
+                      {report.dataConsistency.issues.map((issue, issueIndex) => (
                         <div
-                          key={index}
+                          key={`consistency-issue-${issue.type}-${issueIndex}`}
                           className="flex items-center justify-between p-3 bg-yellow-50 rounded border-l-2 border-yellow-200"
                         >
                           <div>
@@ -331,42 +441,40 @@ export default function IntegrityMonitorPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button
-                      onClick={() => performAction("cleanup_expired_auctions")}
-                      disabled={actionLoading === "cleanup_expired_auctions"}
-                      variant="outline"
-                      className="h-auto p-4 flex flex-col items-start"
-                    >
-                      <div className="font-medium">Cleanup Expired Auctions</div>
-                      <div className="text-sm text-muted-foreground text-left">
-                        Mark expired auctions as 'expired' status
-                      </div>
-                      {actionLoading === "cleanup_expired_auctions" && (
-                        <RefreshCw className="h-4 w-4 animate-spin mt-2" />
-                      )}
-                    </Button>
-
-                    <Button
-                      onClick={() => performAction("recalculate_favorites")}
-                      disabled={actionLoading === "recalculate_favorites"}
-                      variant="outline"
-                      className="h-auto p-4 flex flex-col items-start"
-                    >
-                      <div className="font-medium">Recalculate Favorites</div>
-                      <div className="text-sm text-muted-foreground text-left">Fix favorites count inconsistencies</div>
-                      {actionLoading === "recalculate_favorites" && <RefreshCw className="h-4 w-4 animate-spin mt-2" />}
-                    </Button>
-
-                    <Button
-                      onClick={() => performAction("validate_all_data")}
-                      disabled={actionLoading === "validate_all_data"}
-                      variant="outline"
-                      className="h-auto p-4 flex flex-col items-start"
-                    >
-                      <div className="font-medium">Validate All Data</div>
-                      <div className="text-sm text-muted-foreground text-left">Run comprehensive schema validation</div>
-                      {actionLoading === "validate_all_data" && <RefreshCw className="h-4 w-4 animate-spin mt-2" />}
-                    </Button>
+                    {[
+                      {
+                        action: "cleanup_expired_auctions",
+                        title: "Cleanup Expired Auctions",
+                        description: "Mark expired auctions as 'expired' status",
+                      },
+                      {
+                        action: "recalculate_favorites",
+                        title: "Recalculate Favorites",
+                        description: "Fix favorites count inconsistencies",
+                      },
+                      {
+                        action: "validate_all_data",
+                        title: "Validate All Data",
+                        description: "Run comprehensive schema validation",
+                      },
+                      {
+                        action: "cleanup_orphaned_records",
+                        title: "Cleanup Orphaned Records",
+                        description: "Remove records with broken relationships",
+                      },
+                    ].map((actionItem, actionIndex) => (
+                      <Button
+                        key={`action-${actionItem.action}-${actionIndex}`}
+                        onClick={() => performAction(actionItem.action)}
+                        disabled={actionLoading === actionItem.action}
+                        variant="outline"
+                        className="h-auto p-4 flex flex-col items-start"
+                      >
+                        <div className="font-medium">{actionItem.title}</div>
+                        <div className="text-sm text-muted-foreground text-left">{actionItem.description}</div>
+                        {actionLoading === actionItem.action && <RefreshCw className="h-4 w-4 animate-spin mt-2" />}
+                      </Button>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -374,7 +482,7 @@ export default function IntegrityMonitorPage() {
           </Tabs>
 
           <div className="text-xs text-muted-foreground text-center">
-            Last updated: {new Date(report.timestamp).toLocaleString()}
+            Report generated: {formatTimestamp(report.timestamp)}
           </div>
         </>
       )}

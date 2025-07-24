@@ -131,3 +131,26 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ─────────────────────────────────────────────────────────────
+--  MotoAuto.ch  •  Integrity / consistency helper functions
+-- ─────────────────────────────────────────────────────────────
+--  Minimal demo implementation. Extend as needed.
+-- ─────────────────────────────────────────────────────────────
+
+-- Function to raise exception if email is missing
+CREATE OR REPLACE FUNCTION public.raise_if_email_missing()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.email IS NULL OR NEW.email = '' THEN
+    RAISE EXCEPTION 'email must not be empty';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Attach trigger to profiles table (example)
+DROP TRIGGER IF EXISTS trg_profiles_email ON public.profiles;
+CREATE TRIGGER trg_profiles_email
+  BEFORE INSERT OR UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.raise_if_email_missing();

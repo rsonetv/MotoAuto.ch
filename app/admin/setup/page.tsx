@@ -3,201 +3,349 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Loader2, Database, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
+
+interface ApiResponse {
+  success: boolean
+  message?: string
+  error?: string
+  validationTests?: {
+    profile: boolean
+    listing: boolean
+  }
+}
 
 export default function AdminSetupPage() {
-  const [setupStatus, setSetupStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
-  const [seedStatus, setSeedStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
-  const [message, setMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [results, setResults] = useState<{
+    database?: ApiResponse
+    seed?: ApiResponse
+  }>({})
+  const [errors, setErrors] = useState<string[]>([])
 
-  const setupDatabase = async () => {
-    setSetupStatus("loading")
-    setMessage("")
+  // Utility function for API calls with timeout and proper error handling
+  const makeApiCall = async (url: string, timeout = 45000): Promise<ApiResponse> => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
 
     try {
-      console.log("Calling setup-database API...")
-      const response = await fetch("/api/setup-database", {
+      const response = await fetch(url, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
         },
       })
 
-      console.log("Response status:", response.status)
-      let payload: any = null
-      try {
-        /* try JSON first */
-        payload = await response.json()
-      } catch {
-        /* if response isn’t JSON read plain-text */
-        payload = { success: false, error: await response.text() }
+      clearTimeout(timeoutId)
+
+      // Clone the response to avoid "body stream already read" error
+      const responseClone = response.clone()
+
+      // Check if response is ok
+      if (!response.ok) {
+        let errorMessage: string
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        } catch {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        }
+        throw new Error(errorMessage)
       }
 
-      if (response.ok && payload?.success) {
-        setSetupStatus("success")
-        setMessage("Database tables created successfully!")
-      } else {
-        setSetupStatus("error")
-        setMessage(payload?.error || "Failed to setup database")
+      // Try to parse as JSON, fallback to text
+      try {
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          return await response.json()
+        } else {
+          // If not JSON, try to parse the cloned response as text
+          const textResponse = await responseClone.text()
+          return {
+            success: true,
+            message: textResponse || "Operation completed successfully",
+          }
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, try text parsing on the clone
+        try {
+          const textResponse = await responseClone.text()
+          return {
+            success: true,
+            message: textResponse || "Operation completed successfully",
+          }
+        } catch {
+          throw new Error(
+            `Failed to parse response: ${parseError instanceof Error ? parseError.message : "Unknown parsing error"}`,
+          )
+        }
       }
     } catch (error) {
-      console.error("Setup error:", error)
-      setSetupStatus("error")
-      setMessage(`Network error: ${error instanceof Error ? error.message : "Unknown error"}`)
+      clearTimeout(timeoutId)
+
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error(`Request timeout after ${timeout / 1000} seconds`)
+        }
+        throw error
+      }
+      throw new Error("Unknown network error occurred")
+    }
+  }
+
+  const setupDatabase = async () => {
+    setIsLoading(true)
+    setErrors([])
+    setResults({})
+
+    try {
+      console.log("🚀 Starting database setup...")
+
+      const dbResult = await makeApiCall("/api/admin/setup-database", 45000)
+      setResults((prev) => ({ ...prev, database: dbResult }))
+
+      if (!dbResult.success) {
+        throw new Error(`Database setup failed: ${dbResult.error}`)
+      }
+
+      console.log("✅ Database setup completed successfully")
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      console.error("❌ Setup failed:", errorMessage)
+      setErrors((prev) => [...prev, `Database setup failed: ${errorMessage}`])
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const seedData = async () => {
-    setSeedStatus("loading")
-    setMessage("")
+    setIsLoading(true)
+    setErrors([])
 
     try {
-      console.log("Calling seed-data API...")
-      const response = await fetch("/api/seed-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      console.log("🌱 Starting data seeding...")
 
-      console.log("Response status:", response.status)
-      let payload: any = null
-      try {
-        payload = await response.json()
-      } catch {
-        payload = { success: false, error: await response.text() }
+      const seedResult = await makeApiCall("/api/seed-data", 30000)
+      setResults((prev) => ({ ...prev, seed: seedResult }))
+
+      if (!seedResult.success) {
+        throw new Error(`Data seeding failed: ${seedResult.error}`)
       }
 
-      if (response.ok && payload?.success) {
-        setSeedStatus("success")
-        setMessage("Sample data added successfully!")
-      } else {
-        setSeedStatus("error")
-        setMessage(payload?.error || "Failed to seed data")
-      }
+      console.log("✅ Data seeding completed successfully")
     } catch (error) {
-      console.error("Seed error:", error)
-      setSeedStatus("error")
-      setMessage(`Network error: ${error instanceof Error ? error.message : "Unknown error"}`)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      console.error("❌ Seeding failed:", errorMessage)
+      setErrors((prev) => [...prev, `Data seeding failed: ${errorMessage}`])
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">MotoAuto.ch Setup</h1>
-          <p className="text-gray-600">Initialize your database and add sample data</p>
-        </div>
+  const getStatusBadge = (result?: ApiResponse) => {
+    if (!result) return <Badge variant="secondary">Not Started</Badge>
+    if (result.success)
+      return (
+        <Badge variant="default" className="bg-green-500">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Success
+        </Badge>
+      )
+    return (
+      <Badge variant="destructive">
+        <XCircle className="w-3 h-3 mr-1" />
+        Failed
+      </Badge>
+    )
+  }
 
-        <div className="space-y-6">
-          {/* Environment Check */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Environment Check</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p>✅ SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing"}</p>
-                <p>✅ SUPABASE_ANON_KEY: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Missing"}</p>
-                <p>
-                  ✅ SUPABASE_DB_URL:{" "}
-                  {typeof window === "undefined" && process.env.SUPABASE_DB_URL ? "Set" : "Check server logs"}
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">MotoAuto.ch Admin Setup</h1>
+        <p className="text-muted-foreground">Initialize the database schema and seed initial data for the platform.</p>
+      </div>
+
+      {/* Error Display */}
+      {errors.length > 0 && (
+        <Alert className="mb-6 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription>
+            <div className="space-y-1">
+              {errors.map((error, index) => (
+                <div key={index} className="text-red-700">
+                  {error}
+                </div>
+              ))}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid gap-6">
+        {/* Database Setup Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Database className="h-5 w-5" />
+                <CardTitle>Database Setup</CardTitle>
+              </div>
+              {getStatusBadge(results.database)}
+            </div>
+            <CardDescription>
+              Create tables, indexes, JSON schemas, and validation functions. This process typically takes 30-45
+              seconds.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Button onClick={setupDatabase} disabled={isLoading} className="w-full sm:w-auto">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Setting up database...
+                  </>
+                ) : (
+                  <>
+                    <Database className="mr-2 h-4 w-4" />
+                    Setup Database
+                  </>
+                )}
+              </Button>
+
+              {results.database && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">Setup Results:</h4>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {results.database.message ||
+                      (results.database.success ? "Database setup completed successfully" : "Setup failed")}
+                  </p>
+
+                  {results.database.validationTests && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Validation Tests:</p>
+                      <div className="flex space-x-4 text-sm">
+                        <span
+                          className={`flex items-center ${results.database.validationTests.profile ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {results.database.validationTests.profile ? (
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                          ) : (
+                            <XCircle className="w-3 h-3 mr-1" />
+                          )}
+                          Profile Schema
+                        </span>
+                        <span
+                          className={`flex items-center ${results.database.validationTests.listing ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {results.database.validationTests.listing ? (
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                          ) : (
+                            <XCircle className="w-3 h-3 mr-1" />
+                          )}
+                          Listing Schema
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Seeding Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Database className="h-5 w-5" />
+                <CardTitle>Seed Sample Data</CardTitle>
+              </div>
+              {getStatusBadge(results.seed)}
+            </div>
+            <CardDescription>
+              Populate the database with sample users, listings, and test data. Run this after database setup is
+              complete.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={seedData}
+              disabled={isLoading || !results.database?.success}
+              variant={results.database?.success ? "default" : "secondary"}
+              className="w-full sm:w-auto"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Seeding data...
+                </>
+              ) : (
+                <>
+                  <Database className="mr-2 h-4 w-4" />
+                  Seed Data
+                </>
+              )}
+            </Button>
+
+            {results.seed && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium mb-2">Seeding Results:</h4>
+                <p className="text-sm text-gray-600">
+                  {results.seed.message ||
+                    (results.seed.success ? "Data seeding completed successfully" : "Seeding failed")}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Database Setup */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {setupStatus === "success" && <CheckCircle className="w-5 h-5 text-green-500" />}
-                {setupStatus === "error" && <AlertCircle className="w-5 h-5 text-red-500" />}
-                Database Setup
-              </CardTitle>
-              <CardDescription>Create the necessary tables, indexes, and security policies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={setupDatabase}
-                disabled={setupStatus === "loading" || setupStatus === "success"}
-                className="w-full"
-              >
-                {setupStatus === "loading" && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {setupStatus === "success" ? "Database Setup Complete" : "Setup Database"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Seed Data */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {seedStatus === "success" && <CheckCircle className="w-5 h-5 text-green-500" />}
-                {seedStatus === "error" && <AlertCircle className="w-5 h-5 text-red-500" />}
-                Sample Data
-              </CardTitle>
-              <CardDescription>Add sample vehicles, auctions, and user profiles for testing</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={seedData}
-                disabled={seedStatus === "loading" || seedStatus === "success" || setupStatus !== "success"}
-                className="w-full"
-                variant={setupStatus !== "success" ? "secondary" : "default"}
-              >
-                {seedStatus === "loading" && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {seedStatus === "success" ? "Sample Data Added" : "Add Sample Data"}
-              </Button>
-              {setupStatus !== "success" && <p className="text-sm text-gray-500 mt-2">Complete database setup first</p>}
-            </CardContent>
-          </Card>
-
-          {/* Status Message */}
-          {message && (
-            <Card>
-              <CardContent className="pt-6">
-                <div
-                  className={`flex items-center gap-2 ${
-                    setupStatus === "success" || seedStatus === "success" ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {setupStatus === "success" || seedStatus === "success" ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5" />
-                  )}
-                  <span>{message}</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Next Steps */}
-          {setupStatus === "success" && seedStatus === "success" && (
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-green-800">Setup Complete! 🎉</CardTitle>
-                <CardDescription className="text-green-700">
-                  Your MotoAuto.ch application is ready to use
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-green-700">
-                  <p>✅ Database tables created</p>
-                  <p>✅ Security policies configured</p>
-                  <p>✅ Sample data added</p>
-                  <p className="mt-4">
-                    <a href="/" className="text-blue-600 hover:underline font-medium">
-                      → Go to Homepage
-                    </a>
+        {/* Setup Instructions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Setup Instructions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start space-x-2">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+                  1
+                </span>
+                <div>
+                  <p className="font-medium">Database Setup</p>
+                  <p className="text-gray-600">
+                    Creates all necessary tables, indexes, and validation functions with comprehensive JSON schemas.
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+                  2
+                </span>
+                <div>
+                  <p className="font-medium">Seed Data</p>
+                  <p className="text-gray-600">
+                    Populates the database with sample users, vehicle listings, and test data for development.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
+                  ✓
+                </span>
+                <div>
+                  <p className="font-medium">Ready to Use</p>
+                  <p className="text-gray-600">Your MotoAuto.ch platform is now ready for development and testing.</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
