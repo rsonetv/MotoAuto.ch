@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "./motoauto-theme.css";
+
 
 body {
   font-family: Arial, Helvetica, sans-serif;

@@ -1,5 +1,5 @@
-import type { Config } from "tailwindcss"
-import defaultConfig from "shadcn/ui/tailwind.config"
+import type { Config } from "tailwindcss";
+import defaultConfig from "shadcn/ui/tailwind.config";
 
 const config: Config = {
   ...defaultConfig,
@@ -13,28 +13,36 @@ const config: Config = {
   theme: {
     ...defaultConfig.theme,
     extend: {
-      ...defaultConfig.theme.extend.colors,
+      ...defaultConfig.theme.extend,
       colors: {
-        teal: {
-          600: "#21808D",
+        /* Markowa paleta MotoAuto.ch */
+        brand: {
+          DEFAULT: "#009fb7",   // primary
+          light:  "#00cfe8",    // hover / gradient
+          dark:   "#007c91",    // ciemniejszy odcień
         },
-        yellow: {
-          400: "#FBBF24",
+        neutral: {
+          50:  "#f7f9fc",       // background
+          100: "#e9eef5",       // secondary bg
+          900: "#0a0a0a",       // tekst
+        },
+        danger: {
+          DEFAULT: "#e60023",   // czerwony akcent ".ch"
+        },
+      },
+      keyframes: {
+        fadeIn: {
+          "0%":   { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideUp: {
+          "0%":   { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)",     opacity: "1" },
         },
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.5s ease-out",
-      },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        slideUp: {
-          "0%": { transform: "translateY(20px)", opacity: "0" },
-          "100%": { transform: "translateY(0)", opacity: "1" },
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -44,6 +52,6 @@ const config: Config = {
     },
   },
   plugins: [...defaultConfig.plugins, require("tailwindcss-animate")],
-}
+};
 
-export default config
+export default config;
