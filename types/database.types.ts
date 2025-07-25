@@ -67,4 +67,25 @@ export interface Database {
         Update: {
           id?: string
           email?: string
-          fu
+          full_name?: string | null
+          avatar_url?: string | null
+          phone?: string | null
+          email_verified?: boolean
+          phone_verified?: boolean
+          is_dealer?: boolean
+          dealer_name?: string | null
+          dealer_license?: string | null
+          location?: string | null
+          postal_code?: string | null
+          bio?: string | null
+          website?: string | null
+          social_links?: Record<string, any>
+          preferences?: Record<string, any>
+          verification_status?: "pending" | "verified" | "rejected"
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    }
+  }
+}

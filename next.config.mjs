@@ -1,10 +1,8 @@
-import { DefinePlugin } from "webpack"
+import webpack from 'webpack';
+const { DefinePlugin } = webpack;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
 
   webpack(config) {
     // Make sure the plugins array exists
