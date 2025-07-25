@@ -1,21 +1,17 @@
-;/import { db } from "@/bil / db
-";
+import { db } from "@/lib/db";
 import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    await db.begin()
-
-    await db.execute("DROP TABLE IF EXISTS users")
-    await db.execute(`CREATE TABLE users (
+    // Using postgres.js syntax correctly
+    await db.query("DROP TABLE IF EXISTS users");
+    await db.query(`CREATE TABLE users (
         id INT PRIMARY KEY,
         name VARCHAR(255)
-    )`)
+    )`);
 
-    await db.execute("INSERT INTO users (id, name) VALUES (1, 'Alice')")
-    await db.execute("INSERT INTO users (id, name) VALUES (2, 'Bob')")
-
-    await db.commit()
+    await db.query("INSERT INTO users (id, name) VALUES (1, 'Alice')");
+    await db.query("INSERT INTO users (id, name) VALUES (2, 'Bob')");
 
     return NextResponse.json({ success: true })
   } catch (err) {
