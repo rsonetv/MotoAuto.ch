@@ -1,35 +1,46 @@
 -- scripts/setup-database-with-jsonschema.sql
--- Enhanced MotoAuto.ch Database Setup with JSON Schema Validation – COMPLETE FIXED
+-- MotoAuto.ch – Complete, Fixed Schema with JSON Schema Validation
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTSuuid-ossp";
+-- 1. Enable required extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- Drop existing tables if they exist (clean slate)
+-- 2. Drop existing triggers and functions to avoid conflicts
+DROP TRIGGER IF EXISTS trg_profiles_updated_at ON profiles;
+DROP TRIGGER IF EXISTS trg_listings_updated_at ON listings;
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+DROP FUNCTION IF EXISTS validate_profile_data(JSONB) CASCADE;
+DROP FUNCTION IF EXISTS validate_listing_data(JSONB) CASCADE;
+DROP FUNCTION IF EXISTS validate_bid_data(JSONB) CASCADE;
+DROP FUNCTION IF EXISTS get_profile_schema() CASCADE;
+DROP FUNCTION IF EXISTS get_listing_schema() CASCADE;
+DROP FUNCTION IF EXISTS get_bid_schema() CASCADE;
+
+-- 3. Drop all tables for a clean slate
 DROP TABLE IF EXISTS favorites CASCADE;
 DROP TABLE IF EXISTS bids CASCADE;
 DROP TABLE IF EXISTS listings CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- 1. users table
+-- 4. users table
 CREATE TABLE users (
-  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email      TEXT        UNIQUE NOT NULL,
+  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email      TEXT UNIQUE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. profiles table
+-- 5. profiles table (with phone_verified and is_dealer)
 CREATE TABLE profiles (
-  id                  UUID        PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  id                  UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   email               TEXT        NOT NULL,
   full_name           TEXT,
   avatar_url          TEXT,
   phone               TEXT,
   email_verified      BOOLEAN     DEFAULT FALSE,
   phone_verified      BOOLEAN     DEFAULT FALSE,
-  is_dealer           BOOLEAN     DEFAULT FALSE,       -- added to fix seed error
+  is_dealer           BOOLEAN     DEFAULT FALSE,
   dealer_name         TEXT,
   dealer_license      TEXT,
   location            TEXT,
@@ -38,93 +49,93 @@ CREATE TABLE profiles (
   website             TEXT,
   social_links        JSONB       DEFAULT '{}'::jsonb,
   preferences         JSONB       DEFAULT '{}'::jsonb,
-  verification_status TEXT        DEFAULT 'pending' 
+  verification_status TEXT        DEFAULT 'pending'
                                  CHECK (verification_status IN ('pending','verified','rejected')),
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. listings table
+-- 6. listings table (complete vehicle data)
 CREATE TABLE listings (
-  id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id         UUID        REFERENCES users(id) ON DELETE CASCADE,
-  title           TEXT        NOT NULL,
-  description     TEXT,
-  category        TEXT        NOT NULL CHECK (category IN ('auto','moto','commercial')),
-  brand           TEXT        NOT NULL,
-  model           TEXT        NOT NULL,
-  year            INTEGER,
-  mileage         INTEGER,
-  engine_capacity NUMERIC(4,2),
-  power           INTEGER,
-  fuel_type       TEXT        CHECK (fuel_type IN ('petrol','diesel','electric','hybrid','gas','other')),
-  transmission    TEXT        CHECK (transmission IN ('manual','automatic','semi-automatic')),
-  color           TEXT,
-  vin             TEXT        CHECK (vin ~ '^[A-HJ-NPR-Z0-9]{17}$'),
-  condition       TEXT        DEFAULT 'used' CHECK (condition IN ('new','used','damaged')),
-  accident_free   BOOLEAN     DEFAULT TRUE,
-  owners_count    INTEGER     DEFAULT 1,
-  has_service_book BOOLEAN    DEFAULT FALSE,
-  price           NUMERIC(12,2) NOT NULL CHECK (price >= 0),
-  currency        TEXT        DEFAULT 'CHF' CHECK (currency IN ('CHF','EUR','USD')),
-  location        TEXT        NOT NULL,
-  postal_code     TEXT,
-  images          TEXT[]      DEFAULT '{}',
-  features        JSONB       DEFAULT '{}'::jsonb,
-  is_auction      BOOLEAN     DEFAULT FALSE,
-  auction_end_time TIMESTAMPTZ,
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id           UUID REFERENCES users(id) ON DELETE CASCADE,
+  title             TEXT        NOT NULL,
+  description       TEXT,
+  category          TEXT        NOT NULL CHECK (category IN ('auto','moto','commercial')),
+  brand             TEXT        NOT NULL,
+  model             TEXT        NOT NULL,
+  year              INTEGER,
+  mileage           INTEGER,
+  engine_capacity   NUMERIC(4,2),
+  power             INTEGER,
+  fuel_type         TEXT        CHECK (fuel_type IS NULL OR fuel_type IN ('petrol','diesel','electric','hybrid','gas','other')),
+  transmission      TEXT        CHECK (transmission IS NULL OR transmission IN ('manual','automatic','semi-automatic')),
+  color             TEXT,
+  vin               TEXT        CHECK (vin IS NULL OR vin ~ '^[A-HJ-NPR-Z0-9]{17}$'),
+  condition         TEXT        DEFAULT 'used' CHECK (condition IN ('new','used','damaged')),
+  accident_free     BOOLEAN     DEFAULT TRUE,
+  owners_count      INTEGER     DEFAULT 1,
+  has_service_book  BOOLEAN     DEFAULT FALSE,
+  price             NUMERIC(12,2) NOT NULL CHECK (price >= 0),
+  currency          TEXT        DEFAULT 'CHF' CHECK (currency IN ('CHF','EUR','USD')),
+  location          TEXT        NOT NULL,
+  postal_code       TEXT,
+  images            TEXT[]      DEFAULT '{}',
+  features          JSONB       DEFAULT '{}'::jsonb,
+  is_auction        BOOLEAN     DEFAULT FALSE,
+  auction_end_time  TIMESTAMPTZ,
   min_bid_increment NUMERIC(10,2),
-  reserve_price   NUMERIC(12,2),
-  current_bid     NUMERIC(12,2),
-  bid_count       INTEGER     DEFAULT 0,
-  status          TEXT        DEFAULT 'active' CHECK (status IN ('active','sold','expired','draft')),
-  views           INTEGER     DEFAULT 0,
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ DEFAULT NOW()
+  reserve_price     NUMERIC(12,2),
+  current_bid       NUMERIC(12,2),
+  bid_count         INTEGER     DEFAULT 0,
+  status            TEXT        DEFAULT 'active' CHECK (status IN ('active','sold','expired','draft')),
+  views             INTEGER     DEFAULT 0,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. bids table
+-- 7. bids table
 CREATE TABLE bids (
-  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  listing_id  UUID        REFERENCES listings(id) ON DELETE CASCADE,
-  user_id     UUID        REFERENCES users(id) ON DELETE CASCADE,
-  amount      NUMERIC(12,2) NOT NULL CHECK (amount > 0),
-  is_auto_bid BOOLEAN     DEFAULT FALSE,
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  listing_id   UUID REFERENCES listings(id) ON DELETE CASCADE,
+  user_id      UUID REFERENCES users(id) ON DELETE CASCADE,
+  amount       NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+  is_auto_bid  BOOLEAN     DEFAULT FALSE,
   max_auto_bid NUMERIC(12,2),
-  status      TEXT        DEFAULT 'active' 
-                         CHECK (status IN ('active','outbid','winning','won','lost')),
-  placed_at   TIMESTAMPTZ DEFAULT NOW(),
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+  status       TEXT        DEFAULT 'active' CHECK (status IN ('active','outbid','winning','won','lost')),
+  placed_at    TIMESTAMPTZ DEFAULT NOW(),
+  created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. favorites table
+-- 8. favorites table
 CREATE TABLE favorites (
-  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id    UUID        REFERENCES users(id) ON DELETE CASCADE,
-  listing_id UUID        REFERENCES listings(id) ON DELETE CASCADE,
+  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
+  listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, listing_id)
 );
 
--- Indexes
-CREATE INDEX ON profiles(email);
-CREATE INDEX ON profiles(is_dealer);
-CREATE INDEX ON profiles(postal_code);
-CREATE INDEX ON listings(user_id);
-CREATE INDEX ON listings(category);
-CREATE INDEX ON listings(brand);
-CREATE INDEX ON listings(status);
-CREATE INDEX ON listings(is_auction);
-CREATE INDEX ON listings(location);
-CREATE INDEX ON listings(postal_code);
-CREATE INDEX ON listings(created_at DESC);
-CREATE INDEX ON bids(listing_id);
-CREATE INDEX ON bids(user_id);
-CREATE INDEX ON bids(placed_at DESC);
-CREATE INDEX ON favorites(user_id);
-CREATE INDEX ON favorites(listing_id);
+-- 9. Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_profiles_email           ON profiles(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_is_dealer       ON profiles(is_dealer);
+CREATE INDEX IF NOT EXISTS idx_profiles_phone_verified  ON profiles(phone_verified);
+CREATE INDEX IF NOT EXISTS idx_profiles_postal_code     ON profiles(postal_code);
+CREATE INDEX IF NOT EXISTS idx_listings_user_id         ON listings(user_id);
+CREATE INDEX IF NOT EXISTS idx_listings_category        ON listings(category);
+CREATE INDEX IF NOT EXISTS idx_listings_brand           ON listings(brand);
+CREATE INDEX IF NOT EXISTS idx_listings_status          ON listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_is_auction      ON listings(is_auction);
+CREATE INDEX IF NOT EXISTS idx_listings_location        ON listings(location);
+CREATE INDEX IF NOT EXISTS idx_listings_postal_code     ON listings(postal_code);
+CREATE INDEX IF NOT EXISTS idx_listings_created_at      ON listings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bids_listing_id          ON bids(listing_id);
+CREATE INDEX IF NOT EXISTS idx_bids_user_id             ON bids(user_id);
+CREATE INDEX IF NOT EXISTS idx_bids_placed_at           ON bids(placed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_favorites_user_id        ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_listing_id     ON favorites(listing_id);
 
--- Trigger to update updated_at
+-- 10. Trigger function to update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -133,6 +144,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Apply triggers
 CREATE TRIGGER trg_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
@@ -141,10 +153,11 @@ CREATE TRIGGER trg_listings_updated_at
   BEFORE UPDATE ON listings
   FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
--- JSON Schema functions (fixed escaping, multi-line literals)
+-- 11. JSON Schema functions
 CREATE OR REPLACE FUNCTION get_profile_schema() RETURNS JSONB AS $$
 BEGIN
-  RETURN $json${
+  RETURN $json$
+  {
     "type":"object",
     "properties":{
       "id":{"type":"string","format":"uuid"},
@@ -167,15 +180,17 @@ BEGIN
       "created_at":{"type":"string","format":"date-time"},
       "updated_at":{"type":"string","format":"date-time"}
     },
-    "required":["id","email","email_verified","is_dealer","created_at","updated_at"],
+    "required":["id","email","email_verified","phone_verified","is_dealer","created_at","updated_at"],
     "additionalProperties":false
-  }$json$::jsonb;
+  }
+  $json$::jsonb;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION get_listing_schema() RETURNS JSONB AS $$
 BEGIN
-  RETURN $json${
+  RETURN $json$
+  {
     "type":"object",
     "properties":{
       "id":{"type":"string","format":"uuid"},
@@ -216,13 +231,15 @@ BEGIN
     },
     "required":["user_id","title","category","brand","model","price","location"],
     "additionalProperties":false
-  }$json$::jsonb;
+  }
+  $json$::jsonb;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION get_bid_schema() RETURNS JSONB AS $$
 BEGIN
-  RETURN $json${
+  RETURN $json$
+  {
     "type":"object",
     "properties":{
       "id":{"type":"string","format":"uuid"},
@@ -237,60 +254,54 @@ BEGIN
     },
     "required":["listing_id","user_id","amount"],
     "additionalProperties":false
-  }$json$::jsonb;
+  }
+  $json$::jsonb;
 END;
 $$ LANGUAGE plpgsql;
 
--- RLS: enable and idempotent policies
-ALTER TABLE users    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE listings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bids     ENABLE ROW LEVEL SECURITY;
+-- 12. Enable RLS and create idempotent policies
+ALTER TABLE users     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE listings  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bids      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Profiles select') THEN
-    CREATE POLICY "Profiles select" ON profiles FOR SELECT USING (true);
+  -- Profiles policies
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='select_profiles') THEN
+    CREATE POLICY select_profiles ON profiles FOR SELECT USING (true);
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Profiles update own') THEN
-    CREATE POLICY "Profiles update own" ON profiles FOR UPDATE USING (auth.uid()=id);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='update_own_profile') THEN
+    CREATE POLICY update_own_profile ON profiles FOR UPDATE USING (auth.uid() = id);
   END IF;
-END;
-$$;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='listings' AND policyname='Listings public select') THEN
-    CREATE POLICY "Listings public select" ON listings FOR SELECT USING (status='active');
+  -- Listings policies
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='listings' AND policyname='select_listings') THEN
+    CREATE POLICY select_listings ON listings FOR SELECT USING (status = 'active');
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='listings' AND policyname='Listings manage own') THEN
-    CREATE POLICY "Listings manage own" ON listings FOR ALL USING (auth.uid()=user_id);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='listings' AND policyname='manage_own_listings') THEN
+    CREATE POLICY manage_own_listings ON listings FOR ALL USING (auth.uid() = user_id);
   END IF;
-END;
-$$;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bids' AND policyname='Bids select own') THEN
-    CREATE POLICY "Bids select own" ON bids FOR SELECT USING (
-      bids.user_id=auth.uid() OR 
-      EXISTS(SELECT 1 FROM listings WHERE listings.id=bids.listing_id AND listings.user_id=auth.uid())
+  -- Bids policies
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bids' AND policyname='select_bids') THEN
+    CREATE POLICY select_bids ON bids FOR SELECT USING (
+      bids.user_id = auth.uid()
+      OR EXISTS (
+        SELECT 1 FROM listings WHERE listings.id = bids.listing_id AND listings.user_id = auth.uid()
+      )
     );
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bids' AND policyname='Bids insert own') THEN
-    CREATE POLICY "Bids insert own" ON bids FOR INSERT WITH CHECK (auth.uid()=user_id);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bids' AND policyname='insert_bids') THEN
+    CREATE POLICY insert_bids ON bids FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+
+  -- Favorites policies
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='favorites' AND policyname='manage_favorites') THEN
+    CREATE POLICY manage_favorites ON favorites FOR ALL USING (auth.uid() = user_id);
   END IF;
 END;
 $$;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='favorites' AND policyname='Favorites manage own') THEN
-    CREATE POLICY "Favorites manage own" ON favorites FOR ALL USING (auth.uid()=user_id);
-  END IF;
-END;
-$$;
-
--- Commit
 COMMIT;
