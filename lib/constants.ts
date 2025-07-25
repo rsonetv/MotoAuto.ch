@@ -25,6 +25,11 @@ export const VEHICLE_CATEGORIES = {
     Amerykańskie: ["Harley-Davidson", "Indian", "Victory", "Buell"],
     Inne: ["Benelli", "CFMoto", "Zontes", "Junak", "Romet", "Barton", "Sym", "Kymco", "Piaggio"],
   },
+  DOSTAWCZE: {
+    Lekkie: ["Mercedes-Benz", "Volkswagen", "Ford", "Iveco", "Renault", "Peugeot", "Citroën", "Fiat"],
+    Średnie: ["Mercedes-Benz", "Volkswagen", "Ford", "Iveco", "MAN", "DAF", "Volvo"],
+    Ciężkie: ["Mercedes-Benz", "Scania", "Volvo", "MAN", "DAF", "Iveco", "Renault Trucks"],
+  },
 }
 
 // Comprehensive vehicle models database
@@ -56,31 +61,28 @@ export const VEHICLE_MODELS = {
     "RSQ8",
   ],
   BMW: [
-    "Seria 1",
-    "Seria 2",
-    "Seria 3",
-    "Seria 4",
-    "Seria 5",
-    "Seria 6",
-    "Seria 7",
-    "Seria 8",
-    "X1",
-    "X2",
-    "X3",
-    "X4",
-    "X5",
-    "X6",
-    "X7",
-    "iX",
-    "Z4",
-    "i3",
-    "i4",
-    "iX3",
-    "M2",
-    "M3",
-    "M4",
-    "M5",
-    "M8",
+    // Seria 1
+    "116i", "118i", "120i", "125i", "M135i",
+    // Seria 2
+    "218i", "220i", "225xe", "M235i", "M240i",
+    // Seria 3
+    "318i", "320i", "325i", "330i", "335i", "M3",
+    // Seria 4
+    "420i", "430i", "440i", "M4",
+    // Seria 5
+    "520i", "525i", "530i", "540i", "M5",
+    // Seria 6
+    "630i", "640i", "650i", "M6",
+    // Seria 7
+    "730i", "740i", "750i", "760i",
+    // Seria 8
+    "840i", "850i", "M8",
+    // X Series
+    "X1", "X2", "X3", "X4", "X5", "X6", "X7",
+    // Z Series
+    "Z3", "Z4", "Z8",
+    // i Series (Electric)
+    "i3", "i4", "i7", "i8", "iX", "iX3",
   ],
   "Mercedes-Benz": [
     "Klasa A",
@@ -374,30 +376,20 @@ export const VEHICLE_MODELS = {
     "Vulcan 1700",
   ],
   BMWMoto: [
-    // Sport
-    "S1000RR",
-    "S1000R",
-    "F900R",
-    "G310R",
-    // Adventure
-    "R1250GS",
-    "R1200GS",
-    "F850GS",
-    "F750GS",
-    "G310GS",
-    // Touring
-    "R1250RT",
-    "K1600GT",
-    "K1600GTL",
-    // Cruiser
-    "R18",
-    "R nineT",
-    // Scooters
-    "C650GT",
-    "C650 Sport",
-    "C400X",
-    "C400GT",
-    "CE 04",
+    // R Series (Adventure/Touring)
+    "R 12 nineT", "R 18", "R 1250 GS", "R 1250 RT", "R 1300 GS", "R nineT", "R 1200 GS", "R 1150 GS",
+    // S Series (Sport)
+    "S 1000 RR", "S 1000 R", "S 1000 XR", "S 1000 F",
+    // F Series (Adventure/Naked)
+    "F 900 GS", "F 900 R", "F 850 GS", "F 800 GS", "F 750 GS", "F 650 GS",
+    // K Series (Touring)
+    "K 1600 GT", "K 1600 GTL", "K 1300 S", "K 1200 RS",
+    // G Series (Entry Level)
+    "G 310 GS", "G 310 R",
+    // C Series (Scooters)
+    "C 400 X", "C 400 GT", "C 650 GT", "C 650 Sport",
+    // CE Series (Electric)
+    "CE 02", "CE 04",
   ],
   Ducati: [
     // Supersport
