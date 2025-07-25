@@ -2,6 +2,14 @@ import { db } from "@/lib/db";
 import { NextResponse } from "next/server"
 
 export async function GET() {
+  // For build time, return a mock response
+  if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "preview") {
+    return NextResponse.json({ 
+      success: true,
+      message: "This is a mock response for build time"
+    });
+  }
+  
   try {
     await db.query("BEGIN");
 
@@ -18,6 +26,10 @@ export async function GET() {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json({ success: false, error: (err as Error).message ?? "Unknown error" }, { status: 500 })
+    console.error("Database setup error:", err);
+    return NextResponse.json({ 
+      success: false, 
+      error: (err as Error).message ?? "Unknown error" 
+    }, { status: 500 })
   }
 }
