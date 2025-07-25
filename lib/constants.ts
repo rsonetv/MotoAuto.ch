@@ -247,7 +247,7 @@ export const VEHICLE_MODELS = {
   Dodge: ["Challenger", "Charger", "Durango", "Journey"],
 
   // MOTORCYCLE BRANDS
-  Honda: [
+  HondaMoto: [
     // Sport/Supersport
     "CBR600RR",
     "CBR1000RR-R",
@@ -373,7 +373,7 @@ export const VEHICLE_MODELS = {
     "Vulcan 900",
     "Vulcan 1700",
   ],
-  BMW: [
+  BMWMoto: [
     // Sport
     "S1000RR",
     "S1000R",
