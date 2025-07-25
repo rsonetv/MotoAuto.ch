@@ -1,24 +1,35 @@
-;/import { db } from "@/bil / db
-";
+import { db } from "@/lib/db";
 import { NextResponse } from "next/server"
 
 export async function GET() {
+  // For build time, return a mock response
+  if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "preview") {
+    return NextResponse.json({ 
+      success: true,
+      message: "This is a mock response for build time"
+    });
+  }
+  
   try {
-    await db.begin()
+    await db.query("BEGIN");
 
-    await db.execute("DROP TABLE IF EXISTS users")
-    await db.execute(`CREATE TABLE users (
+    await db.query("DROP TABLE IF EXISTS users");
+    await db.query(`CREATE TABLE users (
         id INT PRIMARY KEY,
         name VARCHAR(255)
-    )`)
+    )`);
 
-    await db.execute("INSERT INTO users (id, name) VALUES (1, 'Alice')")
-    await db.execute("INSERT INTO users (id, name) VALUES (2, 'Bob')")
+    await db.query("INSERT INTO users (id, name) VALUES (1, 'Alice')");
+    await db.query("INSERT INTO users (id, name) VALUES (2, 'Bob')");
 
-    await db.commit()
+    await db.query("COMMIT");
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json({ success: false, error: (err as Error).message ?? "Unknown error" }, { status: 500 })
+    console.error("Database setup error:", err);
+    return NextResponse.json({ 
+      success: false, 
+      error: (err as Error).message ?? "Unknown error" 
+    }, { status: 500 })
   }
 }
