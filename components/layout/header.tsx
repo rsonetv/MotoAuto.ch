@@ -32,7 +32,6 @@ export function Header() {
     { href: "/ogloszenia?category=auto", label: "Auto" },
     { href: "/aukcje", label: "Aukcje" },
     { href: "/pricing", label: "Cennik" },
-    { href: "/jak-to-dziala", label: "Jak to działa" },
     { href: "/faq", label: "FAQ" },
     { href: "/contact", label: "Kontakt" },
   ]

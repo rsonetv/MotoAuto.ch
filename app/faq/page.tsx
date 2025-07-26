@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { Search, Gavel, MessageCircle, Car, UserPlus, FileText, Settings, Handshake } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface FaqCategory {
@@ -71,7 +71,7 @@ const faqData: FaqCategory[] = [
       },
       {
         question: "Ile kosztuje wystawienie ogłoszenia?",
-        answer: "Koszt zależy od wybranego pakietu. Oferujemy darmowe ogłoszenia w pakiecie Basic (do 3 ogłoszeń), a także płatne pakiety z dodatkowymi funkcjami. Szczegóły znajdziesz w sekcji 'Cennik'."
+        answer: "Koszt zależy od wybranego pakietu. Oferujemy pakiet Basic (2 ogłoszenie za 2 fr), pakiet Plus (3 ogłoszenie za 3 fr), a także inne płatne pakiety z dodatkowymi funkcjami. Szczegóły znajdziesz w sekcji 'Cennik'."
       },
       {
         question: "Jak wystawić pojazd na aukcję?",
@@ -139,51 +139,178 @@ export default function FaqPage() {
           />
           
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-4">Najczęściej zadawane pytania</h1>
+            <h1 className="text-3xl font-bold mb-4">Jak to działa i FAQ</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Znajdź odpowiedzi na najczęściej zadawane pytania dotyczące korzystania z platformy MotoAuto.ch
+              Dowiedz się, jak działa MotoAuto.ch i znajdź odpowiedzi na najczęściej zadawane pytania
             </p>
           </div>
 
-          <div className="max-w-xl mx-auto mb-12">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input 
-                placeholder="Wyszukaj pytanie..." 
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          <Tabs defaultValue="general" className="mb-12">
+          <Tabs defaultValue="how-it-works" className="mb-12">
             <div className="flex justify-center mb-8 overflow-x-auto pb-2">
               <TabsList>
-                {faqData.map((category) => (
-                  <TabsTrigger key={category.id} value={category.id}>
-                    {category.title}
-                  </TabsTrigger>
-                ))}
+                <TabsTrigger value="how-it-works">Jak to działa</TabsTrigger>
+                <TabsTrigger value="faq">FAQ</TabsTrigger>
               </TabsList>
             </div>
             
-            {faqData.map((category) => (
-              <TabsContent key={category.id} value={category.id}>
-                <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto">
-                  {category.questions.map((faq, index) => (
-                    <AccordionItem key={index} value={`item-${index}`}>
-                      <AccordionTrigger className="text-left">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="prose prose-sm max-w-none">
-                          <p>{faq.answer}</p>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </TabsContent>
-            ))}
+            {/* Jak to działa section */}
+            <TabsContent value="how-it-works">
+              {/* For Buyers Section */}
+              <div className="mb-16">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-primary mb-4">Dla Kupujących</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  <div className="text-center">
+                    <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Znajdź pojazd</h3>
+                    <p className="text-muted-foreground">
+                      Użyj naszych zaawansowanych filtrów, aby znaleźć idealny samochód lub motocykl.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Gavel className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Licytuj lub Kup Teraz</h3>
+                    <p className="text-muted-foreground">
+                      Weź udział w ekscytujących aukcjach lub skorzystaj z opcji "Kup Teraz", aby natychmiast zabezpieczyć
+                      swój zakup.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Skontaktuj się ze sprzedawcą</h3>
+                    <p className="text-muted-foreground">
+                      Po wygranej aukcji lub zakupie, skontaktuj się ze sprzedawcą, aby sfinalizować transakcję.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Car className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Odbierz pojazd</h3>
+                    <p className="text-muted-foreground">Umów się na odbiór pojazdu i ciesz się nowym nabytkiem. Gratulacje!</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-border my-16"></div>
+
+              {/* For Sellers Section */}
+              <div>
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-brand mb-4">Dla Sprzedających</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  <div className="text-center">
+                    <div className="bg-brand/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <UserPlus className="w-10 h-10 text-brand" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Zarejestruj konto</h3>
+                    <p className="text-muted-foreground">Stwórz darmowe konto jako sprzedawca prywatny lub zweryfikowany dealer.</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-brand/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-10 h-10 text-brand" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Dodaj ogłoszenie</h3>
+                    <p className="text-muted-foreground">
+                      Wypełnij prosty formularz, dodaj zdjęcia i szczegółowy opis swojego pojazdu.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-brand/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Settings className="w-10 h-10 text-brand" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Zarządzaj aukcją</h3>
+                    <p className="text-muted-foreground">
+                      Śledź oferty, odpowiadaj na pytania potencjalnych kupujących i zarządzaj swoją aukcją.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-brand/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Handshake className="w-10 h-10 text-brand" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">Sfinalizuj sprzedaż</h3>
+                    <p className="text-muted-foreground">
+                      Po zakończeniu aukcji, skontaktuj się z kupującym, aby przekazać pojazd i otrzymać płatność.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="text-center mt-16 bg-gradient-to-r from-primary to-brand text-white py-12 px-8 rounded-lg">
+                <h2 className="text-3xl font-bold mb-4">Gotowy, aby zacząć?</h2>
+                <p className="text-xl mb-8">Dołącz do tysięcy zadowolonych użytkowników MotoAuto.ch</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button asChild variant="secondary" size="lg">
+                    <a href="/auth/register">Zarejestruj się</a>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-primary">
+                    <a href="/ogloszenia">Przeglądaj pojazdy</a>
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+            
+            {/* FAQ section */}
+            <TabsContent value="faq">
+              <div className="max-w-xl mx-auto mb-12">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                  <Input 
+                    placeholder="Wyszukaj pytanie..." 
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <Tabs defaultValue="general" className="mb-12">
+                <div className="flex justify-center mb-8 overflow-x-auto pb-2">
+                  <TabsList>
+                    {faqData.map((category) => (
+                      <TabsTrigger key={category.id} value={category.id}>
+                        {category.title}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+                
+                {faqData.map((category) => (
+                  <TabsContent key={category.id} value={category.id}>
+                    <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto">
+                      {category.questions.map((faq, index) => (
+                        <AccordionItem key={index} value={`item-${index}`}>
+                          <AccordionTrigger className="text-left">
+                            {faq.question}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="prose prose-sm max-w-none">
+                              <p>{faq.answer}</p>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </TabsContent>
           </Tabs>
 
           <div className="bg-muted rounded-lg p-8 text-center max-w-3xl mx-auto">
