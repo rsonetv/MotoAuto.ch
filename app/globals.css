@@ -1,7 +1,8 @@
-@import '../styles/motoauto-theme.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import '../styles/motoauto-theme.css';
 
 @layer base {
   html {
