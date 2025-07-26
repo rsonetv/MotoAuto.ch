@@ -1,0 +1,10 @@
+{
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm build",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://example.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYzMDQyNjQ4MCwiZXhwIjoxOTQ2MDAyNDgwfQ.example",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjMwNDI2NDgwLCJleHAiOjE5NDYwMDI0ODB9.service-role-example",
+    "SUPABASE_DB_URL": "postgresql://postgres:password@localhost:5432/postgres"
+  }
+}

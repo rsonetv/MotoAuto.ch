@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Globe, User, Menu, Phone, Mail, Plus, Settings, LogOut, FileText, Gavel, Edit, Trash2 } from "lucide-react"
+import { Globe, User, Menu, Phone, Mail, Plus, Settings, LogOut, FileText, Gavel, Edit, Trash2, Heart } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
 import {
   DropdownMenu,
@@ -31,9 +31,9 @@ export function Header() {
     { href: "/ogloszenia?category=moto", label: "Moto" },
     { href: "/ogloszenia?category=auto", label: "Auto" },
     { href: "/aukcje", label: "Aukcje" },
-    { href: "/dealerzy", label: "Dealerzy" },
-    { href: "/jak-to-dziala", label: "Jak to działa" },
-    { href: "/kontakt", label: "Kontakt" },
+    { href: "/pricing", label: "Cennik" },
+    { href: "/faq", label: "FAQ" },
+    { href: "/contact", label: "Kontakt" },
   ]
 
   // Mock user listings for demonstration
@@ -65,10 +65,10 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={`text-gray-300 hover:text-white transition-colors ${
-                  link.href === "/kontakt" ? "flex items-center space-x-1" : ""
+                  link.href === "/contact" ? "flex items-center space-x-1" : ""
                 }`}
               >
-                {link.href === "/kontakt" && <Phone className="w-4 h-4" />}
+                {link.href === "/contact" && <Phone className="w-4 h-4" />}
                 <span>{link.label}</span>
               </Link>
             ))}
@@ -96,7 +96,7 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/kontakt">Formularz kontaktowy</Link>
+                  <Link href="/contact">Formularz kontaktowy</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -164,6 +164,12 @@ export function Header() {
                     <Link href="/dashboard">
                       <Settings className="w-4 h-4 mr-2" />
                       Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favorites">
+                      <Heart className="w-4 h-4 mr-2" />
+                      Ulubione
                     </Link>
                   </DropdownMenuItem>
 
@@ -294,6 +300,14 @@ export function Header() {
                       >
                         <Settings className="w-4 h-4 mr-3" />
                         Dashboard
+                      </Link>
+                      <Link
+                        href="/favorites"
+                        className="flex items-center py-2 text-gray-300 hover:text-white"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Heart className="w-4 h-4 mr-3" />
+                        Ulubione
                       </Link>
                       <button
                         onClick={() => {
