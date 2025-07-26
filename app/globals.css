@@ -16,6 +16,10 @@
   .gradient-hero {
     background: linear-gradient(135deg, #21808d 0%, #1e3a8a 100%);
     position: relative;
+    background-image: url('/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
   }
 
   .gradient-hero::before {
@@ -25,7 +29,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, rgba(33, 128, 141, 0.7) 0%, rgba(30, 58, 138, 0.7) 100%);
     z-index: 1;
   }
 
