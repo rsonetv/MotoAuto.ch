@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase"
-import type { NewListing, UpdateListing } from "@/types/database.types"
+import { createClientComponentClient } from "@/lib/supabase"
+import type { NewListing, UpdateListing } from "@/lib/database.types"
 
 export async function getListings(
   options: {
@@ -10,6 +10,7 @@ export async function getListings(
     isAuction?: boolean
   } = {},
 ) {
+  const supabase = createClientComponentClient()
   let query = supabase
     .from("listings")
     .select(`
@@ -49,6 +50,7 @@ export async function getListings(
 }
 
 export async function getListing(id: number) {
+  const supabase = createClientComponentClient()
   const { data, error } = await supabase
     .from("listings")
     .select(`
@@ -75,27 +77,31 @@ export async function getListing(id: number) {
 }
 
 export async function createListing(listing: NewListing) {
+  const supabase = createClientComponentClient()
   const { data, error } = await supabase.from("listings").insert(listing).select().single()
-
+  
   if (error) throw error
   return data
 }
 
-export async function updateListing(id: number, updates: UpdateListing) {
+export async function updateListing(id: number, updates: ListingUpdate) {
+  const supabase = createClientComponentClient()
   const { data, error } = await supabase.from("listings").update(updates).eq("id", id).select().single()
-
+  
   if (error) throw error
   return data
 }
 
 export async function deleteListing(id: number) {
+  const supabase = createClientComponentClient()
   const { error } = await supabase.from("listings").delete().eq("id", id)
-
+  
   if (error) throw error
 }
 
 export async function incrementViews(id: number) {
+  const supabase = createClientComponentClient()
   const { error } = await supabase.from("listings").update({ views: supabase.sql`views + 1` }).eq("id", id)
-
+  
   if (error) throw error
 }
