@@ -1,10 +1,25 @@
 import Stripe from 'stripe'
 
-// Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-  typescript: true,
-})
+// Lazy initialization of Stripe client
+let stripeInstance: Stripe | null = null
+
+// Get or create Stripe instance
+function getStripeInstance(): Stripe {
+  if (!stripeInstance) {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+    
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is not configured')
+    }
+    
+    stripeInstance = new Stripe(secretKey, {
+      apiVersion: '2025-06-30.basil',
+      typescript: true,
+    })
+  }
+  
+  return stripeInstance
+}
 
 // Swiss payment methods configuration
 export const SWISS_PAYMENT_METHODS = [
@@ -99,10 +114,10 @@ export async function createPaymentIntent(params: {
       allow_redirects: 'always'
     }
   } else {
-    paymentIntentParams.payment_method_types = paymentMethods as Stripe.PaymentIntentCreateParams.PaymentMethodType[]
+    paymentIntentParams.payment_method_types = paymentMethods as any[]
   }
 
-  return await stripe.paymentIntents.create(paymentIntentParams)
+  return await getStripeInstance().paymentIntents.create(paymentIntentParams)
 }
 
 // Confirm payment intent
@@ -128,7 +143,7 @@ export async function confirmPaymentIntent(
     confirmParams.receipt_email = params.receiptEmail
   }
 
-  return await stripe.paymentIntents.confirm(paymentIntentId, confirmParams)
+  return await getStripeInstance().paymentIntents.confirm(paymentIntentId, confirmParams)
 }
 
 // Create refund
@@ -161,14 +176,14 @@ export async function createRefund(params: {
     refundParams.amount = toStripeAmount(amount, currency)
   }
 
-  return await stripe.refunds.create(refundParams)
+  return await getStripeInstance().refunds.create(refundParams)
 }
 
 // Retrieve payment intent
 export async function retrievePaymentIntent(
   paymentIntentId: string
 ): Promise<Stripe.PaymentIntent> {
-  return await stripe.paymentIntents.retrieve(paymentIntentId)
+  return await getStripeInstance().paymentIntents.retrieve(paymentIntentId)
 }
 
 // List payment intents for a customer
@@ -178,7 +193,7 @@ export async function listPaymentIntents(params: {
   startingAfter?: string
   endingBefore?: string
 }): Promise<Stripe.ApiList<Stripe.PaymentIntent>> {
-  return await stripe.paymentIntents.list(params)
+  return await getStripeInstance().paymentIntents.list(params)
 }
 
 // Verify webhook signature
@@ -187,7 +202,7 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string
 ): Stripe.Event {
-  return stripe.webhooks.constructEvent(payload, signature, secret)
+  return getStripeInstance().webhooks.constructEvent(payload, signature, secret)
 }
 
 // Create customer for recurring payments
@@ -195,10 +210,10 @@ export async function createCustomer(params: {
   email: string
   name?: string
   phone?: string
-  address?: Stripe.CustomerCreateParams.Address
+  address?: Stripe.AddressParam
   metadata?: Record<string, string>
 }): Promise<Stripe.Customer> {
-  return await stripe.customers.create({
+  return await getStripeInstance().customers.create({
     ...params,
     metadata: {
       ...params.metadata,
@@ -220,9 +235,9 @@ export async function createSetupIntent(params: {
     usage = 'off_session'
   } = params
 
-  return await stripe.setupIntents.create({
+  return await getStripeInstance().setupIntents.create({
     customer: customerId,
-    payment_method_types: paymentMethodTypes as Stripe.SetupIntentCreateParams.PaymentMethodType[],
+    payment_method_types: paymentMethodTypes as any[],
     usage,
     metadata: {
       platform: 'MotoAuto.ch',
@@ -247,7 +262,7 @@ export async function createInvoice(params: {
 
   // Create invoice items
   for (const item of items) {
-    await stripe.invoiceItems.create({
+    await getStripeInstance().invoiceItems.create({
       customer: customerId,
       amount: toStripeAmount(item.amount, item.currency),
       currency: item.currency.toLowerCase(),
@@ -260,7 +275,7 @@ export async function createInvoice(params: {
   }
 
   // Create invoice
-  const invoice = await stripe.invoices.create({
+  const invoice = await getStripeInstance().invoices.create({
     customer: customerId,
     auto_advance: false, // Manual finalization for Swiss compliance
     collection_method: 'send_invoice',
@@ -273,7 +288,7 @@ export async function createInvoice(params: {
   })
 
   // Finalize invoice
-  return await stripe.invoices.finalizeInvoice(invoice.id)
+  return await getStripeInstance().invoices.finalizeInvoice(invoice.id!)
 }
 
 // Handle Swiss VAT calculation
@@ -306,4 +321,14 @@ export function formatSwissAmount(
   }).format(amount)
 }
 
-export default stripe
+// Export a getter function instead of the instance directly
+export function getStripe(): Stripe {
+  return getStripeInstance()
+}
+
+// For backward compatibility, export default as a getter
+export default {
+  get stripe() {
+    return getStripeInstance()
+  }
+}
