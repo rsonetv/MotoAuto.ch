@@ -3,11 +3,6 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "nodejs@20.x"
-    }
-  },
   "env": {
     "PNPM_VERSION": "10"
   },
