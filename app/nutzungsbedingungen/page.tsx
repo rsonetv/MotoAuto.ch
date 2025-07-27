@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Button } from "@/components/ui/button"
-import { Globe, Calendar, FileText, ArrowLeft, Printer } from "lucide-react"
+import { PrintButton } from "@/components/ui/print-button"
+import { Globe, Calendar, FileText, ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Nutzungsbedingungen von MotoAuto.ch | Allgemeine Geschäftsbedingungen",
@@ -58,15 +58,7 @@ export default function TermsOfServicePageDE() {
             </div>
             
             {/* Print Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.print()}
-              className="hidden md:flex"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Drucken
-            </Button>
+            <PrintButton label="Drucken" />
           </div>
         </div>
 

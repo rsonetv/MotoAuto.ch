@@ -3,7 +3,8 @@ import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
-import { Globe, Calendar, Shield, ArrowLeft, Printer, Lock, Eye, Database } from "lucide-react"
+import { PrintButton } from "@/components/ui/print-button"
+import { Globe, Calendar, Shield, ArrowLeft, Lock, Eye, Database } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Datenschutzrichtlinie MotoAuto.ch | Datenschutz und Privatsphäre",
@@ -58,15 +59,7 @@ export default function PrivacyPolicyPageDE() {
             </div>
             
             {/* Print Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.print()}
-              className="hidden md:flex"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Drucken
-            </Button>
+            <PrintButton label="Drucken" />
           </div>
         </div>
 

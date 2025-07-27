@@ -3,7 +3,8 @@ import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
-import { Globe, Calendar, Cookie, ArrowLeft, Printer, Settings, BarChart, Target } from "lucide-react"
+import { PrintButton } from "@/components/ui/print-button"
+import { Globe, Calendar, Cookie, ArrowLeft, Settings, BarChart, Target } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Polityka Cookies MotoAuto.ch | Informacje o plikach cookies",
@@ -58,15 +59,7 @@ export default function CookiesPolicyPage() {
             </div>
             
             {/* Print Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.print()}
-              className="hidden md:flex"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Drukuj
-            </Button>
+            <PrintButton label="Drukuj" />
           </div>
         </div>
 
