@@ -5,10 +5,5 @@
   "framework": "nextjs",
   "env": {
     "PNPM_VERSION": "10"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
   }
 }
