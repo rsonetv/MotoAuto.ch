@@ -1,12 +1,10 @@
-import { DefinePlugin } from "webpack"
+import { DefinePlugin, type Configuration as WebpackConfig } from "webpack"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  experimental: {},
 
-  webpack(config) {
+  webpack(config: WebpackConfig) {
     // Make sure the plugins array exists
     config.plugins = config.plugins || []
 

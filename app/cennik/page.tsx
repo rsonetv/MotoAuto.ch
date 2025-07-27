@@ -611,7 +611,7 @@ const PackageCard: React.FC<{
       </CardContent>
 
       <CardFooter>
-        <Button 
+        <Button
           className="w-full bg-gray-900 hover:bg-gray-800"
           onClick={() => onSelect(packageData.id)}
         >
@@ -619,6 +619,7 @@ const PackageCard: React.FC<{
         </Button>
       </CardFooter>
     </Card>
+  )
 }
 
 // Comparison Table Component
