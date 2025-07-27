@@ -1,4 +1,4 @@
-import { supabase } from "./supabase"
+import { createClientComponentClient } from "./supabase"
 import type { User } from "@supabase/supabase-js"
 
 export interface AuthUser extends User {
@@ -11,6 +11,7 @@ export interface AuthUser extends User {
 
 export const auth = {
   async signUp(email: string, password: string, fullName: string) {
+    const supabase = createClientComponentClient()
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -25,6 +26,7 @@ export const auth = {
   },
 
   async signIn(email: string, password: string) {
+    const supabase = createClientComponentClient()
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -34,11 +36,13 @@ export const auth = {
   },
 
   async signOut() {
+    const supabase = createClientComponentClient()
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   },
 
   async getCurrentUser(): Promise<AuthUser | null> {
+    const supabase = createClientComponentClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -46,6 +50,7 @@ export const auth = {
   },
 
   async updateProfile(updates: { full_name?: string; avatar_url?: string; phone?: string }) {
+    const supabase = createClientComponentClient()
     const { data, error } = await supabase.auth.updateUser({
       data: updates,
     })
@@ -54,6 +59,7 @@ export const auth = {
   },
 
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
+    const supabase = createClientComponentClient()
     return supabase.auth.onAuthStateChange((_event, session) => callback((session?.user as AuthUser) || null))
   },
 }

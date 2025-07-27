@@ -1,8 +1,8 @@
 import { z } from "zod"
 import { FuelType, TransmissionType, VehicleCondition, ListingStatus, Currency } from "@/lib/database.types"
 
-// Base listing validation schema
-export const createListingSchema = z.object({
+// Base listing object schema (without refinements)
+const baseListingSchema = z.object({
   // Required fields
   title: z
     .string()
@@ -200,37 +200,40 @@ export const createListingSchema = z.object({
     .uuid("Invalid package ID format")
     .optional(),
 })
-.refine(
-  (data: any) => {
-    // If it's an auction, auction_end_time is required
-    if (data.is_auction && !data.auction_end_time) {
-      return false
+
+// Base listing validation schema with refinements
+export const createListingSchema = baseListingSchema
+  .refine(
+    (data: any) => {
+      // If it's an auction, auction_end_time is required
+      if (data.is_auction && !data.auction_end_time) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "Auction end time is required for auction listings",
+      path: ["auction_end_time"],
     }
-    return true
-  },
-  {
-    message: "Auction end time is required for auction listings",
-    path: ["auction_end_time"],
-  }
-)
-.refine(
-  (data: any) => {
-    // If auction_end_time is provided, it must be in the future
-    if (data.auction_end_time) {
-      const endTime = new Date(data.auction_end_time)
-      const now = new Date()
-      return endTime > now
+  )
+  .refine(
+    (data: any) => {
+      // If auction_end_time is provided, it must be in the future
+      if (data.auction_end_time) {
+        const endTime = new Date(data.auction_end_time)
+        const now = new Date()
+        return endTime > now
+      }
+      return true
+    },
+    {
+      message: "Auction end time must be in the future",
+      path: ["auction_end_time"],
     }
-    return true
-  },
-  {
-    message: "Auction end time must be in the future",
-    path: ["auction_end_time"],
-  }
-)
+  )
 
 // Update listing schema (all fields optional except those that shouldn't change)
-export const updateListingSchema = createListingSchema
+export const updateListingSchema = baseListingSchema
   .partial()
   .omit({ category_id: true }) // Category shouldn't be changed after creation
   .extend({
