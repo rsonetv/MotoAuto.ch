@@ -34,3 +34,208 @@
     z-index: 2;
   }
 }
+
+/* Print-friendly styles for legal pages */
+@media print {
+  /* Hide non-essential elements when printing */
+  .no-print,
+  header,
+  nav:not(.print-toc),
+  .print-hide,
+  button,
+  .bg-blue-50,
+  .bg-green-50,
+  .bg-yellow-50,
+  .bg-red-50,
+  .bg-purple-50,
+  .bg-orange-50 {
+    display: none !important;
+  }
+
+  /* Ensure proper page layout */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000;
+    background: white;
+  }
+
+  /* Legal page specific print styles */
+  .legal-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Headers and titles */
+  h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 12pt;
+    page-break-after: avoid;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 16pt;
+    margin-bottom: 8pt;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 12pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+  }
+
+  /* Paragraphs and text */
+  p {
+    margin-bottom: 8pt;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Lists */
+  ul, ol {
+    margin-bottom: 8pt;
+  }
+
+  li {
+    margin-bottom: 4pt;
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 12pt;
+  }
+
+  th, td {
+    border: 1px solid #000;
+    padding: 6pt;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+
+  /* Links - show URLs in print */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Don't show URLs for internal links */
+  a[href^="/"]:after,
+  a[href^="#"]:after {
+    content: "";
+  }
+
+  /* Page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  /* Table of contents for print */
+  .print-toc {
+    display: block !important;
+    margin-bottom: 20pt;
+    page-break-after: always;
+  }
+
+  .print-toc h2 {
+    border-bottom: 2px solid #000;
+    padding-bottom: 6pt;
+  }
+
+  /* Contact information boxes */
+  .contact-box {
+    border: 1px solid #000;
+    padding: 8pt;
+    margin: 8pt 0;
+    page-break-inside: avoid;
+  }
+
+  /* Legal notices and important boxes */
+  .legal-notice {
+    border: 2px solid #000;
+    padding: 8pt;
+    margin: 8pt 0;
+    background-color: #f9f9f9;
+    page-break-inside: avoid;
+  }
+
+  /* Footer information */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30pt;
+    border-top: 1px solid #000;
+    padding-top: 6pt;
+    font-size: 10pt;
+    text-align: center;
+  }
+
+  /* Page numbering */
+  @page {
+    margin: 2cm;
+    @bottom-right {
+      content: "Strona " counter(page) " z " counter(pages);
+      font-size: 10pt;
+    }
+    @top-center {
+      content: "MotoAuto.ch - Dokumenty prawne";
+      font-size: 10pt;
+      border-bottom: 1px solid #000;
+      padding-bottom: 6pt;
+    }
+  }
+
+  /* First page - no header */
+  @page :first {
+    @top-center {
+      content: "";
+      border-bottom: none;
+    }
+  }
+
+  /* Ensure proper spacing for sections */
+  section {
+    margin-bottom: 16pt;
+    page-break-inside: avoid;
+  }
+
+  /* Hide decorative elements */
+  .shadow-sm,
+  .rounded-lg,
+  .border {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Simplify borders for print */
+  .border-b {
+    border-bottom: 1px solid #000 !important;
+  }
+
+  .border-l-4 {
+    border-left: 3px solid #000 !important;
+  }
+}
