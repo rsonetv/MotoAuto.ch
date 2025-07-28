@@ -36,39 +36,49 @@ export async function placeBid(bidData: {
   }>
 }> {
   return await db.begin(async (tx: any) => {
-    // Get current auction and listing data with lock
-    const [auctionData] = await tx`
-      SELECT 
-        l.id as listing_id,
-        l.current_bid,
-        l.bid_count,
-        l.min_bid_increment,
-        l.auction_end_time,
-        l.auto_extend_minutes,
-        l.user_id as seller_id,
-        l.status as listing_status,
-        a.id as auction_id,
-        a.extended_count,
-        a.max_extensions,
-        a.reserve_price,
-        a.reserve_met
-      FROM listings l
-      JOIN auctions a ON l.id = a.listing_id
-      WHERE l.id = ${bidData.listing_id} 
-        AND a.id = ${bidData.auction_id}
-        AND l.is_auction = true
+    const now = new Date()
+    
+    const [validationResult] = await tx`
+      WITH auction_data AS (
+        SELECT 
+          l.id as listing_id,
+          l.current_bid,
+          l.bid_count,
+          l.min_bid_increment,
+          l.auction_end_time,
+          l.auto_extend_minutes,
+          l.user_id as seller_id,
+          l.status as listing_status,
+          a.id as auction_id,
+          a.extended_count,
+          a.max_extensions,
+          a.reserve_price,
+          a.reserve_met,
+          CASE WHEN EXISTS(
+            SELECT 1 FROM bids 
+            WHERE listing_id = l.id 
+              AND user_id = ${bidData.user_id} 
+              AND amount = ${bidData.amount}
+              AND status != ${BidStatus.RETRACTED}
+          ) THEN true ELSE false END as has_duplicate_bid
+        FROM listings l
+        JOIN auctions a ON l.id = a.listing_id
+        WHERE l.id = ${bidData.listing_id} 
+          AND a.id = ${bidData.auction_id}
+          AND l.is_auction = true
+      )
+      SELECT * FROM auction_data
       FOR UPDATE
     `
 
-    if (!auctionData) {
+    if (!validationResult) {
       throw new Error("Auction not found or not active")
     }
 
-    // Validate auction is still active
-    const now = new Date()
-    const endTime = new Date(auctionData.auction_end_time)
+    // Validate auction state
+    const endTime = new Date(validationResult.auction_end_time)
     
-    if (auctionData.listing_status !== 'active') {
+    if (validationResult.listing_status !== 'active') {
       throw new Error("Auction is not active")
     }
     
@@ -76,127 +86,98 @@ export async function placeBid(bidData: {
       throw new Error("Auction has ended")
     }
 
-    // Prevent seller from bidding on own auction
-    if (auctionData.seller_id === bidData.user_id) {
+    if (validationResult.seller_id === bidData.user_id) {
       throw new Error("Cannot bid on your own auction")
     }
 
+    if (validationResult.has_duplicate_bid) {
+      throw new Error("You have already placed a bid for this amount")
+    }
+
     // Validate bid amount meets minimum increment
-    const minIncrement = auctionData.min_bid_increment || calculateMinBidIncrement(auctionData.current_bid)
-    const nextMinBid = auctionData.current_bid + minIncrement
+    const minIncrement = validationResult.min_bid_increment || calculateMinBidIncrement(validationResult.current_bid)
+    const nextMinBid = validationResult.current_bid + minIncrement
     
     if (bidData.amount < nextMinBid) {
       throw new Error(`Bid must be at least ${nextMinBid.toFixed(2)} CHF`)
     }
 
-    // Check for duplicate bid amount from same user
-    const [existingBid] = await tx`
-      SELECT id FROM bids 
-      WHERE listing_id = ${bidData.listing_id} 
-        AND user_id = ${bidData.user_id} 
-        AND amount = ${bidData.amount}
-        AND status != ${BidStatus.RETRACTED}
-    `
-    
-    if (existingBid) {
-      throw new Error("You have already placed a bid for this amount")
-    }
-
-    // Get users who will be outbid for notifications
     const outbidUsers = await tx`
-      SELECT DISTINCT user_id, amount as previous_bid_amount
-      FROM bids 
-      WHERE listing_id = ${bidData.listing_id}
-        AND status IN (${BidStatus.WINNING}, ${BidStatus.ACTIVE})
-        AND user_id != ${bidData.user_id}
-    `
-
-    // Update status of previous bids
-    await tx`
       UPDATE bids 
       SET status = ${BidStatus.OUTBID}
       WHERE listing_id = ${bidData.listing_id}
         AND status IN (${BidStatus.WINNING}, ${BidStatus.ACTIVE})
+        AND user_id != ${bidData.user_id}
+      RETURNING user_id, amount as previous_bid_amount
     `
 
     // Check if auction should be extended (bid placed in last 5 minutes)
     const timeUntilEnd = endTime.getTime() - now.getTime()
     const fiveMinutes = 5 * 60 * 1000
     const shouldExtend = timeUntilEnd <= fiveMinutes && 
-                        auctionData.extended_count < auctionData.max_extensions
+                        validationResult.extended_count < validationResult.max_extensions
 
     let newEndTime: string | undefined
-    let extendedCount = auctionData.extended_count
+    let extendedCount = validationResult.extended_count
 
     if (shouldExtend) {
-      const extensionMinutes = auctionData.auto_extend_minutes || 5
+      const extensionMinutes = validationResult.auto_extend_minutes || 5
       newEndTime = new Date(endTime.getTime() + extensionMinutes * 60 * 1000).toISOString()
       extendedCount += 1
-
-      // Update auction end time and extension count
-      await tx`
-        UPDATE listings 
-        SET auction_end_time = ${newEndTime}
-        WHERE id = ${bidData.listing_id}
-      `
-
-      await tx`
-        UPDATE auctions 
-        SET extended_count = ${extendedCount}
-        WHERE id = ${bidData.auction_id}
-      `
     }
 
     // Check if reserve price is met
-    const reserveMet = !auctionData.reserve_price || bidData.amount >= auctionData.reserve_price
+    const reserveMet = !validationResult.reserve_price || bidData.amount >= validationResult.reserve_price
+    const newBidCount = validationResult.bid_count + 1
 
-    // Insert the new bid
     const [newBid] = await tx`
-      INSERT INTO bids (
-        listing_id,
-        auction_id,
-        user_id,
-        amount,
-        is_auto_bid,
-        max_auto_bid,
-        auto_bid_active,
-        status,
-        ip_address,
-        user_agent,
-        placed_at
-      ) VALUES (
-        ${bidData.listing_id},
-        ${bidData.auction_id},
-        ${bidData.user_id},
-        ${bidData.amount},
-        ${bidData.is_auto_bid || false},
-        ${bidData.max_auto_bid},
-        ${bidData.is_auto_bid || false},
-        ${BidStatus.WINNING},
-        ${bidData.ip_address},
-        ${bidData.user_agent},
-        ${now.toISOString()}
+      WITH new_bid AS (
+        INSERT INTO bids (
+          listing_id,
+          auction_id,
+          user_id,
+          amount,
+          is_auto_bid,
+          max_auto_bid,
+          auto_bid_active,
+          status,
+          ip_address,
+          user_agent,
+          placed_at
+        ) VALUES (
+          ${bidData.listing_id},
+          ${bidData.auction_id},
+          ${bidData.user_id},
+          ${bidData.amount},
+          ${bidData.is_auto_bid || false},
+          ${bidData.max_auto_bid},
+          ${bidData.is_auto_bid || false},
+          ${BidStatus.WINNING},
+          ${bidData.ip_address},
+          ${bidData.user_agent},
+          ${now.toISOString()}
+        )
+        RETURNING *
+      ),
+      listing_update AS (
+        UPDATE listings 
+        SET 
+          current_bid = ${bidData.amount},
+          bid_count = ${newBidCount}
+          ${shouldExtend ? tx`, auction_end_time = ${newEndTime}` : tx``}
+        WHERE id = ${bidData.listing_id}
+        RETURNING current_bid, bid_count
+      ),
+      auction_update AS (
+        UPDATE auctions 
+        SET 
+          reserve_met = ${reserveMet},
+          total_bids = ${newBidCount}
+          ${shouldExtend ? tx`, extended_count = ${extendedCount}` : tx``}
+        WHERE id = ${bidData.auction_id}
+        RETURNING *
       )
-      RETURNING *
-    `
-
-    // Update listing statistics
-    const newBidCount = auctionData.bid_count + 1
-    await tx`
-      UPDATE listings 
-      SET 
-        current_bid = ${bidData.amount},
-        bid_count = ${newBidCount}
-      WHERE id = ${bidData.listing_id}
-    `
-
-    // Update auction statistics
-    await tx`
-      UPDATE auctions 
-      SET 
-        reserve_met = ${reserveMet},
-        total_bids = ${newBidCount}
-      WHERE id = ${bidData.auction_id}
+      SELECT * FROM new_bid
     `
 
     return {
