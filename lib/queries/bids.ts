@@ -272,7 +272,7 @@ export async function getAuctionBids(
   `
 
   return {
-    data: bids as BidWithDetails[],
+    data: bids as unknown as BidWithDetails[],
     pagination: {
       page,
       limit,
@@ -388,7 +388,7 @@ export async function getUserBids(
   `
 
   return {
-    data: bids as BidWithDetails[],
+    data: bids as unknown as BidWithDetails[],
     pagination: {
       page,
       limit,
