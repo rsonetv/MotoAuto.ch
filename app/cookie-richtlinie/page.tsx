@@ -516,7 +516,7 @@ export default function CookiesPolicyPageDE() {
                     <p><strong>Adresse:</strong> Bahnhofstrasse 1, 8001 Zürich, Schweiz</p>
                     <p><strong>E-Mail:</strong> privacy@motoauto.ch</p>
                     <p><strong>Telefon:</strong> +41 44 123 45 67</p>
-                    <p><strong>Kontaktformular:</strong> <Link href="/kontakt" className="text-blue-600 hover:text-blue-800 underline">motoauto.ch/kontakt</Link></p>
+                    <p><strong>Kontaktformular:</strong> <a href="mailto:kontakt@motoauto.ch" className="text-blue-600 hover:text-blue-800 underline">kontakt@motoauto.ch</a></p>
                   </div>
                 </div>
               </div>

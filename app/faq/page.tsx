@@ -329,7 +329,7 @@ export default function FAQPage() {
                     </a>
                   </Button>
                   <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-                    <a href="mailto:kontakt@motoauto.ch">
+                    <a href="/kontakt">
                       Skontaktuj się z nami
                     </a>
                   </Button>

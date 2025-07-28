@@ -31,14 +31,8 @@ export default function AuctionPage() {
               <Link href="/aukcje" className="text-white font-medium">
                 Aukcje
               </Link>
-              <Link href="/dealerzy" className="text-gray-300 hover:text-white transition-colors">
-                Dealerzy
-              </Link>
               <Link href="/jak-to-dziala" className="text-gray-300 hover:text-white transition-colors">
                 Jak to działa
-              </Link>
-              <Link href="/kontakt" className="text-gray-300 hover:text-white transition-colors">
-                Kontakt
               </Link>
             </nav>
 

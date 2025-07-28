@@ -50,30 +50,6 @@ export function HeroSection() {
               Szukaj
             </Button>
           </form>
-          
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Button 
-              variant="outline" 
-              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
-              onClick={() => router.push("/how-it-works")}
-            >
-              Jak to działa
-            </Button>
-            <Button 
-              variant="outline" 
-              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
-              onClick={() => router.push("/pricing")}
-            >
-              Cennik
-            </Button>
-            <Button 
-              variant="outline" 
-              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
-              onClick={() => router.push("/contact")}
-            >
-              Kontakt
-            </Button>
-          </div>
         </motion.div>
       </div>
     </section>

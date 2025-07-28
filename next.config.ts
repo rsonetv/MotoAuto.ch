@@ -4,6 +4,21 @@ import { DefinePlugin, type Configuration as WebpackConfig } from "webpack"
 const nextConfig = {
   experimental: {},
 
+  async redirects() {
+    return [
+      {
+        source: "/jak-to-dziala",
+        destination: "/faq",
+        permanent: true,
+      },
+      {
+        source: "/how-it-works",
+        destination: "/faq",
+        permanent: true,
+      },
+    ]
+  },
+
   webpack(config: WebpackConfig) {
     // Make sure the plugins array exists
     config.plugins = config.plugins || []
