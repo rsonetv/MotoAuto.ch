@@ -26,18 +26,22 @@ export function HeroSection() {
   }
 
   return (
-    <section className="gradient-hero min-h-[20vh] flex items-center justify-center text-white">
-      <div className="container mx-auto px-4 text-center">
+    <section className="gradient-hero min-h-[50vh] flex items-center justify-center text-white">
+      <div className="container mx-auto px-4 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="mb-8"
         >
-          <form onSubmit={handleSearch} className="flex items-center justify-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">MotoAuto.ch</h1>
+          <p className="text-xl md:text-2xl mb-8">Największa platforma samochodowa w Szwajcarii</p>
+          
+          <form onSubmit={handleSearch} className="flex items-center justify-center mb-8">
             <Input
               type="text"
               placeholder="Wyszukaj pojazd..."
-              className="w-full md:w-auto rounded-l-md py-2" // Changed py-3 to py-2 for smaller height
+              className="w-full md:w-auto rounded-l-md py-2 text-black" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -46,6 +50,30 @@ export function HeroSection() {
               Szukaj
             </Button>
           </form>
+          
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Button 
+              variant="outline" 
+              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
+              onClick={() => router.push("/how-it-works")}
+            >
+              Jak to działa
+            </Button>
+            <Button 
+              variant="outline" 
+              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
+              onClick={() => router.push("/pricing")}
+            >
+              Cennik
+            </Button>
+            <Button 
+              variant="outline" 
+              className="bg-white/10 backdrop-blur-sm hover:bg-white/20"
+              onClick={() => router.push("/contact")}
+            >
+              Kontakt
+            </Button>
+          </div>
         </motion.div>
       </div>
     </section>

@@ -14,7 +14,7 @@
 
 @layer components {
   .gradient-hero {
-    background: linear-gradient(135deg, #21808d 0%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7e22ce 100%);
     position: relative;
   }
 
@@ -25,7 +25,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 1;
   }
 
