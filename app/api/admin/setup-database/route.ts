@@ -5,6 +5,21 @@ import { supabaseAdmin } from "@/lib/supabase-admin"
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate environment variables first
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("❌ Missing required environment variables")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required environment variables for database setup",
+        },
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+    }
+
     console.log("🚀 Starting database setup...")
 
     // Read the SQL setup script
