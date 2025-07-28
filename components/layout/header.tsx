@@ -31,8 +31,7 @@ export function Header() {
     { href: "/ogloszenia?category=moto", label: "Moto" },
     { href: "/ogloszenia?category=auto", label: "Auto" },
     { href: "/aukcje", label: "Aukcje" },
-    { href: "/dealerzy", label: "Dealerzy" },
-    { href: "/jak-to-dziala", label: "Jak to działa" },
+    { href: "/faq", label: "FAQ" },
     { href: "/kontakt", label: "Kontakt" },
   ]
 
