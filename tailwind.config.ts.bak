@@ -1,0 +1,106 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: ["class"],
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: "hsl(var(--card))",
+        "card-foreground": "hsl(var(--card-foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        /* Markowa paleta MotoAuto.ch */
+        brand: {
+          DEFAULT: "var(--brand-default, #009fb7)",  // primary
+          light: "var(--brand-light, #00cfe8)",      // hover / gradient
+          dark: "var(--brand-dark, #007c91)",        // ciemniejszy odcieñ
+        },
+        neutral: {
+          50:  "#f7f9fc",       // background
+          100: "#e9eef5",       // secondary bg
+          900: "#0a0a0a",       // tekst
+        },
+        danger: {
+          DEFAULT: "#e60023",   // czerwony akcent ".ch"
+        },
+      },
+      keyframes: {
+        fadeIn: {
+          "0%":   { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideUp: {
+          "0%":   { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)",     opacity: "1" },
+        },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        bounce: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
+      },
+      animation: {
+        "fade-in": "fadeIn 0.5s ease-in-out",
+        "slide-up": "slideUp 0.5s ease-out",
+        "pulse": "pulse 2s ease-in-out infinite",
+        "bounce-slow": "bounce 3s ease-in-out infinite",
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        gradient-radial: "radial-gradient(var(--tw-gradient-stops))",
+        gradient-hero: "linear-gradient(135deg, var(--brand-dark), var(--brand-light))",
+        gradient-accent: "linear-gradient(135deg, var(--accent-dark), var(--accent-light))",
+      },
+      boxShadow: {
+        custom: "0 4px 20px rgba(0, 159, 183, 0.15)",
+        accent: "0 4px 20px rgba(255, 107, 53, 0.25)",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+};
+
+export default config;
