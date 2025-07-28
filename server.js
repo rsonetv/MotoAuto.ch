@@ -1,11 +1,11 @@
-const { createServer } = require('http')
-const { parse } = require('url')
-const next = require('next')
-const { initializeWebSocketServer } = require('./lib/websocket/server')
+import { createServer } from 'http'
+import { parse } from 'url'
+import next from 'next'
+import { initializeWebSocketServer } from './lib/websocket/server.js'
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
-const port = process.env.PORT || 3000
+const hostname = process.env.HOST || '0.0.0.0'
+const port = process.env.PORT || 12000
 
 // Create Next.js app
 const app = next({ dev, hostname, port })
