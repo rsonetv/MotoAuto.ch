@@ -10,7 +10,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { formatPrice } from "@/lib/utils"
-import type { Database } from "@/lib/database.types"
+import type { Database } from "@/types/database.types"
 
 type Listing = Database['public']['Tables']['listings']['Row'] & {
   category?: string;

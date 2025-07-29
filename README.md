@@ -1,30 +1,41 @@
-# Recreate UI from screenshot
+# Image Search with Amazon Bedrock and Supabase Vector
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+In this example we're implementing image search using the [Amazon Titan Multimodal Embeddings G1](https://aws.amazon.com/bedrock/titan), a set of pre-trained high-performing image, multimodal, and text model, accessible via a fully managed API.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rafals-projects-292cdc74/v0-recreate-ui-from-screenshot)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/me0BgTT7KCU)
+We're implementing two methods in the [`/image_search/main.py` file](/image_search/main.py):
 
-## Overview
+1. The `seed` method generates embeddings for the images in the `images` folder and upserts them into a collection in Supabase Vector.
+2. The `search` method generates an embedding from the search query and performs a vector similarity search query.
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Setup
 
-## Deployment
+- Install poetry: `pip install poetry`
+- Activate the virtual environment: `poetry shell`
+  - (to leave the venv just run `exit`)
+- Install app dependencies: `poetry install`
 
-Your project is live at:
+## Run locally
 
-**[https://vercel.com/rafals-projects-292cdc74/v0-recreate-ui-from-screenshot](https://vercel.com/rafals-projects-292cdc74/v0-recreate-ui-from-screenshot)**
+### Generate the embeddings and seed the collection
 
-## Build your app
+- `supabase start`
+- `poetry run seed`
+- Check the embeddings stored in the local Supabase Dashboard: http://localhost:54323/project/default/editor > schema: vecs
 
-Continue building your app on:
+### Perform a search
 
-**[https://v0.dev/chat/projects/me0BgTT7KCU](https://v0.dev/chat/projects/me0BgTT7KCU)**
+- `poetry run search "bike in front of red brick wall"`
 
-## How It Works
+## Run on hosted Supabase project
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- Set `DB_CONNECTION` with the connection string from your hosted Supabase Dashboard: https://supabase.com/dashboard/project/_/settings/database > Connection string > URI
+
+## Attributions
+
+### Models
+
+[Amazon Titan Multimodal Embeddings G1](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-embed-mm.html)
+
+### Images
+
+Images from https://unsplash.com/license via https://picsum.photos/

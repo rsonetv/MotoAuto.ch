@@ -28,7 +28,7 @@ import { createClientComponentClient } from "@/lib/supabase"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { pl } from "date-fns/locale"
-import type { Database } from "@/lib/database.types"
+import type { Database } from "@/types/database.types"
 
 type Listing = Database['public']['Tables']['listings']['Row'] & {
   profiles?: {
@@ -39,7 +39,7 @@ type Listing = Database['public']['Tables']['listings']['Row'] & {
     location: string | null;
     phone: string | null;
     email: string | null;
-    avatar_url?: string | null;
+    avatar_url: string | null;
     bio?: string | null;
     website?: string | null;
     verification_status?: string;
@@ -48,6 +48,16 @@ type Listing = Database['public']['Tables']['listings']['Row'] & {
     id: string;
     name: string;
   };
+  // Dodatkowe pola, które nie są w bazie danych, ale są używane w komponencie
+  price_negotiable?: boolean;
+  category_id?: string;
+  package_id?: string | null;
+  images?: string[];
+  main_image?: string;
+  features?: string[];
+  exterior_color?: string;
+  interior_color?: string;
+  image_urls?: string[];
 }
 
 export default function VehicleDetailPage() {
@@ -225,7 +235,7 @@ export default function VehicleDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{listing.title || `${listing.make} ${listing.model}`}</BreadcrumbPage>
+              <BreadcrumbPage>{listing.title || `${listing.brand} ${listing.model}`}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -243,7 +253,7 @@ export default function VehicleDetailPage() {
         {/* Title and action buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold">{listing.title || `${listing.make} ${listing.model}`}</h1>
+            <h1 className="text-3xl font-bold">{listing.title || `${listing.brand} ${listing.model}`}</h1>
             <div className="flex items-center mt-1 text-muted-foreground">
               <Calendar className="h-4 w-4 mr-1" />
               <span className="text-sm">
@@ -283,7 +293,7 @@ export default function VehicleDetailPage() {
             {/* Gallery */}
             <VehicleGallery 
               images={listing.image_urls || []} 
-              title={listing.title || `${listing.make} ${listing.model}`} 
+              title={listing.title || `${listing.brand} ${listing.model}`} 
             />
             
             {/* Vehicle details */}
@@ -303,38 +313,22 @@ export default function VehicleDetailPage() {
                 )}
                 <div className="mt-4">
                   <Badge className="mr-2">{listing.categories?.name || 'Pojazd'}</Badge>
-                  {listing.is_new && <Badge className="bg-green-500">Nowy</Badge>}
                 </div>
               </CardContent>
             </Card>
 
             {/* Contact panel */}
-            <ContactPanel 
-              seller={{
-                id: listing.profiles?.id || '',
-                name: listing.profiles?.is_dealer 
-                  ? (listing.profiles?.dealer_name || 'Dealer')
-                  : (listing.profiles?.full_name || 'Sprzedający'),
-                isDealer: listing.profiles?.is_dealer || false,
-                phone: listing.profiles?.phone || '',
-                email: listing.profiles?.email || '',
-                location: listing.profiles?.location || '',
-                avatarUrl: listing.profiles?.avatar_url || '',
-                isVerified: listing.profiles?.verification_status === 'verified'
-              }}
-              listingId={listing.id}
-              title={listing.title || `${listing.make} ${listing.model}`}
-            />
+            <ContactPanel listing={listing} />
           </div>
         </div>
 
         {/* Similar vehicles */}
         <div className="mt-12">
           <SimilarVehicles 
-            currentListingId={listing.id}
-            category={listing.category_id}
-            make={listing.make}
-            model={listing.model}
+            currentListingId={listing.id.toString()}
+            category={listing.category_id || listing.category || ""}
+            make={listing.brand || undefined}
+            model={listing.model || undefined}
           />
         </div>
       </main>

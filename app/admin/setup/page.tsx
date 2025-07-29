@@ -11,6 +11,11 @@ interface ApiResponse {
   success: boolean
   message?: string
   error?: string
+  helpText?: string
+  stats?: {
+    profiles: number
+    message?: string
+  }
   validationTests?: {
     profile: boolean
     listing: boolean
@@ -198,7 +203,7 @@ export default function AdminSetupPage() {
             </div>
             <CardDescription>
               Create tables, indexes, JSON schemas, and validation functions. This process typically takes 30-45
-              seconds.
+              seconds. If the exec_sql function is missing, you'll need to follow the manual setup instructions.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -224,6 +229,15 @@ export default function AdminSetupPage() {
                     {results.database.message ||
                       (results.database.success ? "Database setup completed successfully" : "Setup failed")}
                   </p>
+                  
+                  {results.database.helpText && (
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                      <p className="text-sm text-yellow-800">
+                        <AlertTriangle className="inline-block w-4 h-4 mr-1" />
+                        {results.database.helpText}
+                      </p>
+                    </div>
+                  )}
 
                   {results.database.validationTests && (
                     <div className="space-y-1">
@@ -300,6 +314,23 @@ export default function AdminSetupPage() {
                   {results.seed.message ||
                     (results.seed.success ? "Data seeding completed successfully" : "Seeding failed")}
                 </p>
+                
+                {results.seed.helpText && (
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm text-yellow-800">
+                      <AlertTriangle className="inline-block w-4 h-4 mr-1" />
+                      {results.seed.helpText}
+                    </p>
+                  </div>
+                )}
+                
+                {results.seed.stats && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">
+                      Created {results.seed.stats.profiles} profiles.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -342,6 +373,35 @@ export default function AdminSetupPage() {
                   <p className="font-medium">Ready to Use</p>
                   <p className="text-gray-600">Your MotoAuto.ch platform is now ready for development and testing.</p>
                 </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <h4 className="font-medium mb-1 flex items-center text-yellow-800">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  Troubleshooting
+                </h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  If you receive a message about missing "exec_sql" function, you'll need to create it manually:
+                </p>
+                <ol className="list-decimal list-inside text-sm space-y-1 text-gray-700">
+                  <li>Go to the Supabase dashboard</li>
+                  <li>Open the SQL Editor</li>
+                  <li>Create the function by running this SQL:</li>
+                </ol>
+                <pre className="mt-2 p-2 bg-gray-100 text-xs rounded overflow-x-auto">
+                  {`CREATE OR REPLACE FUNCTION exec_sql(sql text) RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE sql;
+  RETURN 'SQL executed successfully';
+EXCEPTION WHEN OTHERS THEN
+  RETURN 'Error: ' || SQLERRM;
+END;
+$$;`}
+                </pre>
+                <p className="text-sm mt-2 text-gray-700">After creating the function, return to this page and try the setup again.</p>
               </div>
             </div>
           </CardContent>

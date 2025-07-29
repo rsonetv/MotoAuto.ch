@@ -25,7 +25,7 @@ export function VehicleBasicInfo() {
     const categoryMap = {
       SAMOCHODY: VEHICLE_CATEGORIES.SAMOCHODY,
       MOTOCYKLE: VEHICLE_CATEGORIES.MOTOCYKLE,
-      DOSTAWCZE: VEHICLE_CATEGORIES.DOSTAWCZE,
+      DOSTAWCZE: VEHICLE_CATEGORIES.SAMOCHODY, // Tymczasowo używamy tych samych marek co dla SAMOCHODY
     }
     const currentCategory = categoryMap[mainCategory as keyof typeof categoryMap] || {}
     return Object.values(currentCategory).flat()
@@ -108,7 +108,7 @@ export function VehicleBasicInfo() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {getAvailableBrands().map((brand) => (
+                    {getAvailableBrands().map((brand: string) => (
                       <SelectItem key={brand} value={brand}>
                         {brand}
                       </SelectItem>
@@ -133,7 +133,7 @@ export function VehicleBasicInfo() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {getModelsForBrand(selectedBrand).map((model) => (
+                    {getModelsForBrand(selectedBrand).map((model: string) => (
                       <SelectItem key={model} value={model}>
                         {model}
                       </SelectItem>

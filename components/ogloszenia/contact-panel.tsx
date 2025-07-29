@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import type { Database } from "@/lib/database.types"
+import type { Database } from "@/types/database.types"
 
 type Listing = Database['public']['Tables']['listings']['Row'] & {
   profiles?: {
@@ -23,6 +23,10 @@ type Listing = Database['public']['Tables']['listings']['Row'] & {
     email: string | null;
     avatar_url: string | null;
   };
+  // Dodatkowe pola, które nie są w bazie danych, ale są używane w komponencie
+  price_negotiable?: boolean;
+  category_id?: string;
+  package_id?: string | null;
 }
 
 interface ContactPanelProps {

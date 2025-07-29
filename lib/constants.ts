@@ -20,11 +20,15 @@ export const VEHICLE_CATEGORIES = {
     Specjalistyczne: ["Jeep", "Mini", "Smart", "Dacia", "Lancia", "Chrysler", "Dodge"],
   },
   MOTOCYKLE: {
-    Japońskie: ["Honda", "Yamaha", "Suzuki", "Kawasaki"],
-    Europejskie: ["BMW", "Ducati", "KTM", "Triumph", "Aprilia", "Moto Guzzi", "Husqvarna"],
+    Japońskie: ["Honda Motocykle", "Yamaha", "Suzuki", "Kawasaki"],
+    Europejskie: ["BMW Motocykle", "Ducati", "KTM", "Triumph", "Aprilia", "Moto Guzzi", "Husqvarna"],
     Amerykańskie: ["Harley-Davidson", "Indian", "Victory", "Buell"],
     Inne: ["Benelli", "CFMoto", "Zontes", "Junak", "Romet", "Barton", "Sym", "Kymco", "Piaggio"],
   },
+  DOSTAWCZE: {
+    Główne: ["Volkswagen", "Ford", "Mercedes-Benz", "Fiat", "Iveco", "Renault", "Citroën", "Peugeot"],
+    Specjalistyczne: ["MAN", "Scania", "DAF", "Volvo", "ISUZU", "Mitsubishi"]
+  }
 }
 
 // Comprehensive vehicle models database
@@ -247,7 +251,7 @@ export const VEHICLE_MODELS = {
   Dodge: ["Challenger", "Charger", "Durango", "Journey"],
 
   // MOTORCYCLE BRANDS
-  Honda: [
+  "Honda Motocykle": [
     // Sport/Supersport
     "CBR600RR",
     "CBR1000RR-R",
@@ -373,7 +377,7 @@ export const VEHICLE_MODELS = {
     "Vulcan 900",
     "Vulcan 1700",
   ],
-  BMW: [
+  "BMW Motocykle": [
     // Sport
     "S1000RR",
     "S1000R",

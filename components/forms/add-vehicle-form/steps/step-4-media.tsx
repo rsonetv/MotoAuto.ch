@@ -15,12 +15,19 @@ import { COUNTRIES, FINANCING_OPTIONS, TRANSPORT_OPTIONS } from "@/lib/constants
 import { Checkbox } from "@/components/ui/checkbox"
 import Image from "next/image"
 
+interface FileWithPreview {
+  file: File;
+  preview: string;
+  name: string;
+  size: number;
+}
+
 // Image compression utility
 const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas")
     const ctx = canvas.getContext("2d")!
-    const img = new Image()
+    const img = new globalThis.Image()
 
     img.onload = () => {
       const ratio = Math.min(maxWidth / img.width, maxWidth / img.height)
@@ -196,7 +203,7 @@ export function Step4Media() {
                 <p className="text-sm text-gray-500">Przeciągnij, aby zmienić kolejność</p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {imageFiles.map((fileWithPreview, index) => (
+                {imageFiles.map((fileWithPreview: FileWithPreview, index: number) => (
                   <div key={index} className="relative group">
                     <div className="relative aspect-square">
                       <Image
@@ -258,7 +265,7 @@ export function Step4Media() {
           {documentFiles.length > 0 && (
             <div className="space-y-2">
               <h4 className="font-medium">Dodane dokumenty</h4>
-              {documentFiles.map((doc, index) => (
+              {documentFiles.map((doc: FileWithPreview, index: number) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-md">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-red-500" />
@@ -396,7 +403,7 @@ export function Step4Media() {
                                 if (checked) {
                                   field.onChange([...current, option])
                                 } else {
-                                  field.onChange(current.filter((item) => item !== option))
+                                  field.onChange(current.filter((item: string) => item !== option))
                                 }
                               }}
                             />
@@ -435,7 +442,7 @@ export function Step4Media() {
                                 if (checked) {
                                   field.onChange([...current, option])
                                 } else {
-                                  field.onChange(current.filter((item) => item !== option))
+                                  field.onChange(current.filter((item: string) => item !== option))
                                 }
                               }}
                             />
