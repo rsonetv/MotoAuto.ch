@@ -23,9 +23,6 @@ export function Header() {
             <Link href="/aukcje" className="text-gray-300 hover:text-white transition-colors">
               Aukcje
             </Link>
-            <Link href="/dealerzy" className="text-gray-300 hover:text-white transition-colors">
-              Dealerzy
-            </Link>
             <Link href="/jak-to-dziala" className="text-gray-300 hover:text-white transition-colors">
               Jak to działa
             </Link>
