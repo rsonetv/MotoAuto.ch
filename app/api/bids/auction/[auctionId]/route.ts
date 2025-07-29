@@ -134,7 +134,7 @@ export async function GET(
         // Only show max_auto_bid to the bid owner or auction seller
         const canSeeAutoBidDetails = user && (
           bid.user_id === user.id || 
-          auctionInfo.listings.user_id === user.id
+          auctionInfo.listings[0]?.user_id === user.id
         )
 
         return {
@@ -181,14 +181,14 @@ export async function GET(
           auction: {
             id: auctionInfo.id,
             listing_id: auctionInfo.listing_id,
-            title: auctionInfo.listings.title,
-            brand: auctionInfo.listings.brand,
-            model: auctionInfo.listings.model,
-            year: auctionInfo.listings.year,
-            current_bid: auctionInfo.listings.current_bid,
-            bid_count: auctionInfo.listings.bid_count,
-            auction_end_time: auctionInfo.listings.auction_end_time,
-            status: auctionInfo.listings.status
+            title: auctionInfo.listings[0]?.title,
+            brand: auctionInfo.listings[0]?.brand,
+            model: auctionInfo.listings[0]?.model,
+            year: auctionInfo.listings[0]?.year,
+            current_bid: auctionInfo.listings[0]?.current_bid,
+            bid_count: auctionInfo.listings[0]?.bid_count,
+            auction_end_time: auctionInfo.listings[0]?.auction_end_time,
+            status: auctionInfo.listings[0]?.status
           },
           filters: {
             include_retracted: query.include_retracted,

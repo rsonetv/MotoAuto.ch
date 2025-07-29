@@ -62,8 +62,8 @@ export async function DELETE(
 
       // Verify auction is still active (optional - user might want to cancel even for ended auctions)
       const now = new Date()
-      const endTime = new Date(autoBidData.listings.auction_end_time)
-      const isAuctionActive = endTime > now && autoBidData.listings.status === 'active'
+      const endTime = new Date(autoBidData.listings[0]?.auction_end_time)
+      const isAuctionActive = endTime > now && autoBidData.listings[0]?.status === 'active'
 
       // Cancel the auto-bid by setting auto_bid_active to false
       const { error: updateError } = await supabase
@@ -93,10 +93,10 @@ export async function DELETE(
           status: autoBidData.status
         },
         auction: {
-          id: autoBidData.listings.id,
-          title: autoBidData.listings.title,
-          auction_end_time: autoBidData.listings.auction_end_time,
-          current_bid: autoBidData.listings.current_bid,
+          id: autoBidData.listings[0]?.id,
+          title: autoBidData.listings[0]?.title,
+          auction_end_time: autoBidData.listings[0]?.auction_end_time,
+          current_bid: autoBidData.listings[0]?.current_bid,
           is_active: isAuctionActive
         },
         message: isAuctionActive 

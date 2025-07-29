@@ -101,13 +101,13 @@ export async function GET(
 
       // Check access permissions
       const isBidOwner = user && bidData.user_id === user.id
-      const isAuctionSeller = user && bidData.listings.user_id === user.id
+      const isAuctionSeller = user && bidData.listings[0]?.user_id === user.id
       const hasAccess = isBidOwner || isAuctionSeller
 
       // Calculate auction status and timing
       const now = new Date()
-      const endTime = new Date(bidData.listings.auction_end_time)
-      const isAuctionActive = endTime > now && bidData.listings.status === 'active'
+      const endTime = new Date(bidData.listings[0]?.auction_end_time)
+      const isAuctionActive = endTime > now && bidData.listings[0]?.status === 'active'
       const timeRemaining = isAuctionActive ? Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / 1000)) : 0
 
       // Determine bid status context
@@ -139,52 +139,52 @@ export async function GET(
 
         // Bidder information (limited for privacy)
         bidder: {
-          full_name: bidData.profiles?.full_name || 'Anonymous',
-          avatar_url: bidData.profiles?.avatar_url,
-          is_dealer: bidData.profiles?.is_dealer || false,
-          dealer_name: bidData.profiles?.dealer_name,
-          rating: bidData.profiles?.rating || 0,
-          rating_count: bidData.profiles?.rating_count || 0,
-          location: hasAccess ? bidData.profiles?.location : null, // Only show to authorized users
-          canton: bidData.profiles?.canton
+          full_name: bidData.profiles?.[0]?.full_name || 'Anonymous',
+          avatar_url: bidData.profiles?.[0]?.avatar_url,
+          is_dealer: bidData.profiles?.[0]?.is_dealer || false,
+          dealer_name: bidData.profiles?.[0]?.dealer_name,
+          rating: bidData.profiles?.[0]?.rating || 0,
+          rating_count: bidData.profiles?.[0]?.rating_count || 0,
+          location: hasAccess ? bidData.profiles?.[0]?.location : null, // Only show to authorized users
+          canton: bidData.profiles?.[0]?.canton
         },
 
         // Auction/listing details
         auction: {
-          id: bidData.listings.id,
-          title: bidData.listings.title,
-          description: bidData.listings.description,
-          brand: bidData.listings.brand,
-          model: bidData.listings.model,
-          year: bidData.listings.year,
-          images: bidData.listings.images,
-          auction_end_time: bidData.listings.auction_end_time,
-          current_bid: bidData.listings.current_bid,
-          bid_count: bidData.listings.bid_count,
-          min_bid_increment: bidData.listings.min_bid_increment,
-          reserve_price: isAuctionSeller ? bidData.listings.reserve_price : null, // Only show to seller
-          status: bidData.listings.status,
-          location: bidData.listings.location,
-          postal_code: bidData.listings.postal_code,
-          canton: bidData.listings.canton,
+          id: bidData.listings[0]?.id,
+          title: bidData.listings[0]?.title,
+          description: bidData.listings[0]?.description,
+          brand: bidData.listings[0]?.brand,
+          model: bidData.listings[0]?.model,
+          year: bidData.listings[0]?.year,
+          images: bidData.listings[0]?.images,
+          auction_end_time: bidData.listings[0]?.auction_end_time,
+          current_bid: bidData.listings[0]?.current_bid,
+          bid_count: bidData.listings[0]?.bid_count,
+          min_bid_increment: bidData.listings[0]?.min_bid_increment,
+          reserve_price: isAuctionSeller ? bidData.listings[0]?.reserve_price : null, // Only show to seller
+          status: bidData.listings[0]?.status,
+          location: bidData.listings[0]?.location,
+          postal_code: bidData.listings[0]?.postal_code,
+          canton: bidData.listings[0]?.canton,
 
           // Seller information
           seller: {
-            full_name: bidData.listings.profiles?.full_name || 'Anonymous',
-            is_dealer: bidData.listings.profiles?.is_dealer || false,
-            dealer_name: bidData.listings.profiles?.dealer_name
+            full_name: bidData.listings[0]?.profiles?.[0]?.full_name || 'Anonymous',
+            is_dealer: bidData.listings[0]?.profiles?.[0]?.is_dealer || false,
+            dealer_name: bidData.listings[0]?.profiles?.[0]?.dealer_name
           },
 
           // Auction statistics
-          starting_price: bidData.listings.auctions.starting_price,
-          reserve_met: bidData.listings.auctions.reserve_met,
-          winner_id: bidData.listings.auctions.winner_id,
-          winning_bid: bidData.listings.auctions.winning_bid,
-          total_bids: bidData.listings.auctions.total_bids,
-          unique_bidders: bidData.listings.auctions.unique_bidders,
-          extended_count: bidData.listings.auctions.extended_count,
-          max_extensions: bidData.listings.auctions.max_extensions,
-          ended_at: bidData.listings.auctions.ended_at
+          starting_price: bidData.listings[0]?.auctions?.[0]?.starting_price,
+          reserve_met: bidData.listings[0]?.auctions?.[0]?.reserve_met,
+          winner_id: bidData.listings[0]?.auctions?.[0]?.winner_id,
+          winning_bid: bidData.listings[0]?.auctions?.[0]?.winning_bid,
+          total_bids: bidData.listings[0]?.auctions?.[0]?.total_bids,
+          unique_bidders: bidData.listings[0]?.auctions?.[0]?.unique_bidders,
+          extended_count: bidData.listings[0]?.auctions?.[0]?.extended_count,
+          max_extensions: bidData.listings[0]?.auctions?.[0]?.max_extensions,
+          ended_at: bidData.listings[0]?.auctions?.[0]?.ended_at
         },
 
         // Calculated status information

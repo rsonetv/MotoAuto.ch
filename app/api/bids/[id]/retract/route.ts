@@ -74,7 +74,7 @@ export async function PUT(
       // Check if bid can be retracted
       const retractionCheck = canRetractBid(
         bidData.placed_at,
-        bidData.listings.auction_end_time,
+        bidData.listings[0]?.auction_end_time,
         bidData.status
       )
 
@@ -152,8 +152,8 @@ export async function PUT(
         retracted_at: now,
         reason: retractionData.reason,
         auction_updated: {
-          current_bid: bidData.status === BidStatus.WINNING ? newCurrentBid : bidData.listings.current_bid,
-          bid_count: bidData.listings.bid_count,
+          current_bid: bidData.status === BidStatus.WINNING ? newCurrentBid : bidData.listings[0]?.current_bid,
+          bid_count: bidData.listings[0]?.bid_count,
           new_winning_bidder: newWinningBidder
         }
       }
