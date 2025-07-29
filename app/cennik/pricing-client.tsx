@@ -1,51 +1,138 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { 
-  Check, 
-  X, 
-  Star, 
-  Crown, 
-  Shield, 
-  Zap, 
-  Users, 
-  TrendingUp, 
-  Award, 
-  Phone, 
-  Mail, 
-  Clock,
-  ChevronRight,
-  Info,
-  Calculator,
-  Globe
-} from 'lucide-react'
-import { formatSwissAmount, calculateSwissVAT } from '@/lib/stripe'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import type { Package } from '@/lib/database.types'
+  Check, Crown, Star, Zap, X, Users, TrendingUp, Clock, 
+  Award, Info, Phone, Mail 
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Language type
+// Define missing types
 type Language = 'pl' | 'de' | 'fr' | 'en'
 
-// Package data structure
+type Package = PackageData
+
 interface PackageData {
   id: string
   name: string
   price: number
-  duration: number
-  maxImages: number
+  duration?: number
+  maxImages?: number
   features: string[]
+  icon: React.ReactNode
+  color?: string
   isPopular?: boolean
   isRecommended?: boolean
-  icon: React.ReactNode
-  color: string
+  description?: string
+  billingModel?: string
+  listingLimit?: string
+  popular?: boolean
 }
+
+// Utility functions
+const calculateSwissVAT = (amount: number) => {
+  const vatRate = 0.081 // 8.1% Swiss VAT
+  const netAmount = amount / (1 + vatRate)
+  const vatAmount = amount - netAmount
+  return {
+    netAmount,
+    vatAmount,
+    grossAmount: amount
+  }
+}
+
+const formatSwissAmount = (amount: number, currency: string = 'CHF', locale: string = 'de-CH') => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount)
+}
+
+const packages = [
+  {
+    id: "dealer-lite",
+    name: "Dealer Lite",
+    description: "Podstawowy pakiet dla dealerów",
+    price: 50,
+    billingModel: "Subscription",
+    listingLimit: "≤10 ogłoszeń",
+    features: [
+      "Do 10 aktywnych ogłoszeń",
+      "Wsparcie email",
+      "Podstawowe statystyki",
+      "60 dni wyświetlania",
+      "Logo dealera"
+    ],
+    icon: <Zap className="h-5 w-5" />,
+    popular: false
+  },
+  {
+    id: "dealer-starter",
+    name: "Dealer Starter",
+    description: "Rozszerzony pakiet dla dealerów",
+    price: 100,
+    billingModel: "Subscription",
+    listingLimit: "≤25 ogłoszeń",
+    features: [
+      "Do 25 aktywnych ogłoszeń",
+      "Priorytetowe wsparcie",
+      "Zaawansowane statystyki",
+      "90 dni wyświetlania",
+      "Promocyjne wyróżnienie",
+      "CSV eksport"
+    ],
+    icon: <Crown className="h-5 w-5" />,
+    popular: true
+  },
+  {
+    id: "dealer-pro",
+    name: "Dealer Pro",
+    description: "Profesjonalny pakiet",
+    price: 300,
+    billingModel: "Subscription",
+    listingLimit: "≤50 ogłoszeń",
+    features: [
+      "Do 50 aktywnych ogłoszeń",
+      "Dedykowany manager",
+      "Analityka premium",
+      "120 dni wyświetlania",
+      "Automatyczne odnawianie",
+      "API access (beta)",
+      "Social media integration"
+    ],
+    icon: <Crown className="h-5 w-5" />,
+    popular: false
+  },
+  {
+    id: "dealer-enterprise",
+    name: "Dealer Enterprise",
+    description: "Pakiet dla dużych dealerów",
+    price: 800,
+    billingModel: "Subscription",
+    listingLimit: "Unlimited + Boost",
+    features: [
+      "Nielimitowane ogłoszenia",
+      "Dedykowane wsparcie 24/7",
+      "Custom branding",
+      "White-label solution",
+      "Advanced API access",
+      "Bulk import/export",
+      "Custom integrations",
+      "Priority listing boost"
+    ],
+    icon: <Crown className="h-5 w-5" />,
+    popular: false
+  }
+]
 
 // Predefined packages
 const predefinedPackages: Record<string, PackageData> = {
@@ -385,9 +472,9 @@ const translations = {
     customerSatisfaction: 'Satisfaction client',
     
     // VAT
-    priceIncludesVat: 'Prix TTC 7.7%',
+    priceIncludesVat: 'Prix TTC 8.1%',
     netPrice: 'Prix net',
-    vatAmount: 'TVA (7.7%)',
+    vatAmount: 'TVA (8.1%)',
     totalPrice: 'Prix total'
   },
   
