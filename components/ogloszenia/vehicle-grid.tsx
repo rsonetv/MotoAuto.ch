@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
 import { pl } from "date-fns/locale"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/supabase-js"
 
 type Listing = {
   id: string;
@@ -27,6 +27,7 @@ type Listing = {
   is_auction: boolean;
   location: string | null;
   views: number;
+  vehicle_type?: 'car' | 'motorcycle' | string;
   profiles?: {
     id: string;
     full_name: string | null;
@@ -46,7 +47,12 @@ interface VehicleGridProps {
 export function VehicleGrid({ category, listings: propListings }: VehicleGridProps) {
   const [listings, setListings] = useState<Listing[]>(propListings || []);
   const [loading, setLoading] = useState(!propListings);
-  const supabase = createClientComponentClient();
+  
+  // Create Supabase client
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
   
   useEffect(() => {
     // If listings are provided as props, use them
@@ -159,8 +165,8 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
                 
                 {category === 'all' && (
                   <Badge className="absolute top-2 left-2 bg-gray-700">
-                    {category === 'auto' ? <Car className="h-3 w-3 mr-1" /> : <Bike className="h-3 w-3 mr-1" />}
-                    {category === 'auto' ? 'AUTO' : 'MOTO'}
+                    {listing.vehicle_type === 'car' ? <Car className="h-3 w-3 mr-1" /> : <Bike className="h-3 w-3 mr-1" />}
+                    {listing.vehicle_type === 'car' ? 'AUTO' : 'MOTO'}
                   </Badge>
                 )}
               </div>
