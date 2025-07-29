@@ -29,12 +29,10 @@ export function LoginForm() {
     try {
       await signIn(email, password)
       toast.success("Zalogowano pomyślnie!")
-      // Use router.refresh() to ensure the server component gets the updated session
-      router.refresh()
-      // Small delay to allow session to propagate
-      setTimeout(() => {
-        router.push("/dashboard")
-      }, 300)
+      
+      // Force a full page refresh to ensure middleware runs
+      window.location.href = '/dashboard'
+      
     } catch (err: any) {
       toast.error(err.message || "Nie udało się zalogować")
     } finally {

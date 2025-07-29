@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import type { Database } from '@/lib/database.types'
 
 export const metadata: Metadata = {
   title: 'Dashboard | MotoAuto.ch',
@@ -16,7 +17,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createServerComponentClient<Database>({ cookies })
   
   const {
     data: { session },
