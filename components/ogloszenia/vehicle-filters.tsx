@@ -12,9 +12,14 @@ import { Badge } from "@/components/ui/badge"
 import { X, Filter, RotateCcw } from "lucide-react"
 import type { Database } from "@/lib/database.types"
 
-type Category = Database['public']['Tables']['categories']['Row'] & {
-  count?: number;
-}
+// Define category type locally since it's not exported from database.types
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  sort_order: number;
+};
 
 interface VehicleFiltersProps {
   filters: {
@@ -29,7 +34,6 @@ interface VehicleFiltersProps {
     transmission?: string
     condition?: string
     location?: string
-    sortBy: 'newest' | 'price_asc' | 'price_desc' | 'mileage' | 'year'
   }
   onChange: (filters: any) => void
   category: string
