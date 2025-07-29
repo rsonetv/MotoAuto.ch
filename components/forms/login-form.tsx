@@ -26,12 +26,14 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    
     try {
       await signIn(email, password)
       toast.success("Zalogowano pomyślnie!")
       
-      // Force a full page refresh to ensure middleware runs
-      window.location.href = '/dashboard'
+      // Use router.push instead of window.location.href
+      router.push('/dashboard')
+      router.refresh()
       
     } catch (err: any) {
       toast.error(err.message || "Nie udało się zalogować")
