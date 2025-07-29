@@ -66,7 +66,7 @@ export async function GET(
         return createErrorResponse('Auction not found', 404)
       }
 
-      const listing = auction.listings
+      const listing = auction.listings[0]
 
       // Get the most recent bid time for extension calculation
       const { data: lastBid } = await supabase
@@ -79,18 +79,18 @@ export async function GET(
 
       // Calculate real-time auction state
       const auctionState = calculateAuctionState(
-        listing.auction_end_time || '',
+        listing?.auction_end_time || '',
         auction.extended_count,
-        listing.status
+        listing?.status
       )
       
-      const timeRemaining = listing.auction_end_time 
+      const timeRemaining = listing?.auction_end_time 
         ? calculateTimeRemaining(listing.auction_end_time)
         : 0
       
-      const nextMinBid = calculateNextMinBid(listing.current_bid, listing.min_bid_increment)
+      const nextMinBid = calculateNextMinBid(listing?.current_bid, listing?.min_bid_increment)
 
-      const canExtend = listing.auction_end_time ? canExtendAuction(
+      const canExtend = listing?.auction_end_time ? canExtendAuction(
         listing.auction_end_time,
         auction.extended_count,
         auction.max_extensions,
@@ -98,18 +98,18 @@ export async function GET(
       ) : false
 
       // Check if user is the owner (for additional status info)
-      const isOwner = user && listing.user_id === user.id
+      const isOwner = user && listing?.user_id === user.id
 
       // Prepare status response
       const statusData = {
         id: auctionId,
         listing_id: auction.listing_id,
         auction_state: auctionState,
-        auction_end_time: listing.auction_end_time,
-        current_bid: listing.current_bid,
-        bid_count: listing.bid_count,
+        auction_end_time: listing?.auction_end_time,
+        current_bid: listing?.current_bid,
+        bid_count: listing?.bid_count,
         reserve_met: auction.reserve_met,
-        has_reserve_price: listing.reserve_price !== null,
+        has_reserve_price: listing?.reserve_price !== null,
         extended_count: auction.extended_count,
         max_extensions: auction.max_extensions,
         time_remaining_seconds: timeRemaining,
@@ -119,7 +119,7 @@ export async function GET(
         
         // Additional info for owner
         ...(isOwner && {
-          reserve_price: listing.reserve_price,
+          reserve_price: listing?.reserve_price,
           ending_soon: timeRemaining > 0 && timeRemaining <= 300, // 5 minutes
           needs_attention: auctionState === 'ended' && !auction.ended_at
         }),
