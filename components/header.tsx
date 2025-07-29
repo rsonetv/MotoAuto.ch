@@ -26,9 +26,6 @@ export function Header() {
             <Link href="/jak-to-dziala" className="text-gray-300 hover:text-white transition-colors">
               Jak to działa
             </Link>
-            <Link href="/kontakt" className="text-gray-300 hover:text-white transition-colors">
-              Kontakt
-            </Link>
           </nav>
 
           <div className="flex items-center space-x-4">
