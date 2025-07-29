@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
@@ -10,42 +8,60 @@ import { CategoryTabs } from "@/components/ogloszenia/category-tabs"
 import { SearchBar } from "@/components/ogloszenia/search-bar"
 import { SortControls } from "@/components/ogloszenia/sort-controls"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SheetTrigger, SheetContent, Sheet } from "@/components/ui/sheet"
-import { Car, Bike, Plus, Filter, MapPin, SlidersHorizontal, Info, X } from "lucide-react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useToast } from "@/hooks/use-toast"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Car, Bike, Plus, Filter, Search, MapPin, Eye, Heart } from "lucide-react"
+import { createClientComponentClient } from "@/lib/supabase"
+import { toast } from "sonner"
 import type { Database } from "@/lib/database.types"
 
-// Define types from the database schema
-type Listing = Database['public']['Tables']['listings']['Row'] & {
+// Define Listing and Category types based on Database type
+type Listing = {
+  id: string;
+  title: string;
+  price: number;
+  created_at: string;
+  updated_at: string;
+  images?: string[];
+  is_promoted?: boolean;
+  status: string;
+  category_id?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  fuel_type?: string;
+  transmission?: string;
+  condition?: string;
+  location?: string;
+  sale_type: string;
+  view_count?: number;
   profiles?: {
     id: string;
-    full_name: string | null;
-    dealer_name: string | null;
-    is_dealer: boolean;
-    location: string | null;
-    phone: string | null;
-    email: string | null;
+    full_name?: string;
+    dealer_name?: string;
+    is_dealer?: boolean;
+    location?: string;
+    phone?: string;
+    email?: string;
   };
   categories?: {
     id: string;
     name: string;
     slug: string;
   };
-  main_image?: string;
-  is_featured?: boolean;
-  is_auction?: boolean;
-  fuel_type?: string;
-  transmission?: string;
-}
+};
 
-type Category = Database['public']['Tables']['categories']['Row'] & {
-  count?: number;
-}
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  sort_order: number;
+};
 
-interface VehicleFiltersState {
+interface VehicleFilters {
   search: string
   brand?: string
   priceMin?: number
@@ -63,34 +79,34 @@ interface VehicleFiltersState {
 function OgloszeniaTabs() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { toast } = useToast()
   const category = searchParams?.get('category') || 'all'
+  const supabase = createClientComponentClient()
   
   const [listings, setListings] = useState<Listing[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<VehicleFiltersState>({
+  const [filters, setFilters] = useState<VehicleFilters>({
     search: searchParams?.get('search') || '',
     sortBy: 'newest'
   })
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-  // Load categories once on component mount
+  // Load categories
   useEffect(() => {
     loadCategories()
   }, [])
 
-  // Load listings when category, filters, or page changes
+  // Load listings when category or filters change
   useEffect(() => {
-    loadListings()
+    if (category) {
+      loadListings()
+    }
   }, [category, filters, currentPage])
 
   const loadCategories = async () => {
     try {
-      const supabase = createClientComponentClient<Database>()
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -101,19 +117,13 @@ function OgloszeniaTabs() {
       setCategories(data || [])
     } catch (error) {
       console.error('Error loading categories:', error)
-      toast({
-        title: "Błąd podczas ładowania kategorii",
-        variant: "destructive"
-      })
+      toast.error('Błąd podczas ładowania kategorii')
     }
   }
 
   const loadListings = async () => {
-    if (!category) return;
-    
     setLoading(true)
     try {
-      const supabase = createClientComponentClient<Database>()
       let query = supabase
         .from('listings')
         .select(`
@@ -134,10 +144,10 @@ function OgloszeniaTabs() {
           )
         `, { count: 'exact' })
         .eq('status', 'active')
-        .eq('is_auction', category === 'aukcje')
+        .eq('sale_type', 'listing')
 
       // Apply category filter
-      if (category !== 'all' && category !== 'aukcje') {
+      if (category && category !== 'all') {
         const categoryData = categories.find(cat => cat.slug === category)
         if (categoryData) {
           query = query.eq('category_id', categoryData.id)
@@ -207,8 +217,8 @@ function OgloszeniaTabs() {
           query = query.order('created_at', { ascending: false })
       }
 
-      // Apply pagination
-      const itemsPerPage = 12
+      // Pagination
+      const itemsPerPage = 20
       const from = (currentPage - 1) * itemsPerPage
       const to = from + itemsPerPage - 1
 
@@ -222,13 +232,7 @@ function OgloszeniaTabs() {
       setTotalCount(count || 0)
     } catch (error) {
       console.error('Error loading listings:', error)
-      toast({
-        title: "Błąd podczas ładowania ogłoszeń",
-        description: "Spróbuj odświeżyć stronę",
-        variant: "destructive"
-      })
-      setListings([])
-      setTotalCount(0)
+      toast.error('Błąd podczas ładowania ogłoszeń')
     } finally {
       setLoading(false)
     }
@@ -245,7 +249,7 @@ function OgloszeniaTabs() {
     setCurrentPage(1)
   }
 
-  const handleFiltersChange = (newFilters: Partial<VehicleFiltersState>) => {
+  const handleFiltersChange = (newFilters: Partial<VehicleFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }))
     setCurrentPage(1)
   }
@@ -254,79 +258,91 @@ function OgloszeniaTabs() {
     handleFiltersChange({ search: searchTerm })
   }
 
-  const getActiveFiltersCount = () => {
-    let count = 0
-    if (filters.brand) count++
-    if (filters.priceMin || filters.priceMax) count++
-    if (filters.yearMin || filters.yearMax) count++
-    if (filters.mileageMax) count++
-    if (filters.fuelType) count++
-    if (filters.transmission) count++
-    if (filters.condition) count++
-    if (filters.location) count++
-    return count
-  }
-
-  const getCategoryCounts = () => {
-    // Use actual counts from categories if available, otherwise use defaults
-    const autoCategory = categories.find(c => c.slug === 'auto')
-    const motoCategory = categories.find(c => c.slug === 'moto')
-    
-    return {
-      all: totalCount,
-      auto: autoCategory?.count || 0,
-      moto: motoCategory?.count || 0,
-      aukcje: 0 // This would be populated from a separate API call if needed
+  const getCategoryIcon = (slug: string) => {
+    switch (slug) {
+      case 'auto':
+        return <Car className="h-4 w-4" />
+      case 'moto':
+        return <Bike className="h-4 w-4" />
+      default:
+        return <Car className="h-4 w-4" />
     }
   }
 
-  const categoryLabel = () => {
-    switch(category) {
-      case 'auto': return 'Samochody';
-      case 'moto': return 'Motocykle';
-      case 'aukcje': return 'Aukcje pojazdów';
-      default: return 'Ogłoszenia pojazdów';
+  const getCategoryStats = (categorySlug: string) => {
+    // This would typically come from the API
+    const stats = {
+      auto: { count: 1247, avgPrice: 35000 },
+      moto: { count: 389, avgPrice: 15000 },
+      all: { count: totalCount, avgPrice: 25000 }
     }
+    return stats[categorySlug as keyof typeof stats] || stats.all
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-1.5">
-                {categoryLabel()}
+              <h1 className="text-3xl font-bold mb-2">
+                {category === 'auto' ? 'Samochody' : 
+                 category === 'moto' ? 'Motocykle' : 
+                 'Wszystkie ogłoszenia'}
               </h1>
               <p className="text-muted-foreground">
-                {loading ? 'Ładowanie ogłoszeń...' : 
-                  `Znaleziono ${totalCount.toLocaleString()} ${
-                    totalCount === 1 ? 'ogłoszenie' : 
-                    totalCount < 5 ? 'ogłoszenia' : 'ogłoszeń'
-                  }`
+                {category === 'all' 
+                  ? `Znajdź swój wymarzony pojazd wśród ${totalCount.toLocaleString()} ofert`
+                  : `${getCategoryStats(category).count.toLocaleString()} dostępnych pojazdów`
                 }
               </p>
             </div>
-            <Button onClick={() => router.push('/ogloszenia/dodaj')} size="lg">
+            <Button onClick={() => router.push('/ogloszenia/dodaj')}>
               <Plus className="mr-2 h-4 w-4" />
               Dodaj ogłoszenie
             </Button>
           </div>
 
-          {/* Category Tabs */}
-          <div className="mb-8">
-            <CategoryTabs
-              value={category}
-              onChange={handleCategoryChange}
-              counts={getCategoryCounts()}
-            />
+          {/* Category Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {['all', 'auto', 'moto'].map(cat => {
+              const stats = getCategoryStats(cat)
+              const isActive = category === cat
+              return (
+                <Card 
+                  key={cat}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    isActive ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => handleCategoryChange(cat)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {getCategoryIcon(cat)}
+                        <span className="font-medium">
+                          {cat === 'all' ? 'Wszystkie' : 
+                           cat === 'auto' ? 'Samochody' : 'Motocykle'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">{stats.count.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">
+                          śr. {stats.avgPrice.toLocaleString()} CHF
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
 
         {/* Search and Controls */}
         <div className="mb-6 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <SearchBar 
                 value={filters.search}
@@ -335,136 +351,53 @@ function OgloszeniaTabs() {
               />
             </div>
             <div className="flex gap-2">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="md:hidden"
-                  >
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filtry
-                    {getActiveFiltersCount() > 0 && (
-                      <Badge variant="secondary" className="ml-2">
-                        {getActiveFiltersCount()}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
-                  <div className="h-full py-4">
-                    <VehicleFilters
-                      filters={filters}
-                      onChange={handleFiltersChange}
-                      category={category}
-                      categories={categories}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <Button
+                variant="outline"
+                onClick={() => setFiltersOpen(!filtersOpen)}
+                className="lg:hidden"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Filtry
+              </Button>
               <SortControls
                 value={filters.sortBy}
-                onChange={(sortBy: 'newest' | 'price_asc' | 'price_desc' | 'mileage' | 'year') => handleFiltersChange({ sortBy })}
+                onChange={(sortBy) => handleFiltersChange({ sortBy })}
               />
             </div>
           </div>
 
           {/* Active Filters Display */}
-          {getActiveFiltersCount() > 0 && (
+          {(filters.brand || filters.priceMin || filters.priceMax || filters.location) && (
             <div className="flex flex-wrap gap-2">
               {filters.brand && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>Marka: {filters.brand}</span>
-                  <button onClick={() => handleFiltersChange({ brand: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ brand: undefined })}>
+                  Marka: {filters.brand} ×
                 </Badge>
               )}
-              {(filters.priceMin || filters.priceMax) && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>
-                    Cena: 
-                    {filters.priceMin ? ` od ${filters.priceMin.toLocaleString()} CHF` : ''}
-                    {filters.priceMin && filters.priceMax ? ' - ' : ''}
-                    {filters.priceMax ? `do ${filters.priceMax.toLocaleString()} CHF` : ''}
-                  </span>
-                  <button onClick={() => handleFiltersChange({ priceMin: undefined, priceMax: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
+              {filters.priceMin && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ priceMin: undefined })}>
+                  Od: {filters.priceMin.toLocaleString()} CHF ×
                 </Badge>
               )}
-              {(filters.yearMin || filters.yearMax) && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>
-                    Rok: 
-                    {filters.yearMin ? ` od ${filters.yearMin}` : ''}
-                    {filters.yearMin && filters.yearMax ? ' - ' : ''}
-                    {filters.yearMax ? `do ${filters.yearMax}` : ''}
-                  </span>
-                  <button onClick={() => handleFiltersChange({ yearMin: undefined, yearMax: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {filters.mileageMax && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>Przebieg: do {filters.mileageMax.toLocaleString()} km</span>
-                  <button onClick={() => handleFiltersChange({ mileageMax: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {filters.fuelType && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>Paliwo: {filters.fuelType}</span>
-                  <button onClick={() => handleFiltersChange({ fuelType: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {filters.transmission && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>Skrzynia: {filters.transmission}</span>
-                  <button onClick={() => handleFiltersChange({ transmission: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {filters.condition && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <span>Stan: {filters.condition}</span>
-                  <button onClick={() => handleFiltersChange({ condition: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
+              {filters.priceMax && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ priceMax: undefined })}>
+                  Do: {filters.priceMax.toLocaleString()} CHF ×
                 </Badge>
               )}
               {filters.location && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  <span>{filters.location}</span>
-                  <button onClick={() => handleFiltersChange({ location: undefined })}>
-                    <X className="h-3 w-3" />
-                  </button>
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ location: undefined })}>
+                  <MapPin className="mr-1 h-3 w-3" />
+                  {filters.location} ×
                 </Badge>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 px-2"
-                onClick={() => setFilters(prev => ({
-                  search: prev.search,
-                  sortBy: prev.sortBy
-                }))}
-              >
-                Wyczyść filtry
-              </Button>
             </div>
           )}
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Filters Sidebar - hidden on mobile */}
-          <div className="hidden md:block">
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Filters Sidebar */}
+          <div className={`lg:block ${filtersOpen ? 'block' : 'hidden'}`}>
             <VehicleFilters
               filters={filters}
               onChange={handleFiltersChange}
@@ -474,7 +407,7 @@ function OgloszeniaTabs() {
           </div>
 
           {/* Listings Grid */}
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             <VehicleList
               listings={listings}
               loading={loading}
@@ -482,8 +415,6 @@ function OgloszeniaTabs() {
               currentPage={currentPage}
               onPageChange={setCurrentPage}
               category={category}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
             />
           </div>
         </div>
@@ -496,15 +427,13 @@ export default function OgloszeniePage() {
   return (
     <>
       <Header />
-      <main>
-        <Suspense fallback={
-          <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        }>
-          <OgloszeniaTabs />
-        </Suspense>
-      </main>
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      }>
+        <OgloszeniaTabs />
+      </Suspense>
       <Footer />
     </>
   )
