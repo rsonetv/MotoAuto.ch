@@ -70,7 +70,7 @@ export function UserListings() {
   const fetchListings = async () => {
     try {
       setLoading(true)
-      const supabase = createClientComponentClient<Database>()
+      const supabase = createClientComponentClient()
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
@@ -129,7 +129,7 @@ export function UserListings() {
     
     try {
       setLoading(true)
-      const supabase = createClientComponentClient<Database>()
+      const supabase = createClientComponentClient()
       const { error } = await supabase
         .from('listings')
         .delete()
@@ -150,7 +150,7 @@ export function UserListings() {
   const handleExtend = async (id: string) => {
     try {
       setLoading(true)
-      const supabase = createClientComponentClient<Database>()
+      const supabase = createClientComponentClient()
       // Update expires_at to 30 days from now
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 30)
