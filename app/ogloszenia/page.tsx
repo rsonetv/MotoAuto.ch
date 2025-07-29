@@ -18,8 +18,8 @@ import { createClientComponentClient } from "@/lib/supabase"
 import { toast } from "sonner"
 import type { Database } from "@/lib/database.types"
 
-// Define Listing and Category types based on Database type
-type Listing = {
+// Define ListingItem and Category types based on Database type
+type ListingItem = {
   id: string;
   title: string;
   price: number;
@@ -84,7 +84,7 @@ function OgloszeniaTabs() {
   const category = searchParams?.get('category') || 'all'
   const supabase = createClientComponentClient()
   
-  const [listings, setListings] = useState<Listing[]>([])
+  const [listings, setListings] = useState<ListingItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<VehicleFilters>({
@@ -115,11 +115,28 @@ function OgloszeniaTabs() {
         .eq('is_active', true)
         .order('sort_order')
 
-      if (error) throw error
-      setCategories(data || [])
+      if (error) {
+        console.error('Supabase error (categories):', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        toast.error(`Błąd podczas ładowania kategorii: ${error.message}`)
+        return
+      }
+
+      if (!data) {
+        console.warn('No categories data received')
+        setCategories([])
+        return
+      }
+
+      console.log('Categories loaded successfully:', data.length)
+      setCategories(data)
     } catch (error) {
-      console.error('Error loading categories:', error)
-      toast.error('Błąd podczas ładowania kategorii')
+      console.error('Network error (categories):', JSON.stringify(error))
+      toast.error('Błąd sieci podczas ładowania kategorii')
     }
   }
 
@@ -228,13 +245,35 @@ function OgloszeniaTabs() {
 
       const { data, error, count } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error (listings):', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        toast.error(`Błąd podczas ładowania ogłoszeń: ${error.message}`)
+        setListings([])
+        setTotalCount(0)
+        return
+      }
 
-      setListings(data || [])
+      if (!Array.isArray(data)) {
+        console.error('Invalid data format received:', typeof data)
+        toast.error('Nieprawidłowy format danych')
+        setListings([])
+        setTotalCount(0)
+        return
+      }
+
+      console.log('Listings loaded successfully:', data.length)
+      setListings(data)
       setTotalCount(count || 0)
     } catch (error) {
-      console.error('Error loading listings:', error)
-      toast.error('Błąd podczas ładowania ogłoszeń')
+      console.error('Network error (listings):', JSON.stringify(error))
+      toast.error('Błąd sieci podczas ładowania ogłoszeń')
+      setListings([])
+      setTotalCount(0)
     } finally {
       setLoading(false)
     }
@@ -363,7 +402,7 @@ function OgloszeniaTabs() {
               </Button>
               <SortControls
                 value={filters.sortBy}
-                onChange={(sortBy) => handleFiltersChange({ sortBy })}
+                onChange={(sortBy) => handleFiltersChange({ sortBy: sortBy as 'newest' | 'price_asc' | 'price_desc' | 'mileage' | 'year' })}
               />
             </div>
           </div>
@@ -411,7 +450,7 @@ function OgloszeniaTabs() {
           {/* Listings Grid */}
           <div className="lg:col-span-3">
             <VehicleList
-              listings={listings}
+              listings={listings as any}
               loading={loading}
               totalCount={totalCount}
               currentPage={currentPage}

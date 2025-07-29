@@ -84,11 +84,12 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
         const { data, error } = await query;
         
         if (error) {
-          console.error('Error fetching listings:', error);
+          console.error('Error fetching listings:', JSON.stringify(error));
+          setListings([]);
           return;
         }
         
-        setListings(data as Listing[]);
+        setListings(data as Listing[] || []);
       } catch (error) {
         console.error('Error:', error);
       } finally {

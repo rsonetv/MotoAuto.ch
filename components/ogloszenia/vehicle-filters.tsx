@@ -79,6 +79,9 @@ const CONDITIONS = [
 ]
 
 export function VehicleFilters({ filters, onChange, category, categories }: VehicleFiltersProps) {
+  // Sprawdź czy kategorie się ładują
+  const isLoading = categories.length === 0;
+  
   const [priceRange, setPriceRange] = useState([
     filters.priceMin || 0,
     filters.priceMax || 200000
@@ -174,7 +177,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
               <SelectValue placeholder="Wszystkie marki" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie marki</SelectItem>
+              <SelectItem value="all">Wszystkie marki</SelectItem>
               {availableBrands.map(brand => (
                 <SelectItem key={brand} value={brand}>
                   {brand}
@@ -270,14 +273,14 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
         <div className="space-y-2">
           <Label>Rodzaj paliwa</Label>
           <Select
-            value={filters.fuelType || ""}
-            onValueChange={(value) => onChange({ fuelType: value || undefined })}
+            value={filters.fuelType || "all"}
+            onValueChange={(value) => onChange({ fuelType: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie</SelectItem>
+              <SelectItem value="all">Wszystkie</SelectItem>
               {FUEL_TYPES.map(fuel => (
                 <SelectItem key={fuel.value} value={fuel.value}>
                   {fuel.label}
@@ -294,13 +297,13 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
           <Label>Skrzynia biegów</Label>
           <Select
             value={filters.transmission || ""}
-            onValueChange={(value) => onChange({ transmission: value || undefined })}
+            onValueChange={(value) => onChange({ transmission: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie</SelectItem>
+              <SelectItem value="all">Wszystkie</SelectItem>
               {TRANSMISSIONS.map(trans => (
                 <SelectItem key={trans.value} value={trans.value}>
                   {trans.label}
@@ -316,14 +319,14 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
         <div className="space-y-2">
           <Label>Stan pojazdu</Label>
           <Select
-            value={filters.condition || ""}
-            onValueChange={(value) => onChange({ condition: value || undefined })}
+            value={filters.condition || "all"}
+            onValueChange={(value) => onChange({ condition: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie</SelectItem>
+              <SelectItem value="all">Wszystkie</SelectItem>
               {CONDITIONS.map(condition => (
                 <SelectItem key={condition.value} value={condition.value}>
                   {condition.label}

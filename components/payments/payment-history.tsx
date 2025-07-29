@@ -445,12 +445,12 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({
               />
             </div>
             
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter || "all"} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder={t.filterByStatus} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t.allStatuses}</SelectItem>
+                <SelectItem value="all">{t.allStatuses}</SelectItem>
                 <SelectItem value="completed">{t.completed}</SelectItem>
                 <SelectItem value="pending">{t.pending}</SelectItem>
                 <SelectItem value="failed">{t.failed}</SelectItem>
@@ -459,12 +459,12 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({
               </SelectContent>
             </Select>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select value={typeFilter || "all"} onValueChange={setTypeFilter}>
               <SelectTrigger>
                 <SelectValue placeholder={t.filterByType} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t.allTypes}</SelectItem>
+                <SelectItem value="all">{t.allTypes}</SelectItem>
                 <SelectItem value="listing_fee">{t.listingFee}</SelectItem>
                 <SelectItem value="commission">{t.commission}</SelectItem>
                 <SelectItem value="premium_package">{t.premiumPackage}</SelectItem>
@@ -472,12 +472,12 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({
               </SelectContent>
             </Select>
 
-            <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+            <Select value={currencyFilter || "all"} onValueChange={setCurrencyFilter}>
               <SelectTrigger>
                 <SelectValue placeholder={t.filterByCurrency} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t.allCurrencies}</SelectItem>
+                <SelectItem value="all">{t.allCurrencies}</SelectItem>
                 <SelectItem value="CHF">CHF</SelectItem>
                 <SelectItem value="EUR">EUR</SelectItem>
                 <SelectItem value="USD">USD</SelectItem>

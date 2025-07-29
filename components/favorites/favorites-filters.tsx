@@ -175,14 +175,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Category</Label>
             <Select
-              value={localFilters.category || ""}
-              onValueChange={(value) => updateFilter("category", value || undefined)}
+              value={localFilters.category || "all"}
+              onValueChange={(value) => updateFilter("category", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -195,14 +195,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Brand</Label>
             <Select
-              value={localFilters.brand || ""}
-              onValueChange={(value) => updateFilter("brand", value || undefined)}
+              value={localFilters.brand || "all"}
+              onValueChange={(value) => updateFilter("brand", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All brands</SelectItem>
+                <SelectItem value="all">All brands</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand} value={brand}>
                     {brand}
@@ -279,14 +279,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Fuel Type</Label>
             <Select
-              value={localFilters.fuelType || ""}
-              onValueChange={(value) => updateFilter("fuelType", value || undefined)}
+              value={localFilters.fuelType || "all"}
+              onValueChange={(value) => updateFilter("fuelType", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All fuel types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All fuel types</SelectItem>
+                <SelectItem value="all">All fuel types</SelectItem>
                 <SelectItem value="petrol">Petrol</SelectItem>
                 <SelectItem value="diesel">Diesel</SelectItem>
                 <SelectItem value="electric">Electric</SelectItem>
@@ -300,14 +300,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Transmission</Label>
             <Select
-              value={localFilters.transmission || ""}
-              onValueChange={(value) => updateFilter("transmission", value || undefined)}
+              value={localFilters.transmission || "all"}
+              onValueChange={(value) => updateFilter("transmission", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All transmissions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All transmissions</SelectItem>
+                <SelectItem value="all">All transmissions</SelectItem>
                 <SelectItem value="manual">Manual</SelectItem>
                 <SelectItem value="automatic">Automatic</SelectItem>
                 <SelectItem value="semi-automatic">Semi-automatic</SelectItem>
@@ -319,14 +319,14 @@ export function FavoritesFilters({
         <div className="space-y-2">
           <Label>Condition</Label>
           <Select
-            value={localFilters.condition || ""}
-            onValueChange={(value) => updateFilter("condition", value || undefined)}
+            value={localFilters.condition || "all"}
+            onValueChange={(value) => updateFilter("condition", value === "all" ? undefined : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All conditions" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All conditions</SelectItem>
+              <SelectItem value="all">All conditions</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="used">Used</SelectItem>
               <SelectItem value="damaged">Damaged</SelectItem>
@@ -341,14 +341,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Location</Label>
             <Select
-              value={localFilters.location || ""}
-              onValueChange={(value) => updateFilter("location", value || undefined)}
+              value={localFilters.location || "all"}
+              onValueChange={(value) => updateFilter("location", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All locations</SelectItem>
+                <SelectItem value="all">All locations</SelectItem>
                 {locations.map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
@@ -361,14 +361,14 @@ export function FavoritesFilters({
           <div className="space-y-2">
             <Label>Canton</Label>
             <Select
-              value={localFilters.canton || ""}
-              onValueChange={(value) => updateFilter("canton", value || undefined)}
+              value={localFilters.canton || "all"}
+              onValueChange={(value) => updateFilter("canton", value === "all" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All cantons" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All cantons</SelectItem>
+                <SelectItem value="all">All cantons</SelectItem>
                 {cantons.map((canton) => (
                   <SelectItem key={canton} value={canton}>
                     {canton}
@@ -398,14 +398,14 @@ export function FavoritesFilters({
             <div className="space-y-2">
               <Label>Auction Status</Label>
               <Select
-                value={localFilters.auctionStatus || ""}
-                onValueChange={(value) => updateFilter("auctionStatus", value || undefined)}
+                value={localFilters.auctionStatus || "all"}
+                onValueChange={(value) => updateFilter("auctionStatus", value === "all" ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All auction statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="ending_soon">Ending Soon</SelectItem>
                   <SelectItem value="ended">Ended</SelectItem>
