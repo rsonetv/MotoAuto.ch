@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readFileSync } from "fs"
 import { join } from "path"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   createErrorResponse,
   createSuccessResponse,
@@ -40,7 +40,7 @@ async function executeSQLStatements(statements: string[]): Promise<{
   successCount: number
   errorCount: number
 }> {
-  const supabase = createServerComponentClient()
+  const supabase = await createServerComponentClient(req)
   const results = []
   let successCount = 0
   let errorCount = 0
@@ -132,7 +132,7 @@ async function verifyDatabaseTables(): Promise<{
   missingTables: string[]
   expectedTables: string[]
 }> {
-  const supabase = createServerComponentClient()
+  const supabase = await createServerComponentClient(req)
   const expectedTables = ['categories', 'packages', 'profiles', 'listings', 'auctions', 'bids', 'payments', 'user_favorites']
   
   try {
@@ -168,7 +168,7 @@ async function verifyDatabaseTables(): Promise<{
  * Test basic database functionality
  */
 async function testDatabaseFunctionality(): Promise<Record<string, number | string>> {
-  const supabase = createServerComponentClient()
+  const supabase = await createServerComponentClient(req)
   const tableStats: Record<string, number | string> = {}
   const testTables = ['categories', 'packages', 'profiles']
   

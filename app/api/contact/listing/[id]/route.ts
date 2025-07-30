@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withOptionalAuth, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { createListingContactSchema, CreateListingContactInput } from "@/lib/schemas/contact-api-schema"
 import { verifyListingContactRecaptcha, getClientIP, logRecaptchaVerification } from "@/lib/recaptcha"
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Verify listing exists and is active
       const { data: listing, error: listingError } = await supabase
@@ -309,7 +309,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Create Supabase client
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
 
     // Get listing information
     const { data: listing, error: listingError } = await supabase

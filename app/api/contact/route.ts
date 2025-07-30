@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withOptionalAuth, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { createContactMessageSchema, CreateContactMessageInput } from "@/lib/schemas/contact-api-schema"
 import { verifyContactFormRecaptcha, getClientIP, logRecaptchaVerification } from "@/lib/recaptcha"
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create Supabase client
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Prepare contact message data
       const contactMessageData: ContactMessageInsert = {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   favoriteActionSchema,
   type FavoriteAction 
@@ -40,7 +40,7 @@ export async function POST(
       }
 
       const { action }: FavoriteAction = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Verify listing exists and is active
       const { data: listing, error: listingError } = await supabase
@@ -160,7 +160,7 @@ export async function GET(
         return createErrorResponse('Invalid listing ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if favorite exists
       const { data: favorite, error: favoriteError } = await supabase
@@ -210,7 +210,7 @@ export async function DELETE(
         return createErrorResponse('Invalid listing ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if favorite exists
       const { data: existingFavorite, error: favoriteCheckError } = await supabase

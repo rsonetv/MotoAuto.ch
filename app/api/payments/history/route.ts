@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   paymentHistoryQuerySchema,
   type PaymentHistoryQuery 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       }
 
       const query: PaymentHistoryQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Build the base query with joins
       let dbQuery = supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { verifyWebhookSignature } from "@/lib/stripe"
 import { createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import type { Database } from "@/lib/database.types"
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse(`Webhook signature verification failed: ${error.message}`, 400)
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
 
     // Handle different event types
     switch (event.type) {

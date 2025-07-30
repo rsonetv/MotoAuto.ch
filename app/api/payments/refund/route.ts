@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   refundRequestSchema,
   type RefundRequestInput 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       }
 
       const refundData: RefundRequestInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Fetch payment with related data
       const { data: payment, error: paymentError } = await supabase
@@ -362,7 +362,7 @@ export async function GET(request: NextRequest) {
         return createErrorResponse('Payment ID is required', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if user is admin or payment owner
       const { data: payment, error: paymentError } = await supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   updateListingSchema,
   type UpdateListingInput 
@@ -83,7 +83,7 @@ export async function GET(
         return createErrorResponse('Invalid listing ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Build query with comprehensive joins
       const { data: listing, error } = await supabase
@@ -244,7 +244,7 @@ export async function PUT(
       }
 
       const updateData: UpdateListingInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get current listing to check constraints
       const { data: currentListing, error: fetchError } = await supabase
@@ -362,7 +362,7 @@ export async function DELETE(
         return createErrorResponse('You can only delete your own listings', 403)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get listing details to check constraints
       const { data: listing, error: fetchError } = await supabase

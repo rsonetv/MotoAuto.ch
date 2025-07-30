@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     
     const { data, error } = await supabase
       .from('listings')
@@ -58,7 +58,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const body = await request.json()
     
     // Get user from auth header
@@ -116,7 +116,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     
     // Get user from auth header
     const authHeader = request.headers.get('authorization')

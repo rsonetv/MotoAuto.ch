@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   confirmPaymentSchema,
   type ConfirmPaymentInput 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       }
 
       const confirmData: ConfirmPaymentInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Find the payment record by Stripe payment intent ID
       const { data: payment, error: paymentError } = await supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { BidStatus } from "@/lib/database.types"
 
@@ -26,7 +26,7 @@ export async function DELETE(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Find active auto-bid for this user and auction
       const { data: autoBidData, error: autoBidError } = await supabase

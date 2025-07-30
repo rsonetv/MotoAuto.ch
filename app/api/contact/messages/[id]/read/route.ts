@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 
 interface RouteParams {
@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if message exists and user has permission to read it
       const { data: message, error: fetchError } = await supabase
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if message exists and user has permission to modify it
       const { data: message, error: fetchError } = await supabase

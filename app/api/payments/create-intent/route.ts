@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   createPaymentIntentSchema,
   type CreatePaymentIntentInput 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       }
 
       const paymentData: CreatePaymentIntentInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Validate listing if provided
       let listing = null

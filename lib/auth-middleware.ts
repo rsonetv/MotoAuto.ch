@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import type { User } from "@supabase/supabase-js"
 import type { Database } from "@/lib/database.types"
 
@@ -52,7 +52,7 @@ export async function withAuth(
     }
 
     // Create Supabase client
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
 
     // Set the session with the provided token
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
@@ -141,7 +141,7 @@ export async function withOptionalAuth(
       return await handler(request, {})
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
@@ -198,7 +198,7 @@ export async function checkListingOwnership(
       return false
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
 
     const { data: listing, error } = await supabase
       .from("listings")
@@ -229,7 +229,7 @@ export async function checkPackageAvailability(
       return { available: false, reason: "Invalid user ID" }
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     
     // Get user profile to check free listings used
     const { data: profile, error: profileError } = await supabase

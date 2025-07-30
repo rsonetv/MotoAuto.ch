@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   commissionCalculationSchema,
   type CommissionCalculationInput 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: CommissionParams) {
       const maxCommissionOverride = searchParams.get('max_commission')
       const saleAmountOverride = searchParams.get('sale_amount')
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Fetch auction with related listing data
       const { data: auction, error: auctionError } = await supabase
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest, { params }: CommissionParams) {
       }
 
       const calculationData: CommissionCalculationInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Verify auction exists and user has access
       const { data: auction, error: auctionError } = await supabase
@@ -338,7 +338,7 @@ export async function PUT(request: NextRequest, { params }: CommissionParams) {
         return createErrorResponse('Admin access required', 403)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Validate auction exists
       const { data: auction, error: auctionError } = await supabase

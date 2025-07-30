@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   invoiceGenerationSchema,
   type InvoiceGenerationInput 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: InvoiceParams) {
       const format = searchParams.get('format') || 'pdf'
       const includeVat = searchParams.get('include_vat') !== 'false'
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Fetch payment with related data
       const { data: payment, error: paymentError } = await supabase
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest, { params }: InvoiceParams) {
       }
 
       const invoiceData: InvoiceGenerationInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Fetch payment
       const { data: payment, error: paymentError } = await supabase

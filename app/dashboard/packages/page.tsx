@@ -18,7 +18,7 @@ import {
   CreditCard,
   Info
 } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClientComponentClient } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 

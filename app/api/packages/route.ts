@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   createErrorResponse,
   createSuccessResponse
@@ -14,7 +14,7 @@ type Package = Database['public']['Tables']['packages']['Row']
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
     const { searchParams } = new URL(request.url)
     
     // Optional filters
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
     
     // Validate required fields
     const requiredFields = ['name_en', 'name_de', 'name_fr', 'name_pl', 'price_chf', 'duration_days']

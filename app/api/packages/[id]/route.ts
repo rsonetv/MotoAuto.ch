@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   createErrorResponse,
   createSuccessResponse
@@ -21,7 +21,7 @@ interface PackageParams {
 export async function GET(request: NextRequest, { params }: PackageParams) {
   try {
     const packageId = params.id
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
     
     const { data: package_data, error } = await supabase
       .from('packages')
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest, { params }: PackageParams) {
   try {
     const packageId = params.id
     const body = await request.json()
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
     
     // Remove fields that shouldn't be updated directly
     const { id, created_at, updated_at, ...updateData } = body
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest, { params }: PackageParams) {
 export async function DELETE(request: NextRequest, { params }: PackageParams) {
   try {
     const packageId = params.id
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
     
     // Check if package is being used in any payments
     const { data: payments, error: paymentsError } = await supabase

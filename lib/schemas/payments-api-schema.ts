@@ -28,7 +28,7 @@ export const createPaymentIntentSchema = z.object({
     .string()
     .max(500, "Description cannot exceed 500 characters")
     .optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   // Swiss payment methods
   payment_methods: z
     .array(z.enum([
@@ -248,7 +248,7 @@ export const refundRequestSchema = z.object({
     .string()
     .max(500, "Description cannot exceed 500 characters")
     .optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   // Swiss compliance
   refund_application_fee: z.boolean().default(false),
   reverse_transfer: z.boolean().default(false)
@@ -338,7 +338,7 @@ export const paymentIntentResponseSchema = z.object({
   status: z.string(),
   payment_method_types: z.array(z.string()),
   created: z.number(),
-  metadata: z.record(z.any())
+  metadata: z.record(z.string(), z.any())
 })
 
 export const paymentResponseSchema = z.object({
@@ -357,7 +357,7 @@ export const paymentResponseSchema = z.object({
   payment_type: z.string(),
   status: z.string(),
   description: z.string().nullable(),
-  metadata: z.record(z.any()),
+  metadata: z.record(z.string(), z.any()),
   failure_reason: z.string().nullable(),
   processed_at: z.string().nullable(),
   completed_at: z.string().nullable(),
@@ -377,7 +377,7 @@ export const paginatedPaymentsResponseSchema = z.object({
     hasNext: z.boolean(),
     hasPrev: z.boolean()
   }),
-  filters: z.record(z.any()).optional()
+  filters: z.record(z.string(), z.any()).optional()
 })
 
 export const commissionCalculationResponseSchema = z.object({

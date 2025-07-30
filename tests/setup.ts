@@ -30,7 +30,7 @@ jest.setTimeout(30000)
 global.fetch = jest.fn()
 
 // Mock WebSocket
-global.WebSocket = jest.fn().mockImplementation(() => ({
+const mockWebSocket = jest.fn().mockImplementation(() => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   send: jest.fn(),
@@ -41,6 +41,16 @@ global.WebSocket = jest.fn().mockImplementation(() => ({
   CLOSING: 2,
   CLOSED: 3
 }))
+
+// Add static properties to the mock
+Object.assign(mockWebSocket, {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSING: 2,
+  CLOSED: 3
+})
+
+global.WebSocket = mockWebSocket as any
 
 // Mock Socket.IO
 jest.mock('socket.io-client', () => ({

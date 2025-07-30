@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, validateRequestBody, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { autoBidSetupSchema, validateSwissUser, calculateMinBidIncrement, type AutoBidSetup } from "@/lib/schemas/bids-api-schema"
 import { BidStatus } from "@/lib/database.types"
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       }
 
       const autoBidData = validation.data as AutoBidSetup
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Validate Swiss user requirements
       const userValidation = validateSwissUser(profile)

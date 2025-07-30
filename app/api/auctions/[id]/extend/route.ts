@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   auctionExtensionSchema,
   calculateAuctionState,
@@ -49,7 +49,7 @@ export async function POST(
       }
 
       const extensionData: AuctionExtension = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Use atomic transaction to prevent race conditions
       const { data: extensionResult, error: extensionError } = await supabase.rpc('extend_auction_atomic', {
@@ -131,7 +131,7 @@ export async function GET(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get auction details with proper joins
       const { data: auction, error: auctionError } = await supabase
@@ -254,7 +254,7 @@ export async function PATCH(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Use atomic auto-extension function
       const { data: autoExtensionResult, error: autoExtensionError } = await supabase.rpc('auto_extend_auction', {

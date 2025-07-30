@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   withAuth, 
   createErrorResponse,
@@ -14,7 +14,7 @@ import {
 export async function GET(request: NextRequest) {
   return withAuth(request, async (req, { user, profile }: AuthContext) => {
     try {
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
       const url = new URL(req.url)
       
       // Parse query parameters
@@ -168,7 +168,7 @@ export async function DELETE(request: NextRequest) {
         }
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Remove favorites
       const { error: deleteError } = await supabase

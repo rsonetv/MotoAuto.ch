@@ -252,7 +252,7 @@ export const paginatedBidsResponseSchema = z.object({
     hasNext: z.boolean(),
     hasPrev: z.boolean(),
   }),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 })
 
 export const bidPlacementResponseSchema = z.object({

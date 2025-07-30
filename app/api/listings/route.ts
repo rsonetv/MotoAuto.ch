@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   listingsQuerySchema, 
   createListingSchema,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       }
 
       const query: ListingsQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Build the base query with joins
       let dbQuery = supabase
@@ -310,7 +310,7 @@ export async function POST(request: NextRequest) {
       }
 
       const listingData: CreateListingInput = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check package availability
       const packageCheck = await checkPackageAvailability(user.id, listingData.package_id)

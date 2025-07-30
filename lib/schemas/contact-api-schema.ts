@@ -110,7 +110,7 @@ export const updateContactMessageSchema = z.object({
     .optional(),
   
   metadata: z
-    .record(z.any())
+    .record(z.string(), z.any())
     .optional(),
 })
 
@@ -329,7 +329,7 @@ export const paginatedContactMessagesResponseSchema = z.object({
     hasNext: z.boolean(),
     hasPrev: z.boolean(),
   }),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 })
 
 // reCAPTCHA verification schema
@@ -349,12 +349,12 @@ export const emailTemplateSchema = z.object({
     'admin_notification'
   ]),
   language: z.enum([Language.DE, Language.FR, Language.PL, Language.EN]),
-  variables: z.record(z.any()),
+  variables: z.record(z.string(), z.any()),
 })
 
 // Rate limiting schema
 export const rateLimitSchema = z.object({
-  ip_address: z.string().ip(),
+  ip_address: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Invalid IP address"),
   email: z.string().email().optional(),
   user_id: z.string().uuid().optional(),
   action: z.string(),

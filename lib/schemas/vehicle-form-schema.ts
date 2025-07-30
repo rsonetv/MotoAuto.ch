@@ -6,7 +6,7 @@ export const vehicleFormSchema = z.object({
   title: z.string().min(5, "Tytuł musi mieć co najmniej 5 znaków").max(100),
   description: z.string().min(20, "Opis musi mieć co najmniej 20 znaków"),
   vehicleType: z.enum(["car", "motorcycle"], {
-    required_error: "Wybierz typ pojazdu",
+    message: "Wybierz typ pojazdu",
   }),
   brand: z.string().min(1, "Wybierz markę"),
   model: z.string().min(1, "Wybierz model"),

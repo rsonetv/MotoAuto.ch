@@ -1,12 +1,12 @@
 import { Server as HTTPServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
-import { createServerComponentClient } from '@/lib/supabase'
+import { createServerComponentClient } from '@/lib/supabase-api'
 import type { Database } from '@/lib/database.types'
 
 // JWT verification function
 async function verifyJWT(token: string): Promise<{ sub: string } | null> {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { user }, error } = await supabase.auth.getUser(token)
     
     if (error || !user) {
@@ -73,7 +73,7 @@ export class AuctionWebSocketServer {
         }
 
         // Get user profile from database
-        const supabase = createServerComponentClient()
+        const supabase = await createServerComponentClient()
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
@@ -176,7 +176,7 @@ export class AuctionWebSocketServer {
     }
 
     // Validate auction exists and is active
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: auction, error } = await supabase
       .from('auctions')
       .select(`

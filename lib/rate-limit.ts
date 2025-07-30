@@ -1,4 +1,4 @@
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { getRateLimitMultiplier } from "@/lib/recaptcha"
 
 // Rate limiting configuration
@@ -51,7 +51,7 @@ export async function checkRateLimit(
     const multiplier = getRateLimitMultiplier(recaptchaScore)
     const adjustedMaxAttempts = Math.floor(config.maxAttempts * multiplier)
     
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const now = new Date()
     const windowStart = new Date(now.getTime() - (config.windowMinutes * 60 * 1000))
     
@@ -297,7 +297,7 @@ export async function checkIPBlocklist(ipAddress: string): Promise<{
     }
     
     // Check database for manually blocked IPs
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: blockedIPs } = await supabase
       .from('contact_messages')
       .select('ip_address')

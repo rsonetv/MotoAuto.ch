@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   createErrorResponse,
   createSuccessResponse
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const includeCounts = searchParams.get('include_counts') === 'true'
     const language = searchParams.get('lang') || 'en'
     
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient(req)
 
     // Build base query
     let query = supabase

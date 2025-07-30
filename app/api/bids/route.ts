@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, validateRequestBody, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { placeBidSchema, validateSwissUser, checkBidRateLimit, calculateMinBidIncrement } from "@/lib/schemas/bids-api-schema"
 import { BidStatus } from "@/lib/database.types"
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
       // Check rate limiting (max 5 bids per minute)
       // Get recent bids for rate limiting
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
       const { data: recentBids } = await supabase
         .from('bids')
         .select('placed_at')

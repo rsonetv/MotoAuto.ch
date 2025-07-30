@@ -170,8 +170,8 @@ const baseListingSchema = z.object({
     .optional(),
 
   // Features and equipment (JSON fields)
-  features: z.record(z.any()).optional(),
-  equipment: z.record(z.any()).optional(),
+  features: z.record(z.string(), z.any()).optional(),
+  equipment: z.record(z.string(), z.any()).optional(),
 
   // Auction fields
   is_auction: z.boolean().default(false),
@@ -484,7 +484,7 @@ export const paginatedListingsResponseSchema = z.object({
     hasNext: z.boolean(),
     hasPrev: z.boolean(),
   }),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 })
 
 // Type exports

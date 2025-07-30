@@ -16,15 +16,15 @@ export const auctionsQuerySchema = z.object({
   page: z
     .string()
     .regex(/^\d+$/, "Page must be a number")
+    .default("1")
     .transform(Number)
-    .refine((n: number) => n >= 1, "Page must be at least 1")
-    .default("1"),
+    .refine((n: number) => n >= 1, "Page must be at least 1"),
   limit: z
     .string()
     .regex(/^\d+$/, "Limit must be a number")
+    .default("20")
     .transform(Number)
-    .refine((n: number) => n >= 1 && n <= 100, "Limit must be between 1 and 100")
-    .default("20"),
+    .refine((n: number) => n >= 1 && n <= 100, "Limit must be between 1 and 100"),
 
   // Search
   search: z
@@ -416,7 +416,7 @@ export const paginatedAuctionsResponseSchema = z.object({
     hasNext: z.boolean(),
     hasPrev: z.boolean(),
   }),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 })
 
 export const watchlistResponseSchema = z.object({

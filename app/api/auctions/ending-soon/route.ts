@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   endingSoonQuerySchema,
   calculateAuctionState,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       }
 
       const query: EndingSoonQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Calculate the time window
       const now = new Date()

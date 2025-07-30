@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withOptionalAuth, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { BidStatus } from "@/lib/database.types"
 
@@ -26,7 +26,7 @@ export async function GET(
         return createErrorResponse('Invalid bid ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get bid details with full auction and user information
       const { data: bidData, error: bidError } = await supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, validateRequestBody, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { bidRetractionSchema, canRetractBid, type BidRetraction } from "@/lib/schemas/bids-api-schema"
 import { BidStatus } from "@/lib/database.types"
@@ -37,7 +37,7 @@ export async function PUT(
       }
 
       const retractionData = validation.data as BidRetraction
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get bid details with auction information
       const { data: bidData, error: bidError } = await supabase

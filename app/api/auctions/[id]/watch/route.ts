@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   watchlistActionSchema,
   type WatchlistAction
@@ -47,7 +47,7 @@ export async function POST(
       }
 
       const { action }: WatchlistAction = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // First, get the auction to verify it exists and get the listing_id
       const { data: auctionData, error: auctionError } = await supabase
@@ -168,7 +168,7 @@ export async function GET(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get the auction to get the listing_id
       const { data: auctionData, error: auctionError } = await supabase
@@ -239,7 +239,7 @@ export async function DELETE(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Get the auction to verify it exists and get the listing_id
       const { data: auctionData, error: auctionError } = await supabase

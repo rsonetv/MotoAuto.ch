@@ -30,7 +30,7 @@ import {
   Clock,
   X
 } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClientComponentClient } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { pl } from 'date-fns/locale'

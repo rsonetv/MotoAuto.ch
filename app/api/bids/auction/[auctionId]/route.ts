@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withOptionalAuth, validateQueryParams, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { auctionBidsQuerySchema, type AuctionBidsQuery } from "@/lib/schemas/bids-api-schema"
 import { BidStatus } from "@/lib/database.types"
@@ -35,7 +35,7 @@ export async function GET(
       }
 
       const query: AuctionBidsQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // First, verify the auction exists and get auction details
       const { data: auctionInfo, error: auctionError } = await supabase

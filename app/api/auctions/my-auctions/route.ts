@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   myAuctionsQuerySchema,
   calculateAuctionState,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       }
 
       const query: MyAuctionsQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Build the base query for user's auctions
       let dbQuery = supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { 
   calculateAuctionState,
   calculateTimeRemaining,
@@ -86,7 +86,7 @@ export async function GET(
         return createErrorResponse('Invalid auction ID format', 400)
       }
 
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // First, get the auction from the auctions table to get the listing_id
       const { data: auctionData, error: auctionError } = await supabase

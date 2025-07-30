@@ -15,16 +15,6 @@ export const createClientComponentClient = () => {
   })
 }
 
-// Client for server-side operations
-export const createServerComponentClient = () => {
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  })
-}
-
 // Admin client with service role key
 export const createAdminClient = () => {
   return createClient<Database>(supabaseUrl, supabaseServiceKey, {

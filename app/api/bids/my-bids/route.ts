@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, validateQueryParams, createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import { myBidsQuerySchema, type MyBidsQuery } from "@/lib/schemas/bids-api-schema"
 import { BidStatus } from "@/lib/database.types"
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       }
 
       const query: MyBidsQuery = validation.data
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Build base query for user's bids
       let bidsQuery = supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase"
+import { createServerComponentClient } from "@/lib/supabase-api"
 import { withAuth, createErrorResponse, createSuccessResponse, validateQueryParams } from "@/lib/auth-middleware"
 import { contactMessagesQuerySchema, ContactMessagesQuery } from "@/lib/schemas/contact-api-schema"
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       const query: ContactMessagesQuery = queryValidation.data
 
       // Create Supabase client
-      const supabase = createServerComponentClient()
+      const supabase = await createServerComponentClient(req)
 
       // Check if user is admin (can see all messages)
       // For now, we'll use a simple check - in production you might want a dedicated admin role
