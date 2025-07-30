@@ -1,0 +1,46 @@
+# Test Dockerfile
+# Lightweight container for running tests
+
+FROM node:18-alpine
+
+# Install system dependencies for native modules
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    curl \
+    postgresql-client
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy test configuration
+COPY .env.test ./
+COPY jest.config.js ./
+COPY tsconfig.json ./
+
+# Copy source code and tests
+COPY lib/ ./lib/
+COPY app/ ./app/
+COPY components/ ./components/
+COPY tests/ ./tests/
+COPY scripts/ ./scripts/
+
+# Set test environment
+ENV NODE_ENV=test
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+# Default command
+CMD ["pnpm", "test"]

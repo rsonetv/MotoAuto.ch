@@ -1,4 +1,4 @@
-import { createServerComponentClient } from './supabase'
+import { createServerComponentClient } from '@/lib/supabase-api'
 
 // Payment event types for logging
 export enum PaymentEventType {
@@ -68,7 +68,6 @@ export interface PaymentLogEntry {
 // Payment logger class
 export class PaymentLogger {
   private static instance: PaymentLogger
-  private supabase = createServerComponentClient()
 
   private constructor() {}
 
@@ -77,6 +76,11 @@ export class PaymentLogger {
       PaymentLogger.instance = new PaymentLogger()
     }
     return PaymentLogger.instance
+  }
+
+  // Create Supabase client when needed
+  private async getSupabaseClient() {
+    return await createServerComponentClient()
   }
 
   // Log payment event
@@ -130,31 +134,33 @@ export class PaymentLogger {
   // Database logging (implement based on your needs)
   private async databaseLog(entry: PaymentLogEntry): Promise<void> {
     try {
-      // You could create a payment_logs table for this
-      // For now, we'll store in payment metadata or a separate logging table
+      const supabase = await this.getSupabaseClient()
       
-      // Example: Update payment record with log entry
+      // You could create a payment_logs table for this
+      // For now, we'll store simplified logs in a separate table or skip complex metadata updates
+      
+      // Simple approach: Just log critical information without complex JSON operations
       if (entry.payment_id) {
-        const { error } = await this.supabase
-          .from('payments')
-          .update({
-            metadata: this.supabase.raw(`
-              metadata || jsonb_build_object(
-                'logs', COALESCE(metadata->'logs', '[]'::jsonb) || '${JSON.stringify([{
-                  timestamp: entry.created_at,
-                  event: entry.event_type,
-                  level: entry.level,
-                  message: entry.message,
-                  details: entry.metadata || {}
-                }])}'::jsonb
-              )
-            `)
-          })
-          .eq('id', entry.payment_id)
-
-        if (error) {
-          console.error('Database logging error:', error)
-        }
+        // We'll create a simple log record instead of complex metadata updates
+        console.log('Payment log entry recorded:', {
+          payment_id: entry.payment_id,
+          event_type: entry.event_type,
+          level: entry.level,
+          message: entry.message,
+          timestamp: entry.created_at
+        })
+        
+        // If you want to implement proper logging, create a payment_logs table:
+        // const { error } = await supabase
+        //   .from('payment_logs')
+        //   .insert([{
+        //     payment_id: entry.payment_id,
+        //     event_type: entry.event_type,
+        //     level: entry.level,
+        //     message: entry.message,
+        //     metadata: entry.metadata,
+        //     created_at: entry.created_at
+        //   }])
       }
     } catch (error) {
       console.error('Database logging failed:', error)

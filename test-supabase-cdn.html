@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase CDN Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Supabase CDN Test</h1>
+        <p>Testing Supabase connection using CDN import</p>
+        
+        <div id="status" class="result info">Ready to test...</div>
+        
+        <div class="result info">
+            <strong>🔧 Available Test Methods:</strong><br>
+            • <strong>CDN Client:</strong> @supabase/supabase-js via CDN<br>
+            • <strong>cURL Style:</strong> Raw fetch() with apikey header<br>
+            • <strong>Terminal Commands:</strong> PowerShell + curl.exe
+        </div>
+        
+        <button onclick="testConnection()">Test Connection</button>
+        <button onclick="testTables()">Test Tables</button>
+        <button onclick="testCurlStyle()">Test cURL Style</button>
+        <button onclick="testAuth()">Test Auth</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // Supabase configuration
+        const supabaseUrl = 'https://hqygljpxjpzcrxojftbh.supabase.co'
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8'
+
+        // Create Supabase client
+        const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+        // Helper functions
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results')
+            const div = document.createElement('div')
+            div.className = `result ${type}`
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`
+            results.appendChild(div)
+            results.scrollTop = results.scrollHeight
+        }
+
+        function setStatus(message, type = 'info') {
+            const status = document.getElementById('status')
+            status.className = `result ${type}`
+            status.textContent = message
+        }
+
+        function setLoading(isLoading) {
+            document.body.className = isLoading ? 'loading' : ''
+        }
+
+        // Test functions
+        window.testConnection = async function() {
+            setLoading(true)
+            setStatus('Testing connection...', 'info')
+            
+            try {
+                addResult('🔍 Testing basic Supabase connection...', 'info')
+                
+                const { data, error } = await supabase
+                    .from('listings')
+                    .select('id')
+                    .limit(1)
+                
+                if (error) {
+                    addResult(`❌ Connection failed: ${error.message}`, 'error')
+                    setStatus('Connection failed', 'error')
+                } else {
+                    addResult('✅ Connection successful!', 'success')
+                    addResult(`📊 Sample data: ${JSON.stringify(data)}`, 'info')
+                    setStatus('Connected successfully', 'success')
+                }
+            } catch (err) {
+                addResult(`❌ Unexpected error: ${err.message}`, 'error')
+                setStatus('Unexpected error', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testTables = async function() {
+            setLoading(true)
+            setStatus('Testing tables...', 'info')
+            
+            const tables = ['listings', 'auctions', 'bids']
+            
+            try {
+                addResult('📋 Testing table access...', 'info')
+                
+                for (const table of tables) {
+                    try {
+                        const { count, error } = await supabase
+                            .from(table)
+                            .select('*', { count: 'exact', head: true })
+                        
+                        if (error) {
+                            addResult(`❌ Table '${table}': ${error.message}`, 'error')
+                        } else {
+                            addResult(`✅ Table '${table}': ${count || 0} records`, 'success')
+                        }
+                    } catch (e) {
+                        addResult(`❌ Table '${table}': ${e.message}`, 'error')
+                    }
+                }
+                setStatus('Table testing completed', 'info')
+            } catch (err) {
+                addResult(`❌ Table testing failed: ${err.message}`, 'error')
+                setStatus('Table testing failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testCurlStyle = async function() {
+            setLoading(true)
+            setStatus('Testing cURL-style request...', 'info')
+            
+            try {
+                addResult('🌐 Testing cURL-style HTTP request with apikey header...', 'info')
+                
+                // Equivalent to: curl 'https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/todos' -H "apikey: ..."
+                const response = await fetch('https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/listings', {
+                    method: 'GET',
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8'
+                    }
+                })
+                
+                const data = await response.json()
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.message || data.error || 'Unknown error'}`)
+                }
+                
+                addResult('✅ cURL-style request successful!', 'success')
+                addResult(`📊 Response status: ${response.status}`, 'info')
+                addResult(`📝 Data count: ${data?.length || 0} records`, 'info')
+                addResult(`🔧 Method: HTTP GET with apikey in header (like cURL)`, 'info')
+                
+                if (data?.length > 0) {
+                    addResult(`📋 Sample record: ${JSON.stringify(data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No records found (table is empty)', 'info')
+                }
+                
+                setStatus('cURL-style test completed', 'success')
+            } catch (error) {
+                addResult(`❌ cURL-style test failed: ${error.message}`, 'error')
+                setStatus('cURL-style test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testAuth = async function() {
+            setLoading(true)
+            setStatus('Testing authentication...', 'info')
+            
+            try {
+                addResult('🔐 Testing authentication status...', 'info')
+                
+                const { data: user, error } = await supabase.auth.getUser()
+                
+                if (error && error.message !== 'Auth session missing!') {
+                    addResult(`❌ Auth error: ${error.message}`, 'error')
+                    setStatus('Auth error', 'error')
+                } else {
+                    addResult('ℹ️ Auth status: No user logged in (normal for testing)', 'info')
+                    setStatus('Auth system working', 'success')
+                }
+            } catch (err) {
+                addResult(`❌ Auth test failed: ${err.message}`, 'error')
+                setStatus('Auth test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = ''
+            setStatus('Results cleared', 'info')
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            addResult('🚀 Supabase CDN test page loaded', 'success')
+            addResult(`🔗 URL: ${supabaseUrl}`, 'info')
+            addResult(`🔑 Key: ${supabaseAnonKey ? '✓ Present' : '✗ Missing'}`, 'info')
+        })
+    </script>
+</body>
+</html>

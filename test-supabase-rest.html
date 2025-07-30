@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase REST API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Supabase REST API Test</h1>
+        <p>Testing Supabase using direct REST API calls with fetch</p>
+        
+        <div id="status" class="result info">Ready to test REST API...</div>
+        
+        <div class="code-block">
+            <strong>Base URL:</strong> https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/<br>
+            <strong>API Key:</strong> eyJhbGci... (present)
+        </div>
+        
+        <button onclick="testListings()">Test Listings Table</button>
+        <button onclick="testAuctions()">Test Auctions Table</button>
+        <button onclick="testBids()">Test Bids Table</button>
+        <button onclick="testCountries()">Test Countries Table</button>
+        <button onclick="testTodos()">Test Todos (URL Param)</button>
+        <button onclick="testCurlStyle()">Test cURL Style</button>
+        <button onclick="testAuth()">Test Auth Info</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://hqygljpxjpzcrxojftbh.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8'
+
+        // Helper functions
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results')
+            const div = document.createElement('div')
+            div.className = `result ${type}`
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`
+            results.appendChild(div)
+            results.scrollTop = results.scrollHeight
+        }
+
+        function setStatus(message, type = 'info') {
+            const status = document.getElementById('status')
+            status.className = `result ${type}`
+            status.textContent = message
+        }
+
+        function setLoading(isLoading) {
+            document.body.className = isLoading ? 'loading' : ''
+        }
+
+        // Generic fetch function for Supabase REST API
+        async function supabaseFetch(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}/rest/v1/${endpoint}`
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation',
+                ...options.headers
+            }
+
+            try {
+                addResult(`🔍 Fetching: ${url}`, 'info')
+                
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                })
+
+                const responseData = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${responseData.message || responseData.error || 'Unknown error'}`)
+                }
+
+                return {
+                    data: responseData,
+                    status: response.status,
+                    headers: Object.fromEntries(response.headers.entries())
+                }
+            } catch (error) {
+                throw new Error(`Fetch failed: ${error.message}`)
+            }
+        }
+
+        // Test functions
+        window.testListings = async function() {
+            setLoading(true)
+            setStatus('Testing listings table...', 'info')
+            
+            try {
+                const result = await supabaseFetch('listings?select=*&limit=5')
+                
+                addResult('✅ Listings table accessed successfully!', 'success')
+                addResult(`📊 Response status: ${result.status}`, 'info')
+                addResult(`📝 Data count: ${result.data?.length || 0} records`, 'info')
+                
+                if (result.data?.length > 0) {
+                    addResult(`📋 Sample record: ${JSON.stringify(result.data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No records found (table is empty)', 'info')
+                }
+                
+                setStatus('Listings test completed', 'success')
+            } catch (error) {
+                addResult(`❌ Listings test failed: ${error.message}`, 'error')
+                setStatus('Listings test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testAuctions = async function() {
+            setLoading(true)
+            setStatus('Testing auctions table...', 'info')
+            
+            try {
+                const result = await supabaseFetch('auctions?select=*&limit=5')
+                
+                addResult('✅ Auctions table accessed successfully!', 'success')
+                addResult(`📊 Response status: ${result.status}`, 'info')
+                addResult(`📝 Data count: ${result.data?.length || 0} records`, 'info')
+                
+                if (result.data?.length > 0) {
+                    addResult(`📋 Sample record: ${JSON.stringify(result.data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No records found (table is empty)', 'info')
+                }
+                
+                setStatus('Auctions test completed', 'success')
+            } catch (error) {
+                addResult(`❌ Auctions test failed: ${error.message}`, 'error')
+                setStatus('Auctions test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testBids = async function() {
+            setLoading(true)
+            setStatus('Testing bids table...', 'info')
+            
+            try {
+                const result = await supabaseFetch('bids?select=*&limit=5')
+                
+                addResult('✅ Bids table accessed successfully!', 'success')
+                addResult(`📊 Response status: ${result.status}`, 'info')
+                addResult(`📝 Data count: ${result.data?.length || 0} records`, 'info')
+                
+                if (result.data?.length > 0) {
+                    addResult(`📋 Sample record: ${JSON.stringify(result.data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No records found (table is empty)', 'info')
+                }
+                
+                setStatus('Bids test completed', 'success')
+            } catch (error) {
+                addResult(`❌ Bids test failed: ${error.message}`, 'error')
+                setStatus('Bids test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testCountries = async function() {
+            setLoading(true)
+            setStatus('Testing countries table...', 'info')
+            
+            try {
+                // Your exact example
+                const data = await fetch('https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/countries', {
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8'
+                    }
+                })
+                .then(res => res.json())
+                .catch(error => {
+                    throw new Error(`Countries fetch error: ${error.message}`)
+                })
+                
+                addResult('✅ Countries table accessed successfully!', 'success')
+                addResult(`📝 Data count: ${data?.length || 0} records`, 'info')
+                
+                if (data?.length > 0) {
+                    addResult(`📋 First few countries: ${JSON.stringify(data.slice(0, 3), null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No countries found (table is empty)', 'info')
+                }
+                
+                setStatus('Countries test completed', 'success')
+            } catch (error) {
+                addResult(`❌ Countries test failed: ${error.message}`, 'error')
+                setStatus('Countries test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testTodos = async function() {
+            setLoading(true)
+            setStatus('Testing todos with URL parameter method...', 'info')
+            
+            try {
+                // Your exact HTTP URL with apikey parameter
+                const url = 'https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/todos?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8'
+                
+                addResult(`🔍 Testing URL with apikey parameter: ${url}`, 'info')
+                
+                const response = await fetch(url)
+                const data = await response.json()
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.message || data.error || 'Unknown error'}`)
+                }
+                
+                addResult('✅ Todos table accessed successfully with URL parameter!', 'success')
+                addResult(`📊 Response status: ${response.status}`, 'info')
+                addResult(`📝 Data count: ${data?.length || 0} records`, 'info')
+                
+                if (data?.length > 0) {
+                    addResult(`📋 Sample todo: ${JSON.stringify(data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No todos found (table is empty)', 'info')
+                }
+                
+                setStatus('Todos URL parameter test completed', 'success')
+            } catch (error) {
+                addResult(`❌ Todos URL parameter test failed: ${error.message}`, 'error')
+                setStatus('Todos URL parameter test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testCurlStyle = async function() {
+            setLoading(true)
+            setStatus('Testing cURL-style HTTP request...', 'info')
+            
+            try {
+                // Equivalent to: curl -X GET 'https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/listings?apikey=...'
+                const url = 'https://hqygljpxjpzcrxojftbh.supabase.co/rest/v1/listings?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsanB4anB6Y3J4b2pmdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4Mzc4NjQsImV4cCI6MjA2NzQxMzg2NH0.Hs8d2HDG3JW68awxm6FbLyjLNb1JDcWk3JSenxjfik8&limit=3'
+                
+                addResult(`🌐 cURL-style GET request: ${url}`, 'info')
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    // No headers needed - apikey is in URL
+                })
+                
+                const data = await response.json()
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.message || data.error || 'Unknown error'}`)
+                }
+                
+                addResult('✅ cURL-style request successful!', 'success')
+                addResult(`📊 Response status: ${response.status}`, 'info')
+                addResult(`📝 Data count: ${data?.length || 0} records`, 'info')
+                addResult(`🔧 Method: Pure HTTP GET with apikey in URL`, 'info')
+                
+                if (data?.length > 0) {
+                    addResult(`📋 Sample listing: ${JSON.stringify(data[0], null, 2)}`, 'info')
+                } else {
+                    addResult('📋 No listings found (table is empty)', 'info')
+                }
+                
+                setStatus('cURL-style test completed', 'success')
+            } catch (error) {
+                addResult(`❌ cURL-style test failed: ${error.message}`, 'error')
+                setStatus('cURL-style test failed', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.testAuth = async function() {
+            setLoading(true)
+            setStatus('Testing auth info...', 'info')
+            
+            try {
+                const result = await supabaseFetch('auth/v1/user', {
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                })
+                
+                addResult('✅ Auth endpoint accessed!', 'success')
+                addResult(`📊 Auth data: ${JSON.stringify(result.data, null, 2)}`, 'info')
+                setStatus('Auth test completed', 'success')
+            } catch (error) {
+                if (error.message.includes('401') || error.message.includes('invalid')) {
+                    addResult('ℹ️ Auth: No user logged in (expected for anon key)', 'info')
+                    setStatus('Auth system working (no user)', 'success')
+                } else {
+                    addResult(`❌ Auth test failed: ${error.message}`, 'error')
+                    setStatus('Auth test failed', 'error')
+                }
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = ''
+            setStatus('Results cleared', 'info')
+        }
+
+        // Auto-load message
+        window.addEventListener('load', () => {
+            addResult('🚀 Supabase REST API test page loaded', 'success')
+            addResult(`🔗 Base URL: ${SUPABASE_URL}/rest/v1/`, 'info')
+            addResult(`🔑 API Key: ${SUPABASE_ANON_KEY ? '✓ Present' : '✗ Missing'}`, 'info')
+        })
+    </script>
+</body>
+</html>

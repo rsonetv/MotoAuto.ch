@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
 import { pl } from "date-fns/locale"
-import { createClient } from "@supabase/supabase-js"
+import { createClientComponentClient } from "@/lib/supabase"
 
 type Listing = {
   id: string;
@@ -49,10 +49,7 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
   const [loading, setLoading] = useState(!propListings);
   
   // Create Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-  );
+  const supabase = createClientComponentClient();
   
   useEffect(() => {
     // If listings are provided as props, use them

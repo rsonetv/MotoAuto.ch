@@ -1,0 +1,100 @@
+# Docker Compose for Test Environment
+# Provides isolated database, Redis, and email testing services
+
+version: '3.8'
+
+services:
+  # PostgreSQL Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: motoauto-postgres-test
+    environment:
+      POSTGRES_DB: motoauto_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpass123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./scripts/setup-test-database.sql:/docker-entrypoint-initdb.d/setup.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d motoauto_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motoauto-test
+
+  # Redis for Test Queues
+  redis-test:
+    image: redis:7-alpine
+    container_name: motoauto-redis-test
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - motoauto-test
+
+  # MailHog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: motoauto-mailhog-test
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /maildir
+    volumes:
+      - mailhog_data:/maildir
+    networks:
+      - motoauto-test
+
+  # Test Runner Container (optional - for CI/CD)
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: motoauto-test-runner
+    environment:
+      NODE_ENV: test
+      POSTGRES_HOST: postgres-test
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: motoauto_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpass123
+      REDIS_URL: redis://redis-test:6379
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    volumes:
+      - .:/app
+      - node_modules_test:/app/node_modules
+    working_dir: /app
+    command: ["npm", "run", "test:integration"]
+    networks:
+      - motoauto-test
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  mailhog_data:
+  node_modules_test:
+
+networks:
+  motoauto-test:
+    driver: bridge
