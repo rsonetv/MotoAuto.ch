@@ -188,7 +188,7 @@ export function Step5Summary() {
                 <span className="text-gray-600">Skrzynia:</span>
                 <span className="font-medium">{values.transmission}</span>
               </div>
-              {values.driveType && (
+              {values.mainCategory === "SAMOCHODY" && values.driveType && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Napęd:</span>
                   <span className="font-medium">{values.driveType}</span>

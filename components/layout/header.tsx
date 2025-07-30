@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Globe, User, Menu, Phone, Mail, Plus, Settings, LogOut, FileText, Gavel, Edit, Trash2 } from "lucide-react"
+import { Globe, User, Menu, Plus, Settings, LogOut, FileText, Gavel, Edit, Trash2 } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { AuthUser } from "@/lib/auth"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 export function Header() {
   const { user, signOut } = useAuth()
+  const authUser = user as AuthUser
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("PL")
 
@@ -31,9 +33,8 @@ export function Header() {
     { href: "/ogloszenia?category=moto", label: "Moto" },
     { href: "/ogloszenia?category=auto", label: "Auto" },
     { href: "/aukcje", label: "Aukcje" },
-    { href: "/dealerzy", label: "Dealerzy" },
-    { href: "/jak-to-dziala", label: "Jak to działa" },
-    { href: "/kontakt", label: "Kontakt" },
+    { href: "/faq", label: "Jak to działa" },
+    { href: "/cennik", label: "Cennik" },
   ]
 
   // Mock user listings for demonstration
@@ -64,11 +65,8 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-gray-300 hover:text-white transition-colors ${
-                  link.href === "/kontakt" ? "flex items-center space-x-1" : ""
-                }`}
+                className="text-gray-300 hover:text-white transition-colors"
               >
-                {link.href === "/kontakt" && <Phone className="w-4 h-4" />}
                 <span>{link.label}</span>
               </Link>
             ))}
@@ -76,31 +74,6 @@ export function Header() {
 
           {/* Consolidated Top-Right Menu */}
           <div className="hidden md:flex items-center space-x-2">
-            {/* Contact Information Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                  
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>Kontakt</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Phone className="w-4 h-4 mr-2" />
-                  +41 44 123 45 67
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Mail className="w-4 h-4 mr-2" />
-                  kontakt@motoauto.ch
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/kontakt">Formularz kontaktowy</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {/* Language Selection */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -137,8 +110,8 @@ export function Header() {
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel>
                     <div>
-                      <p className="font-medium">{user.profile?.full_name || user.email}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="font-medium">{authUser.profile?.full_name || user?.email}</p>
+                      <p className="text-sm text-gray-500">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -274,8 +247,8 @@ export function Header() {
                     <div className="flex items-center space-x-3 mb-4">
                       <User className="w-8 h-8 bg-gray-700 rounded-full p-2" />
                       <div>
-                        <p className="font-medium">{user.profile?.full_name || user.email}</p>
-                        <p className="text-sm text-gray-400">{user.email}</p>
+                        <p className="font-medium">{authUser.profile?.full_name || user?.email}</p>
+                        <p className="text-sm text-gray-400">{user?.email}</p>
                       </div>
                     </div>
 
@@ -323,17 +296,9 @@ export function Header() {
                 )}
               </div>
 
-              {/* Mobile Contact & Language */}
+              {/* Mobile Language Selection */}
               <div className="border-t border-gray-800 pt-6 mt-6">
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center text-gray-400">
-                    <Phone className="w-4 h-4 mr-2" />
-                    +41 44 123 45 67
-                  </div>
-                  <div className="flex items-center text-gray-400">
-                    <Mail className="w-4 h-4 mr-2" />
-                    kontakt@motoauto.ch
-                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">Język:</span>
                     <select

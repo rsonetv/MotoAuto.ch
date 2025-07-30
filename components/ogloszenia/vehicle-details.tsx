@@ -27,41 +27,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ContactPanel } from "./contact-panel"
-import type { Database } from "@/lib/database.types"
-
-type Listing = Database['public']['Tables']['listings']['Row'] & {
-  profiles?: {
-    id: string;
-    full_name: string | null;
-    dealer_name: string | null;
-    is_dealer: boolean;
-    location: string | null;
-    phone: string | null;
-    email: string | null;
-    avatar_url: string | null;
-  };
-  categories?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  images?: string[];
-  main_image?: string;
-  features?: string[];
-  is_featured?: boolean;
-  is_auction?: boolean;
-  fuel_type?: string;
-  transmission?: string;
-  exterior_color?: string;
-  interior_color?: string;
-  vin?: string;
-  registration_number?: string;
-}
+import type { ExtendedListing } from "@/types/listings"
 
 interface VehicleDetailsProps {
-  listing: Listing;
-  relatedListings?: Listing[];
-  isLoading?: boolean;
+  listing: ExtendedListing
+  relatedListings?: ExtendedListing[]
+  isLoading?: boolean
 }
 
 export function VehicleDetails({ listing, relatedListings = [], isLoading = false }: VehicleDetailsProps) {

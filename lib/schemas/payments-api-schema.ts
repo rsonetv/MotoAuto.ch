@@ -67,7 +67,8 @@ export const createPaymentIntentSchema = z.object({
 .refine(
   (data) => {
     // If payment type is for listing or commission, listing_id is required
-    if ([PaymentType.LISTING_FEE, PaymentType.COMMISSION].includes(data.payment_type) && !data.listing_id) {
+    const listingPaymentTypes = [PaymentType.LISTING_FEE, PaymentType.COMMISSION] as const;
+    if (listingPaymentTypes.includes(data.payment_type as any) && !data.listing_id) {
       return false
     }
     return true
@@ -80,7 +81,8 @@ export const createPaymentIntentSchema = z.object({
 .refine(
   (data) => {
     // If payment type is for package, package_id is required
-    if ([PaymentType.PREMIUM_PACKAGE, PaymentType.FEATURED_LISTING].includes(data.payment_type) && !data.package_id) {
+    const packagePaymentTypes = [PaymentType.PREMIUM_PACKAGE, PaymentType.FEATURED_LISTING] as const;
+    if (packagePaymentTypes.includes(data.payment_type as any) && !data.package_id) {
       return false
     }
     return true

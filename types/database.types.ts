@@ -86,6 +86,106 @@ export interface Database {
           updated_at?: string
         }
       }
+      listings: {
+        Row: {
+          id: number
+          user_id: string
+          title: string
+          description: string
+          price: number
+          category: string
+          brand: string | null
+          model: string | null
+          year: number | null
+          mileage: number | null
+          fuel_type: string | null
+          transmission: string | null
+          color: string | null
+          location: string
+          images: string[] | null
+          is_auction: boolean
+          auction_end_time: string | null
+          current_bid: number | null
+          min_increment: number | null
+          buy_now_price: number | null
+          status: "active" | "sold" | "expired"
+          views: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          title: string
+          description: string
+          price: number
+          category: string
+          brand?: string | null
+          model?: string | null
+          year?: number | null
+          mileage?: number | null
+          fuel_type?: string | null
+          transmission?: string | null
+          color?: string | null
+          location: string
+          images?: string[] | null
+          is_auction?: boolean
+          auction_end_time?: string | null
+          current_bid?: number | null
+          min_increment?: number | null
+          buy_now_price?: number | null
+          status?: "active" | "sold" | "expired"
+          views?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          title?: string
+          description?: string
+          price?: number
+          category?: string
+          brand?: string | null
+          model?: string | null
+          year?: number | null
+          mileage?: number | null
+          fuel_type?: string | null
+          transmission?: string | null
+          color?: string | null
+          location?: string
+          images?: string[] | null
+          is_auction?: boolean
+          auction_end_time?: string | null
+          current_bid?: number | null
+          min_increment?: number | null
+          buy_now_price?: number | null
+          status?: "active" | "sold" | "expired"
+          views?: number
+          created_at?: string
+        }
+      }
+      bids: {
+        Row: {
+          id: number
+          listing_id: number
+          user_id: string
+          amount: number
+          placed_at: string
+        }
+        Insert: {
+          id?: number
+          listing_id: number
+          user_id: string
+          amount: number
+          placed_at?: string
+        }
+        Update: {
+          id?: number
+          listing_id?: number
+          user_id?: string
+          amount?: number
+          placed_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {}

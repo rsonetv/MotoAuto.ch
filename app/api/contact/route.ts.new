@@ -1,0 +1,44 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const contactSchema = z.object({
+  name: z.string().min(1, 'Imię jest wymagane'),
+  email: z.string().email('Nieprawidłowy adres email'),
+  subject: z.string().min(1, 'Temat jest wymagany'),
+  message: z.string().min(10, 'Wiadomość musi mieć co najmniej 10 znaków')
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Walidacja danych
+    const validatedData = contactSchema.parse(body)
+    
+    // Tu możesz dodać logikę wysyłania maila
+    // Przykład z nodemailer lub innym serwisem
+    console.log('Contact form submission:', validatedData)
+    
+    // Symulacja wysyłki (zamień na prawdziwą implementację)
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    return NextResponse.json(
+      { message: 'Wiadomość została wysłana pomyślnie' },
+      { status: 200 }
+    )
+    
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { message: 'Nieprawidłowe dane', errors: error.errors },
+        { status: 400 }
+      )
+    }
+    
+    console.error('Contact form error:', error)
+    return NextResponse.json(
+      { message: 'Wystąpił błąd podczas wysyłania wiadomości' },
+      { status: 500 }
+    )
+  }
+}
