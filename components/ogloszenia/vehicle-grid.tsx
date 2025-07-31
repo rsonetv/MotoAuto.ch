@@ -24,7 +24,7 @@ type Listing = {
   updated_at: string;
   main_image: string | null;
   images: string[] | null;
-  is_auction: boolean;
+  sale_type: string;
   location: string | null;
   views: number;
   vehicle_type?: 'car' | 'motorcycle' | string;
@@ -70,7 +70,7 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
             *,
             profiles (*)
           `)
-          .eq('is_auction', false)
+          .eq('sale_type', 'listing')
           .order('created_at', { ascending: false })
           .limit(6);
           

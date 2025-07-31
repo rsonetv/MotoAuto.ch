@@ -61,17 +61,18 @@ export function DashboardNav() {
   ]
 
   const secondaryNavigation = [
-    {
-      name: "Ustawienia",
-      href: "/dashboard/settings",
-      icon: Settings,
-    },
-    {
-      name: "Wyloguj",
-      href: "/auth/logout",
-      icon: LogOut,
-    },
-  ]
+  {
+    name: "Ustawienia",
+    href: "/dashboard/settings",
+    icon: Settings,
+    current: pathname === "/dashboard/settings",
+  },
+  {
+    name: "Wyloguj",
+    href: "/auth/signout",
+    icon: LogOut,
+  },
+]
 
   return (
     <nav className="space-y-2">
@@ -112,13 +113,36 @@ export function DashboardNav() {
         <div className="space-y-1">
           {secondaryNavigation.map((item) => {
             const Icon = item.icon
+            if (item.name === "Wyloguj") {
+              return (
+                <form action={item.href} method="post" key={item.name}>
+                  <button
+                    type="submit"
+                    className="group flex w-full items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  >
+                    <Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 mr-3" />
+                    <span>{item.name}</span>
+                  </button>
+                </form>
+              )
+            }
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className={cn(
+                  "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  item.current
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                )}
               >
-                <Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 mr-3" />
+                <Icon
+                  className={cn(
+                    "w-5 h-5 mr-3",
+                    item.current ? "text-blue-700" : "text-gray-400 group-hover:text-gray-600"
+                  )}
+                />
                 <span>{item.name}</span>
               </Link>
             )

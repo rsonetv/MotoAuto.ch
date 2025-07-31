@@ -15,33 +15,36 @@ ON CONFLICT (slug) DO UPDATE SET
   sort_order = EXCLUDED.sort_order;
 
 -- Insert packages
-INSERT INTO public.packages (name, price, duration_days, max_images, description, features, is_popular) VALUES
+INSERT INTO public.packages (name, price, duration_days, max_images, description, features, is_popular, sort_order) VALUES
   (
-    'Darmowy', 
-    0.00, 
-    30, 
-    5, 
+    'Darmowy',
+    0.00,
+    30,
+    5,
     'Pierwsze ogłoszenie za darmo - idealne na start!',
     '{"basic_support": true, "standard_listing": true}',
-    false
+    false,
+    1
   ),
   (
-    'Premium', 
-    29.90, 
-    60, 
-    15, 
+    'Premium',
+    29.90,
+    60,
+    15,
     'Rozszerzony pakiet z większą widocznością i priorytetem w wyszukiwaniu',
     '{"featured_listing": true, "priority_support": true, "extended_duration": true, "more_photos": true}',
-    true
+    true,
+    2
   ),
   (
-    'Dealer', 
-    99.90, 
-    90, 
-    30, 
+    'Dealer',
+    99.90,
+    90,
+    30,
     'Profesjonalny pakiet dla dealerów z pełną funkcjonalnością',
     '{"featured_listing": true, "priority_support": true, "analytics": true, "dealer_badge": true, "unlimited_editing": true, "social_media_promotion": true, "multiple_categories": true}',
-    false
+    false,
+    3
   )
 ON CONFLICT (name) DO UPDATE SET
   price = EXCLUDED.price,
