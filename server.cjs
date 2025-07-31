@@ -18,7 +18,7 @@ app.prepare().then(() => {
       const parsedUrl = parse(req.url, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
-      console.error('Error occurred handling', req.url, err);
+      console.error(`Error handling request for ${req.url}:`, err.stack || err);
       res.statusCode = 500;
       res.end('internal server error');
     }
@@ -51,4 +51,7 @@ app.prepare().then(() => {
       process.exit(0);
     });
   });
+}).catch(err => {
+  console.error('Error during app preparation:', err.stack || err);
+  process.exit(1);
 });
