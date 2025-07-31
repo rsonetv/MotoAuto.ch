@@ -87,6 +87,7 @@
     "react-dropzone": "latest",
     "react-email": "^4.2.5",
     "react-hook-form": "latest",
+    "react-icons": "^5.5.0",
     "react-resizable-panels": "latest",
     "recharts": "latest",
     "shadcn": "latest",

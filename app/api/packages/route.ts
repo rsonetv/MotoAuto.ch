@@ -14,7 +14,7 @@ type Package = Database['public']['Tables']['packages']['Row']
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerComponentClient(req)
+    const supabase = await createServerComponentClient(request)
     const { searchParams } = new URL(request.url)
     
     // Optional filters
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const supabase = await createServerComponentClient(req)
+    const supabase = await createServerComponentClient(request)
     
     // Validate required fields
     const requiredFields = ['name_en', 'name_de', 'name_fr', 'name_pl', 'price_chf', 'duration_days']
