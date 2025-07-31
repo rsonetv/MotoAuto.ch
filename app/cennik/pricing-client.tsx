@@ -149,9 +149,9 @@ const predefinedPackages: Record<string, PackageData> = {
   premium: {
     id: 'premium',
     name: 'Premium',
-    price: 29.90,
-    duration: 60,
-    maxImages: 15,
+    price: 50,
+    duration: 30,
+    maxImages: 10,
     features: ['featuredPlacement', 'prioritySupport', 'basicAnalytics', 'extendedDuration'],
     isPopular: true,
     icon: <Star className="h-6 w-6" />,
@@ -160,9 +160,9 @@ const predefinedPackages: Record<string, PackageData> = {
   dealer: {
     id: 'dealer',
     name: 'Dealer',
-    price: 99.90,
-    duration: 90,
-    maxImages: 50,
+    price: 200,
+    duration: 30,
+    maxImages: 15,
     features: ['unlimitedListings', 'topPlacement', 'dedicatedSupport', 'advancedAnalytics', 'dealerBadge', 'bulkListingTools'],
     isRecommended: true,
     icon: <Crown className="h-6 w-6" />,
@@ -176,16 +176,16 @@ const translations = {
     title: 'Cennik - Pakiety i Ceny | MotoAuto.ch',
     description: 'Sprawdź nasze konkurencyjne ceny pakietów dla sprzedaży samochodów i motocykli w Szwajcarii.',
     heroTitle: 'Wybierz Idealny Pakiet dla Siebie',
-    heroSubtitle: 'Przejrzyste ceny, bez ukrytych kosztów. Wszystkie ceny zawierają szwajcarski VAT 7.7%',
+    heroSubtitle: 'Przejrzyste ceny, bez ukrytych kosztów. Wszystkie ceny zawierają szwajcarski VAT 8.1%',
     heroDescription: 'Od darmowych ogłoszeń dla użytkowników prywatnych po zaawansowane narzędzia dla dealerów.',
     
-    freePackage: 'Darmowy',
-    premiumPackage: 'Premium', 
-    dealerPackage: 'Dealer',
+    freePackage: 'Pakiet Indywidualny',
+    premiumPackage: 'Pakiet Premium', 
+    dealerPackage: 'Pakiet Dealer',
     
-    freeDescription: 'Idealne dla użytkowników prywatnych sprzedających okazjonalnie',
-    premiumDescription: 'Najlepszy wybór dla aktywnych sprzedawców prywatnych',
-    dealerDescription: 'Profesjonalne narzędzia dla dealerów i firm motoryzacyjnych',
+    freeDescription: 'Idealne dla użytkowników prywatnych - 1 ogłoszenie, 5 zdjęć',
+    premiumDescription: 'Najlepszy wybór dla aktywnych sprzedawców - do 10 ogłoszeń, 10 zdjęć',
+    dealerDescription: 'Profesjonalne narzędzia dla dealerów - nieograniczona liczba ogłoszeń, 15 zdjęć',
     
     features: 'Funkcje',
     duration: 'Czas trwania',
@@ -227,7 +227,7 @@ const translations = {
     faq1A: 'Tak, możesz w każdej chwili przejść na wyższy pakiet. Różnica w cenie zostanie naliczona proporcjonalnie.',
     
     faq2Q: 'Czy ceny zawierają szwajcarski VAT?',
-    faq2A: 'Tak, wszystkie wyświetlane ceny zawierają szwajcarski VAT w wysokości 7.7%.',
+    faq2A: 'Tak, wszystkie wyświetlane ceny zawierają szwajcarski VAT w wysokości 8.1%.',
     
     faq3Q: 'Jak długo trwa aktywacja pakietu?',
     faq3A: 'Pakiety są aktywowane natychmiast po potwierdzeniu płatności. Zazwyczaj zajmuje to kilka minut.',
@@ -268,9 +268,9 @@ const translations = {
     customerSatisfaction: 'Zadowolenie klientów',
     
     // VAT
-    priceIncludesVat: 'Cena zawiera VAT 7.7%',
+    priceIncludesVat: 'Cena zawiera VAT 8.1%',
     netPrice: 'Cena netto',
-    vatAmount: 'VAT (7.7%)',
+    vatAmount: 'VAT (8.1%)',
     totalPrice: 'Cena całkowita'
   },
   
@@ -278,16 +278,16 @@ const translations = {
     title: 'Preise - Pakete und Preise | MotoAuto.ch',
     description: 'Entdecken Sie unsere wettbewerbsfähigen Preise für Auto- und Motorradverkaufspakete in der Schweiz.',
     heroTitle: 'Wählen Sie das perfekte Paket für Sie',
-    heroSubtitle: 'Transparente Preise, keine versteckten Kosten. Alle Preise inklusive Schweizer MwSt. 7.7%',
+    heroSubtitle: 'Transparente Preise, keine versteckten Kosten. Alle Preise inklusive Schweizer MwSt. 8.1%',
     heroDescription: 'Von kostenlosen Inseraten für Privatnutzer bis hin zu erweiterten Tools für Händler.',
     
-    freePackage: 'Kostenlos',
-    premiumPackage: 'Premium',
-    dealerPackage: 'Händler',
+    freePackage: 'Einzelpaket',
+    premiumPackage: 'Premium-Paket',
+    dealerPackage: 'Händler-Paket',
     
-    freeDescription: 'Ideal für Privatnutzer, die gelegentlich verkaufen',
-    premiumDescription: 'Die beste Wahl für aktive Privatverkäufer',
-    dealerDescription: 'Professionelle Tools für Händler und Automobilunternehmen',
+    freeDescription: 'Ideal für Privatnutzer - 1 Anzeige, 5 Bilder',
+    premiumDescription: 'Die beste Wahl für aktive Verkäufer - bis zu 10 Anzeigen, 10 Bilder',
+    dealerDescription: 'Professionelle Tools für Händler - unbegrenzte Anzeigen, 15 Bilder',
     
     features: 'Funktionen',
     duration: 'Laufzeit',
@@ -329,7 +329,7 @@ const translations = {
     faq1A: 'Ja, Sie können jederzeit auf ein höheres Paket upgraden. Die Preisdifferenz wird anteilig berechnet.',
     
     faq2Q: 'Enthalten die Preise die Schweizer MwSt.?',
-    faq2A: 'Ja, alle angezeigten Preise enthalten die Schweizer MwSt. von 7.7%.',
+    faq2A: 'Ja, alle angezeigten Preise enthalten die Schweizer MwSt. von 8.1%.',
     
     faq3Q: 'Wie lange dauert die Paket-Aktivierung?',
     faq3A: 'Pakete werden sofort nach Zahlungsbestätigung aktiviert. Dies dauert normalerweise nur wenige Minuten.',
@@ -370,9 +370,9 @@ const translations = {
     customerSatisfaction: 'Kundenzufriedenheit',
     
     // VAT
-    priceIncludesVat: 'Preis inkl. MwSt. 7.7%',
+    priceIncludesVat: 'Preis inkl. MwSt. 8.1%',
     netPrice: 'Nettopreis',
-    vatAmount: 'MwSt. (7.7%)',
+    vatAmount: 'MwSt. (8.1%)',
     totalPrice: 'Gesamtpreis'
   },
   
@@ -380,16 +380,16 @@ const translations = {
     title: 'Prix - Forfaits et Tarifs | MotoAuto.ch',
     description: 'Découvrez nos prix compétitifs pour les forfaits de vente d\'automobiles et de motos en Suisse.',
     heroTitle: 'Choisissez le forfait parfait pour vous',
-    heroSubtitle: 'Prix transparents, sans coûts cachés. Tous les prix incluent la TVA suisse de 7.7%',
+    heroSubtitle: 'Prix transparents, sans coûts cachés. Tous les prix incluent la TVA suisse de 8.1%',
     heroDescription: 'Des annonces gratuites pour les utilisateurs privés aux outils avancés pour les concessionnaires.',
     
-    freePackage: 'Gratuit',
-    premiumPackage: 'Premium',
-    dealerPackage: 'Concessionnaire',
+    freePackage: 'Forfait Individuel',
+    premiumPackage: 'Forfait Premium',
+    dealerPackage: 'Forfait Concessionnaire',
     
-    freeDescription: 'Idéal pour les utilisateurs privés vendant occasionnellement',
-    premiumDescription: 'Le meilleur choix pour les vendeurs privés actifs',
-    dealerDescription: 'Outils professionnels pour les concessionnaires et entreprises automobiles',
+    freeDescription: 'Idéal pour les utilisateurs privés - 1 annonce, 5 photos',
+    premiumDescription: 'Le meilleur choix pour les vendeurs actifs - jusqu\'à 10 annonces, 10 photos',
+    dealerDescription: 'Outils professionnels pour les concessionnaires - annonces illimitées, 15 photos',
     
     features: 'Fonctionnalités',
     duration: 'Durée',
@@ -431,7 +431,7 @@ const translations = {
     faq1A: 'Oui, vous pouvez passer à un forfait supérieur à tout moment. La différence de prix sera calculée au prorata.',
     
     faq2Q: 'Les prix incluent-ils la TVA suisse?',
-    faq2A: 'Oui, tous les prix affichés incluent la TVA suisse de 7.7%.',
+    faq2A: 'Oui, tous les prix affichés incluent la TVA suisse de 8.1%.',
     
     faq3Q: 'Combien de temps prend l\'activation du forfait?',
     faq3A: 'Les forfaits sont activés immédiatement après confirmation du paiement. Cela prend généralement quelques minutes.',
@@ -482,16 +482,16 @@ const translations = {
     title: 'Pricing - Packages and Prices | MotoAuto.ch',
     description: 'Check our competitive prices for car and motorcycle sales packages in Switzerland.',
     heroTitle: 'Choose the Perfect Package for You',
-    heroSubtitle: 'Transparent pricing, no hidden costs. All prices include Swiss VAT 7.7%',
+    heroSubtitle: 'Transparent pricing, no hidden costs. All prices include Swiss VAT 8.1%',
     heroDescription: 'From free listings for private users to advanced tools for dealers.',
     
-    freePackage: 'Free',
-    premiumPackage: 'Premium',
-    dealerPackage: 'Dealer',
+    freePackage: 'Individual Package',
+    premiumPackage: 'Premium Package',
+    dealerPackage: 'Dealer Package',
     
-    freeDescription: 'Perfect for private users selling occasionally',
-    premiumDescription: 'Best choice for active private sellers',
-    dealerDescription: 'Professional tools for dealers and automotive companies',
+    freeDescription: 'Perfect for private users - 1 listing, 5 images',
+    premiumDescription: 'Best choice for active sellers - up to 10 listings, 10 images',
+    dealerDescription: 'Professional tools for dealers - unlimited listings, 15 images',
     
     features: 'Features',
     duration: 'Duration',
@@ -533,7 +533,7 @@ const translations = {
     faq1A: 'Yes, you can upgrade to a higher package at any time. The price difference will be calculated proportionally.',
     
     faq2Q: 'Do prices include Swiss VAT?',
-    faq2A: 'Yes, all displayed prices include Swiss VAT of 7.7%.',
+    faq2A: 'Yes, all displayed prices include Swiss VAT of 8.1%.',
     
     faq3Q: 'How long does package activation take?',
     faq3A: 'Packages are activated immediately after payment confirmation. This usually takes just a few minutes.',
@@ -574,9 +574,9 @@ const translations = {
     customerSatisfaction: 'Customer satisfaction',
     
     // VAT
-    priceIncludesVat: 'Price includes VAT 7.7%',
+    priceIncludesVat: 'Price includes VAT 8.1%',
     netPrice: 'Net price',
-    vatAmount: 'VAT (7.7%)',
+    vatAmount: 'VAT (8.1%)',
     totalPrice: 'Total price'
   }
 }
