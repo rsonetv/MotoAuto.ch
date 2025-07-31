@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,15 +35,15 @@ interface VehicleFiltersProps {
     transmission?: string
     condition?: string
     location?: string
+    radius?: number
   }
-  onChange: (filters: any) => void
   category: string
   categories: Category[]
 }
 
 const BRANDS = {
   auto: [
-    "Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Honda", 
+    "Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Honda",
     "Ford", "Opel", "Peugeot", "Renault", "Skoda", "Volvo", "Porsche",
     "Ferrari", "Lamborghini", "Tesla", "Hyundai", "Kia", "Mazda", "Nissan"
   ],
@@ -78,7 +79,10 @@ const CONDITIONS = [
   { value: "damaged", label: "Uszkodzony" }
 ]
 
-export function VehicleFilters({ filters, onChange, category, categories }: VehicleFiltersProps) {
+export function VehicleFilters({ filters, category, categories }: VehicleFiltersProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+
   // Sprawdź czy kategorie się ładują
   const isLoading = categories.length === 0;
   
@@ -90,41 +94,51 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
     filters.yearMin || 1990,
     filters.yearMax || new Date().getFullYear()
   ])
+  const [radius, setRadius] = useState(filters.radius || 0)
+  const [locationInput, setLocationInput] = useState(filters.location || "")
 
   const currentYear = new Date().getFullYear()
   const availableBrands = category === 'moto' ? BRANDS.moto : BRANDS.auto
 
+  const handleFilterChange = (newFilter: Partial<typeof filters>) => {
+    const updatedFilters = { ...filters, ...newFilter };
+    const params = new URLSearchParams();
+
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '' && String(value) !== 'all') {
+        params.set(key, String(value));
+      }
+    });
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const handlePriceChange = (values: number[]) => {
     setPriceRange(values)
-    onChange({
+    handleFilterChange({
       priceMin: values[0] > 0 ? values[0] : undefined,
-      priceMax: values[1] < 200000 ? values[1] : undefined
+      priceMax: values[1] < 200000 ? values[1] : undefined,
     })
   }
 
   const handleYearChange = (values: number[]) => {
     setYearRange(values)
-    onChange({
+    handleFilterChange({
       yearMin: values[0] > 1990 ? values[0] : undefined,
-      yearMax: values[1] < currentYear ? values[1] : undefined
+      yearMax: values[1] < currentYear ? values[1] : undefined,
     })
+  }
+
+  const handleRadiusChange = (value: number[]) => {
+    setRadius(value[0])
+    handleFilterChange({ radius: value[0] > 0 ? value[0] : undefined })
   }
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000])
     setYearRange([1990, currentYear])
-    onChange({
-      brand: undefined,
-      priceMin: undefined,
-      priceMax: undefined,
-      yearMin: undefined,
-      yearMax: undefined,
-      mileageMax: undefined,
-      fuelType: undefined,
-      transmission: undefined,
-      condition: undefined,
-      location: undefined
-    })
+    setRadius(0)
+    router.push(pathname, { scroll: false })
   }
 
   const getActiveFiltersCount = () => {
@@ -137,6 +151,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
     if (filters.transmission) count++
     if (filters.condition) count++
     if (filters.location) count++
+    if (filters.radius) count++
     return count
   }
 
@@ -171,7 +186,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
           <Label>Marka</Label>
           <Select
             value={filters.brand || ""}
-            onValueChange={(value) => onChange({ brand: value || undefined })}
+            onValueChange={(value) => handleFilterChange({ brand: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie marki" />
@@ -214,7 +229,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
                 type="number"
                 placeholder="0"
                 value={filters.priceMin || ''}
-                onChange={(e) => onChange({ priceMin: e.target.value ? parseInt(e.target.value) : undefined })}
+                onChange={(e) => handleFilterChange({ priceMin: e.target.value ? parseInt(e.target.value) : undefined })}
                 className="h-8"
               />
             </div>
@@ -225,7 +240,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
                 type="number"
                 placeholder="200000"
                 value={filters.priceMax || ''}
-                onChange={(e) => onChange({ priceMax: e.target.value ? parseInt(e.target.value) : undefined })}
+                onChange={(e) => handleFilterChange({ priceMax: e.target.value ? parseInt(e.target.value) : undefined })}
                 className="h-8"
               />
             </div>
@@ -263,7 +278,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
             type="number"
             placeholder="np. 100000"
             value={filters.mileageMax || ''}
-            onChange={(e) => onChange({ mileageMax: e.target.value ? parseInt(e.target.value) : undefined })}
+            onChange={(e) => handleFilterChange({ mileageMax: e.target.value ? parseInt(e.target.value) : undefined })}
           />
         </div>
 
@@ -274,7 +289,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
           <Label>Rodzaj paliwa</Label>
           <Select
             value={filters.fuelType || "all"}
-            onValueChange={(value) => onChange({ fuelType: value === "all" ? undefined : value })}
+            onValueChange={(value) => handleFilterChange({ fuelType: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
@@ -297,7 +312,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
           <Label>Skrzynia biegów</Label>
           <Select
             value={filters.transmission || ""}
-            onValueChange={(value) => onChange({ transmission: value === "all" ? undefined : value })}
+            onValueChange={(value) => handleFilterChange({ transmission: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
@@ -320,7 +335,7 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
           <Label>Stan pojazdu</Label>
           <Select
             value={filters.condition || "all"}
-            onValueChange={(value) => onChange({ condition: value === "all" ? undefined : value })}
+            onValueChange={(value) => handleFilterChange({ condition: value === "all" ? undefined : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Wszystkie" />
@@ -339,14 +354,35 @@ export function VehicleFilters({ filters, onChange, category, categories }: Vehi
         <Separator />
 
         {/* Lokalizacja */}
-        <div className="space-y-2">
-          <Label htmlFor="location">Lokalizacja</Label>
-          <Input
-            id="location"
-            placeholder="Miasto, kod pocztowy"
-            value={filters.location || ''}
-            onChange={(e) => onChange({ location: e.target.value || undefined })}
-          />
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="location">Lokalizacja</Label>
+            <Input
+              id="location"
+              placeholder="Miasto, kod pocztowy"
+              value={locationInput}
+              onChange={(e) => {
+                setLocationInput(e.target.value)
+                handleFilterChange({ location: e.target.value || undefined })
+              }}
+            />
+          </div>
+          <div>
+            <Label>Promień (km)</Label>
+            <div className="px-2 pt-2">
+              <Slider
+                value={[radius]}
+                onValueChange={handleRadiusChange}
+                max={100}
+                min={0}
+                step={5}
+                className="w-full"
+              />
+            </div>
+            <div className="flex items-center justify-center text-sm text-muted-foreground pt-2">
+              <span>{radius} km</span>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

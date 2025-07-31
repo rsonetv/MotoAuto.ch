@@ -18,6 +18,35 @@ import {
 } from "@/lib/auth-middleware"
 import type { Database } from "@/lib/database.types"
 
+/**
+ * Geocode an address string to latitude and longitude using Nominatim API.
+ * @param address The address to geocode.
+ * @returns An object with latitude and longitude, or null if not found.
+ */
+async function geocodeAddress(address: string): Promise<{ lat: number; lon: number } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'MotoAuto.ch Listing Filter' }
+    });
+    if (!response.ok) {
+      console.error(`Nominatim API error: ${response.statusText}`);
+      return null;
+    }
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon),
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Geocoding failed", error);
+    return null;
+  }
+}
+
 type ListingWithRelations = Database['public']['Tables']['listings']['Row'] & {
   profiles: {
     full_name: string | null
@@ -57,6 +86,31 @@ export async function GET(request: NextRequest) {
 
       const query: ListingsQuery = validation.data
       const supabase = await createServerComponentClient(req)
+
+      let listingIdsFromRadius: string[] | null = null;
+
+      // Handle geolocation search
+      if (query.location && query.radius) {
+        const coords = await geocodeAddress(query.location);
+        if (coords) {
+          const { data: ids, error: rpcError } = await supabase.rpc('get_listing_ids_in_radius', {
+            lat: coords.lat,
+            long: coords.lon,
+            radius_km: query.radius,
+          });
+
+          if (rpcError) {
+            console.error("Error calling get_listing_ids_in_radius RPC:", rpcError);
+            // We can decide to fail or just ignore the location filter
+          } else {
+            listingIdsFromRadius = ids ? ids.map((item: { id: string }) => item.id) : [];
+            // If no listings are found in the radius, we can short-circuit
+            if (listingIdsFromRadius.length === 0) {
+              return createSuccessResponse({ data: [], pagination: { page: 1, limit: query.limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false }, filters: {} }, 200);
+            }
+          }
+        }
+      }
 
       // Build the base query with joins
       let dbQuery = supabase
@@ -107,6 +161,11 @@ export async function GET(request: NextRequest) {
 
       // Apply status filter (default to active)
       dbQuery = dbQuery.eq('status', query.status)
+
+      // If we have IDs from radius search, use them as the primary filter
+      if (listingIdsFromRadius) {
+        dbQuery = dbQuery.in('id', listingIdsFromRadius);
+      }
 
       // Apply category filter
       if (query.category_id) {
@@ -167,15 +226,17 @@ export async function GET(request: NextRequest) {
         dbQuery = dbQuery.lte('mileage', query.mileage_max)
       }
 
-      // Apply location filters
-      if (query.location) {
-        dbQuery = dbQuery.ilike('location', `%${query.location}%`)
-      }
-      if (query.canton) {
-        dbQuery = dbQuery.eq('canton', query.canton)
-      }
-      if (query.postal_code) {
-        dbQuery = dbQuery.eq('postal_code', query.postal_code)
+      // Apply location filters only if not searching by radius
+      if (!listingIdsFromRadius) {
+        if (query.location) {
+          dbQuery = dbQuery.ilike('location', `%${query.location}%`)
+        }
+        if (query.canton) {
+          dbQuery = dbQuery.eq('canton', query.canton)
+        }
+        if (query.postal_code) {
+          dbQuery = dbQuery.eq('postal_code', query.postal_code)
+        }
       }
 
       // Apply search filter (searches across title, brand, model, description)
@@ -332,7 +393,7 @@ export async function POST(request: NextRequest) {
 
       // Prepare listing data for insertion
       const now = new Date().toISOString()
-      const insertData = {
+      const insertData: any = {
         ...listingData,
         user_id: user.id,
         status: 'draft' as const,
@@ -347,6 +408,12 @@ export async function POST(request: NextRequest) {
         ...(listingData.is_auction && listingData.auction_end_time && {
           auction_end_time: listingData.auction_end_time
         })
+      }
+
+      // Handle geolocation data
+      if (listingData.latitude && listingData.longitude) {
+        // IMPORTANT: Supabase RPC functions for PostGIS expect (longitude, latitude)
+        insertData.location = `POINT(${listingData.longitude} ${listingData.latitude})`
       }
 
       // Insert the listing

@@ -365,6 +365,12 @@ export const listingsQuerySchema = z.object({
     .string()
     .max(10, "Postal code filter cannot exceed 10 characters")
     .optional(),
+  radius: z
+    .string()
+    .regex(/^\d+$/, "Radius must be a number")
+    .transform(Number)
+    .refine((n: number) => n > 0 && n <= 500, "Radius must be between 1 and 500 km")
+    .optional(),
 
   // Sorting
   sort_by: z
@@ -430,6 +436,19 @@ export const listingsQuerySchema = z.object({
   {
     message: "Minimum mileage cannot be greater than maximum mileage",
     path: ["mileage_min"],
+  }
+)
+.refine(
+  (data) => {
+    // If radius is provided, location must also be provided.
+    if (data.radius && !data.location) {
+      return false
+    }
+    return true
+  },
+  {
+    message: "Location is required when a radius is specified",
+    path: ["location"],
   }
 )
 
