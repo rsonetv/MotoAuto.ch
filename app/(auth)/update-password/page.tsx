@@ -1,18 +1,21 @@
-import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { UpdatePasswordForm } from "@/components/auth/UpdatePasswordForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function ResetPasswordPage() {
+export default function UpdatePasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Zresetuj hasło</CardTitle>
+          <CardTitle>Ustaw nowe hasło</CardTitle>
           <CardDescription>
-            Wprowadź swój adres e-mail, a wyślemy Ci link do zresetowania hasła.
+            Wprowadź swoje nowe hasło poniżej.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResetPasswordForm />
+          <Suspense fallback={<div>Ładowanie...</div>}>
+            <UpdatePasswordForm />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
