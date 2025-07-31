@@ -118,10 +118,10 @@ importers:
         version: 2.53.0
       '@tanstack/react-query':
         specifier: latest
-        version: 5.83.0(react@19.1.1)
+        version: 5.83.1(react@19.1.1)
       '@tanstack/react-query-devtools':
         specifier: latest
-        version: 5.83.0(@tanstack/react-query@5.83.0(react@19.1.1))(react@19.1.1)
+        version: 5.83.1(@tanstack/react-query@5.83.1(react@19.1.1))(react@19.1.1)
       '@types/nodemailer':
         specifier: ^6.4.17
         version: 6.4.17
@@ -157,7 +157,7 @@ importers:
         version: 1.4.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       ioredis:
         specifier: ^5.6.1
-        version: 5.6.1
+        version: 5.7.0
       lucide-react:
         specifier: ^0.534.0
         version: 0.534.0(react@19.1.1)
@@ -190,7 +190,7 @@ importers:
         version: 14.3.8(react@19.1.1)
       react-email:
         specifier: ^4.2.5
-        version: 4.2.5
+        version: 4.2.6
       react-hook-form:
         specifier: latest
         version: 7.61.1(react@19.1.1)
@@ -220,7 +220,7 @@ importers:
         version: 2.0.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       stripe:
         specifier: ^18.3.0
-        version: 18.3.0(@types/node@24.1.0)
+        version: 18.4.0(@types/node@24.1.0)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -275,7 +275,7 @@ importers:
         version: 10.0.0
       deno:
         specifier: ^2.4.2
-        version: 2.4.2
+        version: 2.4.3
       dotenv:
         specifier: ^17.2.1
         version: 17.2.1
@@ -536,33 +536,33 @@ packages:
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
 
-  '@deno/darwin-arm64@2.4.2':
-    resolution: {integrity: sha512-0WhM9uEXjZoPRfzEnWCGwaGBOxEIVbyiTOebcSgQhvpsLnkLBStw95qdOBPH1c3pxsx8i2ORWNQKkGStSghNlA==}
+  '@deno/darwin-arm64@2.4.3':
+    resolution: {integrity: sha512-Yibd9whWhKjvwDxYguDNYear4mcoU65Q5BMc0+RUKMgJeoe365a/APDBxVst4xdYwRVB1yUaverdXHSJa7w3wQ==}
     cpu: [arm64]
     os: [darwin]
 
-  '@deno/darwin-x64@2.4.2':
-    resolution: {integrity: sha512-Five8JcH5mA0yEj6hxXBYzBqVz9lAAnWSWksE6g926FH/N/rrFywnPPZd1xleGDLjK0vD1vhImRI+dHubfAwuw==}
+  '@deno/darwin-x64@2.4.3':
+    resolution: {integrity: sha512-1stTmq2cVH7vkNkmonOIyRrRYziSkwray/NZ5MLbbJsyRC53dXclJSKlFFPMiqqJR4Mj7kHWCyfvcE5uwni8ug==}
     cpu: [x64]
     os: [darwin]
 
-  '@deno/linux-arm64-glibc@2.4.2':
-    resolution: {integrity: sha512-6tfJr8LcWJdPBNWZofu/Zit7113rgIb4QJsfFBTlPhrijHEmkgSwfbszY7S/kZ/nGA4F9hXKO4Af+Bk06PM1nQ==}
+  '@deno/linux-arm64-glibc@2.4.3':
+    resolution: {integrity: sha512-gSwDDNxDBvKQooNVYs2sdDMih98RVe364xsBl9DOkfUpEZ7KsOcLkwdQlEVCSLkppg/ClCBBzaimmHwgxLeSEg==}
     cpu: [arm64]
     os: [linux]
 
-  '@deno/linux-x64-glibc@2.4.2':
-    resolution: {integrity: sha512-LzDLyrROm2oxt2g8sjG6niYWaZas/HLBk4Ns5qEhf2bGaDr8Lcq24VTnThZLepLUKt8cTfT3NGX3MZZWKwSVmA==}
+  '@deno/linux-x64-glibc@2.4.3':
+    resolution: {integrity: sha512-bB0nDPXNc9pBKv55K04YbIwBnP17PDu7En+iccA6jzTbleZzt34Pmo3ktJAp+v6+IaYj0p6/hZ3VxS5XUskGMQ==}
     cpu: [x64]
     os: [linux]
 
-  '@deno/win32-arm64@2.4.2':
-    resolution: {integrity: sha512-hW6NYp4w0jD0VLHl7E2tPG/NSxjrFSXACbxCdJWL36AGlIer7aVm7Mldp4JLXuMXfAyGdYFQUvtgB7z9Kotgdg==}
+  '@deno/win32-arm64@2.4.3':
+    resolution: {integrity: sha512-HzBcAFAvROs4Irx7ptUVHJq5zM8MC5FYiH4OY7eBVlvVlrHra4jOKp5mlUuQE49wNKJtGtpX3onEeH5kJTmauw==}
     cpu: [arm64]
     os: [win32]
 
-  '@deno/win32-x64@2.4.2':
-    resolution: {integrity: sha512-47tNwcQus0AFRX4oxWCrLF6R7/0r8al/5HwqnSrF5iayMRd9BnkDxvRRRo3KqRuGIPxpVSxbkbsFvpj9Hp5Zhw==}
+  '@deno/win32-x64@2.4.3':
+    resolution: {integrity: sha512-TeCUsoyCgGz1IWETDos+mATH+Tk9+TXHH/HWK5U49ilM+a0h8+XIkOI7nEb9fTH8YJFl7fy2ZLKcmpKy9ZN2bA==}
     cpu: [x64]
     os: [win32]
 
@@ -1997,20 +1997,20 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
-  '@tanstack/query-core@5.83.0':
-    resolution: {integrity: sha512-0M8dA+amXUkyz5cVUm/B+zSk3xkQAcuXuz5/Q/LveT4ots2rBpPTZOzd7yJa2Utsf8D2Upl5KyjhHRY+9lB/XA==}
+  '@tanstack/query-core@5.83.1':
+    resolution: {integrity: sha512-OG69LQgT7jSp+5pPuCfzltq/+7l2xoweggjme9vlbCPa/d7D7zaqv5vN/S82SzSYZ4EDLTxNO1PWrv49RAS64Q==}
 
-  '@tanstack/query-devtools@5.81.2':
-    resolution: {integrity: sha512-jCeJcDCwKfoyyBXjXe9+Lo8aTkavygHHsUHAlxQKKaDeyT0qyQNLKl7+UyqYH2dDF6UN/14873IPBHchcsU+Zg==}
+  '@tanstack/query-devtools@5.83.1':
+    resolution: {integrity: sha512-KOQ3SMLnHHrnwwAHflK50QT8zEHg3rjPZx6cd+G7yZl4vU9moctTQU1A3zvHYEXabzKu5G31bcll6qhNCya9+w==}
 
-  '@tanstack/react-query-devtools@5.83.0':
-    resolution: {integrity: sha512-yfp8Uqd3I1jgx8gl0lxbSSESu5y4MO2ThOPBnGNTYs0P+ZFu+E9g5IdOngyUGuo6Uz6Qa7p9TLdZEX3ntik2fQ==}
+  '@tanstack/react-query-devtools@5.83.1':
+    resolution: {integrity: sha512-t5zcIHoSbT4ducv5YBYULgol6mt1gflHBLbN9oMa/VvPxVtQBY7nyDWFzOYycGXLlH3RrSp7w+oFBTB2GS04Ug==}
     peerDependencies:
-      '@tanstack/react-query': ^5.83.0
+      '@tanstack/react-query': ^5.83.1
       react: ^18 || ^19
 
-  '@tanstack/react-query@5.83.0':
-    resolution: {integrity: sha512-/XGYhZ3foc5H0VM2jLSD/NyBRIOK4q9kfeml4+0x2DlL6xVuAcVEW+hTlTapAmejObg0i3eNqhkr2dT+eciwoQ==}
+  '@tanstack/react-query@5.83.1':
+    resolution: {integrity: sha512-JHZ3xox3p0sqCgM7ykBRtMWSLmWgjR7I+oJMAZ1beK/O/gfShI2b/PdovL2/ivVLUZklXgBenQu4ZjPhIM+yrw==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -2457,8 +2457,8 @@ packages:
     resolution: {integrity: sha512-zTPME3pI50NsFW8ZBaVIOeAxzEY7XHlmWeXXu9srI+9kNfzCUTy8MFan46xOGZY8NZThMqq+e3qZUKsvXbasnQ==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
-  babel-preset-current-node-syntax@1.1.1:
-    resolution: {integrity: sha512-23fWKohMTvS5s0wwJKycOe0dBdCwQ6+iiLaNR9zy8P13mtFRFM9qLLX6HJX5DL2pi/FNDf3fCQHM4FIMoHH/7w==}
+  babel-preset-current-node-syntax@1.2.0:
+    resolution: {integrity: sha512-E/VlAEzRrsLEb2+dv8yp3bo4scof3l9nR4lrld+Iy5NyVqgVYUJnDAmunkhPMisRI32Qc4iRiz425d8vM++2fg==}
     peerDependencies:
       '@babel/core': ^7.0.0 || ^8.0.0-0
 
@@ -2847,8 +2847,8 @@ packages:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
 
-  deno@2.4.2:
-    resolution: {integrity: sha512-HlQGDol7S+Dwm3Kzn0U9TYr9XqI0PNJZ5qB6OtbEJcmo+jlRiwj2So/LhmxNzkxVexgu1AFzdv6BZL0+ygyyUw==}
+  deno@2.4.3:
+    resolution: {integrity: sha512-IA13zi/fJn8EYbkADLr+up6Lojq8eig1bQzlAqkg6wzcNt1ZBiRoarX9Cum57XNskRIXlzBtbUX00xINzWAieA==}
     hasBin: true
 
   denque@2.1.0:
@@ -2925,8 +2925,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.192:
-    resolution: {integrity: sha512-rP8Ez0w7UNw/9j5eSXCe10o1g/8B1P5SM90PCCMVkIRQn2R0LEHWz4Eh9RnxkniuDe1W0cTSOB3MLlkTGDcuCg==}
+  electron-to-chromium@1.5.193:
+    resolution: {integrity: sha512-eePuBZXM9OVCwfYUhd2OzESeNGnWmLyeu0XAEjf7xjijNjHFdeJSzuRUGN4ueT2tEYo5YqjHramKEFxz67p3XA==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -3360,8 +3360,8 @@ packages:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
 
-  ioredis@5.6.1:
-    resolution: {integrity: sha512-UxC0Yv1Y4WRJiGQxQkP0hfdL0/5/6YvdfOOClRgJ0qppSarkhneSa6UvkMkms0AkdGimSH3Ikqm+6mkMmX7vGA==}
+  ioredis@5.7.0:
+    resolution: {integrity: sha512-NUcA93i1lukyXU+riqEyPtSEkyFq8tX90uL659J+qpCZ3rEdViB/APC58oAhIh3+bJln2hzdlZbBZsGNrlsR8g==}
     engines: {node: '>=12.22.0'}
 
   ipaddr.js@1.9.1:
@@ -4264,8 +4264,8 @@ packages:
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
 
-  react-email@4.2.5:
-    resolution: {integrity: sha512-LESJxw/Lt3pD+IlziIDfSUGBhwq+4XrwEyxjLKP4piBpqqfUzOQT9VpFDby1kyWSgFrOhABNymVgLQF5HRpmQg==}
+  react-email@4.2.6:
+    resolution: {integrity: sha512-bNickXnwCz2Yr60+kZdB8GDZEMlbeFfyWigYgSTiygyju/u2Et2jo6OuQk25yRDf0/28LGwzEm1XDVVngDT2Rw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -4655,8 +4655,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@18.3.0:
-    resolution: {integrity: sha512-FkxrTUUcWB4CVN2yzgsfF/YHD6WgYHduaa7VmokCy5TLCgl5UNJkwortxcedrxSavQ8Qfa4Ir4JxcbIYiBsyLg==}
+  stripe@18.4.0:
+    resolution: {integrity: sha512-LKFeDnDYo4U/YzNgx2Lc9PT9XgKN0JNF1iQwZxgkS4lOw5NunWCnzyH5RhTlD3clIZnf54h7nyMWkS8VXPmtTQ==}
     engines: {node: '>=12.*'}
     peerDependencies:
       '@types/node': '>=12.x.x'
@@ -5334,22 +5334,22 @@ snapshots:
 
   '@date-fns/tz@1.2.0': {}
 
-  '@deno/darwin-arm64@2.4.2':
+  '@deno/darwin-arm64@2.4.3':
     optional: true
 
-  '@deno/darwin-x64@2.4.2':
+  '@deno/darwin-x64@2.4.3':
     optional: true
 
-  '@deno/linux-arm64-glibc@2.4.2':
+  '@deno/linux-arm64-glibc@2.4.3':
     optional: true
 
-  '@deno/linux-x64-glibc@2.4.2':
+  '@deno/linux-x64-glibc@2.4.3':
     optional: true
 
-  '@deno/win32-arm64@2.4.2':
+  '@deno/win32-arm64@2.4.3':
     optional: true
 
-  '@deno/win32-x64@2.4.2':
+  '@deno/win32-x64@2.4.3':
     optional: true
 
   '@emnapi/core@1.4.5':
@@ -6812,19 +6812,19 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@tanstack/query-core@5.83.0': {}
+  '@tanstack/query-core@5.83.1': {}
 
-  '@tanstack/query-devtools@5.81.2': {}
+  '@tanstack/query-devtools@5.83.1': {}
 
-  '@tanstack/react-query-devtools@5.83.0(@tanstack/react-query@5.83.0(react@19.1.1))(react@19.1.1)':
+  '@tanstack/react-query-devtools@5.83.1(@tanstack/react-query@5.83.1(react@19.1.1))(react@19.1.1)':
     dependencies:
-      '@tanstack/query-devtools': 5.81.2
-      '@tanstack/react-query': 5.83.0(react@19.1.1)
+      '@tanstack/query-devtools': 5.83.1
+      '@tanstack/react-query': 5.83.1(react@19.1.1)
       react: 19.1.1
 
-  '@tanstack/react-query@5.83.0(react@19.1.1)':
+  '@tanstack/react-query@5.83.1(react@19.1.1)':
     dependencies:
-      '@tanstack/query-core': 5.83.0
+      '@tanstack/query-core': 5.83.1
       react: 19.1.1
 
   '@testing-library/dom@10.4.1':
@@ -7286,7 +7286,7 @@ snapshots:
       '@babel/types': 7.28.2
       '@types/babel__core': 7.20.5
 
-  babel-preset-current-node-syntax@1.1.1(@babel/core@7.28.0):
+  babel-preset-current-node-syntax@1.2.0(@babel/core@7.28.0):
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-syntax-async-generators': 7.8.4(@babel/core@7.28.0)
@@ -7309,7 +7309,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.0
       babel-plugin-jest-hoist: 30.0.1
-      babel-preset-current-node-syntax: 1.1.1(@babel/core@7.28.0)
+      babel-preset-current-node-syntax: 1.2.0(@babel/core@7.28.0)
 
   balanced-match@1.0.2: {}
 
@@ -7355,7 +7355,7 @@ snapshots:
   browserslist@4.25.1:
     dependencies:
       caniuse-lite: 1.0.30001731
-      electron-to-chromium: 1.5.192
+      electron-to-chromium: 1.5.193
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.1)
 
@@ -7378,7 +7378,7 @@ snapshots:
     dependencies:
       cron-parser: 4.9.0
       get-port: 5.1.1
-      ioredis: 5.6.1
+      ioredis: 5.7.0
       lodash: 4.17.21
       msgpackr: 1.11.5
       semver: 7.7.2
@@ -7646,14 +7646,14 @@ snapshots:
 
   delayed-stream@1.0.0: {}
 
-  deno@2.4.2:
+  deno@2.4.3:
     optionalDependencies:
-      '@deno/darwin-arm64': 2.4.2
-      '@deno/darwin-x64': 2.4.2
-      '@deno/linux-arm64-glibc': 2.4.2
-      '@deno/linux-x64-glibc': 2.4.2
-      '@deno/win32-arm64': 2.4.2
-      '@deno/win32-x64': 2.4.2
+      '@deno/darwin-arm64': 2.4.3
+      '@deno/darwin-x64': 2.4.3
+      '@deno/linux-arm64-glibc': 2.4.3
+      '@deno/linux-x64-glibc': 2.4.3
+      '@deno/win32-arm64': 2.4.3
+      '@deno/win32-x64': 2.4.3
 
   denque@2.1.0: {}
 
@@ -7717,7 +7717,7 @@ snapshots:
     dependencies:
       jake: 10.9.2
 
-  electron-to-chromium@1.5.192: {}
+  electron-to-chromium@1.5.193: {}
 
   embla-carousel-react@8.6.0(react@19.1.1):
     dependencies:
@@ -8219,7 +8219,7 @@ snapshots:
 
   internmap@2.0.3: {}
 
-  ioredis@5.6.1:
+  ioredis@5.7.0:
     dependencies:
       '@ioredis/commands': 1.3.0
       cluster-key-slot: 1.1.2
@@ -8579,7 +8579,7 @@ snapshots:
       '@jest/snapshot-utils': 30.0.5
       '@jest/transform': 30.0.5
       '@jest/types': 30.0.5
-      babel-preset-current-node-syntax: 1.1.1(@babel/core@7.28.0)
+      babel-preset-current-node-syntax: 1.2.0(@babel/core@7.28.0)
       chalk: 4.1.2
       expect: 30.0.5
       graceful-fs: 4.2.11
@@ -9234,7 +9234,7 @@ snapshots:
       prop-types: 15.8.1
       react: 19.1.1
 
-  react-email@4.2.5:
+  react-email@4.2.6:
     dependencies:
       '@babel/parser': 7.28.0
       '@babel/traverse': 7.28.0
@@ -9730,7 +9730,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@18.3.0(@types/node@24.1.0):
+  stripe@18.4.0(@types/node@24.1.0):
     dependencies:
       qs: 6.14.0
     optionalDependencies:

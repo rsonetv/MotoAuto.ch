@@ -1,8 +1,8 @@
 // ✅ Sign out route
 
-import { createClient } from 'lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { logger } from 'lib/logger'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {

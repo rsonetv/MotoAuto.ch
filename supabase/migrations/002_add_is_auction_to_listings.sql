@@ -1,0 +1,2 @@
+ALTER TABLE public.listings
+ADD COLUMN is_auction BOOLEAN DEFAULT FALSE;
