@@ -15,6 +15,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export function Header() {
   const { user, signOut } = useAuth()
@@ -51,11 +52,11 @@ export function Header() {
   }
 
   return (
-    <header className="bg-gray-900 text-white border-b border-gray-800">
+    <header className="bg-background border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold">
+          <Link href="/" className="text-2xl font-bold text-foreground">
             MotoAuto<span className="text-red-500">.ch</span>
           </Link>
 
@@ -65,7 +66,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-gray-300 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span>{link.label}</span>
               </Link>
@@ -74,10 +75,13 @@ export function Header() {
 
           {/* Consolidated Top-Right Menu */}
           <div className="hidden md:flex items-center space-x-2">
+            {/* Theme Toggle */}
+            <ThemeToggle isScrolled={true} />
+
             {/* Language Selection */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                   <Globe className="w-4 h-4 mr-1" />
                   {selectedLanguage}
                 </Button>
@@ -89,7 +93,7 @@ export function Header() {
                   <DropdownMenuItem
                     key={lang.code}
                     onClick={() => handleLanguageChange(lang.code)}
-                    className={selectedLanguage === lang.code ? "bg-gray-100" : ""}
+                    className={selectedLanguage === lang.code ? "bg-accent" : ""}
                   >
                     <span className="mr-2">{lang.flag}</span>
                     {lang.name}
@@ -102,7 +106,7 @@ export function Header() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-gray-300 hover:text-white">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                     <User className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">{user.email}</span>
                   </Button>
@@ -188,7 +192,7 @@ export function Header() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-gray-300 hover:text-white">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                     <User className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">Konto</span>
                   </Button>
@@ -215,13 +219,13 @@ export function Header() {
           {/* Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="md:hidden text-gray-300 hover:text-white">
+              <Button variant="ghost" size="sm" className="md:hidden text-muted-foreground hover:text-foreground">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 bg-gray-900 text-white border-gray-800">
+            <SheetContent side="right" className="w-80 bg-background border-border">
               <div className="flex items-center justify-between mb-8">
-                <Link href="/" className="text-xl font-bold">
+                <Link href="/" className="text-xl font-bold text-foreground">
                   MotoAuto<span className="text-red-500">.ch</span>
                 </Link>
               </div>
@@ -232,7 +236,7 @@ export function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block py-2 text-gray-300 hover:text-white transition-colors"
+                    className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.label}
@@ -241,14 +245,14 @@ export function Header() {
               </nav>
 
               {/* Mobile User Section */}
-              <div className="border-t border-gray-800 pt-6 space-y-4">
+              <div className="border-t border-border pt-6 space-y-4">
                 {user ? (
                   <>
                     <div className="flex items-center space-x-3 mb-4">
-                      <User className="w-8 h-8 bg-gray-700 rounded-full p-2" />
+                      <User className="w-8 h-8 bg-muted rounded-full p-2" />
                       <div>
-                        <p className="font-medium">{authUser.profile?.full_name || user?.email}</p>
-                        <p className="text-sm text-gray-400">{user?.email}</p>
+                        <p className="font-medium text-foreground">{authUser.profile?.full_name || user?.email}</p>
+                        <p className="text-sm text-muted-foreground">{user?.email}</p>
                       </div>
                     </div>
 
@@ -262,7 +266,7 @@ export function Header() {
                     <div className="space-y-2">
                       <Link
                         href="/dashboard"
-                        className="flex items-center py-2 text-gray-300 hover:text-white"
+                        className="flex items-center py-2 text-muted-foreground hover:text-foreground"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Settings className="w-4 h-4 mr-3" />
@@ -273,7 +277,7 @@ export function Header() {
                           signOut()
                           setMobileMenuOpen(false)
                         }}
-                        className="flex items-center py-2 text-red-400 hover:text-red-300 w-full text-left"
+                        className="flex items-center py-2 text-destructive hover:text-destructive/80 w-full text-left"
                       >
                         <LogOut className="w-4 h-4 mr-3" />
                         Wyloguj się
@@ -296,15 +300,19 @@ export function Header() {
                 )}
               </div>
 
-              {/* Mobile Language Selection */}
-              <div className="border-t border-gray-800 pt-6 mt-6">
+              {/* Mobile Theme and Language Selection */}
+              <div className="border-t border-border pt-6 mt-6">
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400">Język:</span>
+                    <span className="text-muted-foreground">Motyw:</span>
+                    <ThemeToggle isScrolled={true} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Język:</span>
                     <select
                       value={selectedLanguage}
                       onChange={(e) => handleLanguageChange(e.target.value)}
-                      className="bg-gray-800 text-white border border-gray-700 rounded px-2 py-1 text-sm"
+                      className="bg-background text-foreground border border-border rounded px-2 py-1 text-sm"
                     >
                       {languages.map((lang) => (
                         <option key={lang.code} value={lang.code}>

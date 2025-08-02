@@ -9,6 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useState, useEffect } from "react"
 
 export function Header() {
@@ -146,6 +147,8 @@ export function Header() {
               <Link href="/ogloszenia/dodaj">Dodaj ogłoszenie</Link>
             </Button>
             
+            <ThemeToggle isScrolled={isScrolled} />
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -202,7 +205,11 @@ export function Header() {
             <Link href="/kontakt" className="hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
               Kontakt
             </Link>
-            <div className="pt-2 border-t border-border">
+            <div className="pt-2 border-t border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Motyw</span>
+                <ThemeToggle isScrolled={true} />
+              </div>
               <Button asChild className="w-full bg-accent-light hover:bg-accent-dark">
                 <Link href="/ogloszenia/dodaj" onClick={() => setIsMobileMenuOpen(false)}>
                   Dodaj ogłoszenie
