@@ -149,6 +149,9 @@ importers:
       handlebars:
         specifier: ^4.7.8
         version: 4.7.8
+      hcaptcha:
+        specifier: ^0.2.0
+        version: 0.2.0
       input-otp:
         specifier: latest
         version: 1.4.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -3786,6 +3789,9 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  hcaptcha@0.2.0:
+    resolution: {integrity: sha512-x25z3RoEa9oqfyuQsgk2olc+LCNVDAJaGKUP1qFhpAybB6qjqOf4qB2y1E3LJpXDvM229JWEywc6iWnzWvGjNw==}
 
   headers-polyfill@4.0.3:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
@@ -9786,6 +9792,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  hcaptcha@0.2.0: {}
 
   headers-polyfill@4.0.3: {}
 
