@@ -37,34 +37,44 @@ describe('API Endpoints Integration Tests', () => {
   beforeEach(() => {
     mockApp = createMockApp()
     
+    const supabaseMock = {
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockReturnThis(),
+      gt: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lt: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      like: jest.fn().mockReturnThis(),
+      ilike: jest.fn().mockReturnThis(),
+      in: jest.fn().mockReturnThis(),
+      is: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      range: jest.fn().mockReturnThis(),
+      single: jest.fn(),
+      maybeSingle: jest.fn(),
+      or: jest.fn().mockReturnThis(),
+    };
+    
+    // Ensure all chained methods return the mock itself
+    Object.keys(supabaseMock).forEach(key => {
+        if (typeof supabaseMock[key] === 'function') {
+            supabaseMock[key].mockImplementation(() => supabaseMock);
+        }
+    });
+
     mockSupabase = {
-      from: jest.fn(() => ({
-        select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
-        update: jest.fn().mockReturnThis(),
-        delete: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        neq: jest.fn().mockReturnThis(),
-        gt: jest.fn().mockReturnThis(),
-        gte: jest.fn().mockReturnThis(),
-        lt: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockReturnThis(),
-        like: jest.fn().mockReturnThis(),
-        ilike: jest.fn().mockReturnThis(),
-        in: jest.fn().mockReturnThis(),
-        is: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        range: jest.fn().mockReturnThis(),
-        single: jest.fn(),
-        maybeSingle: jest.fn()
-      })),
+      from: jest.fn(() => supabaseMock),
       auth: {
         getUser: jest.fn(),
         getSession: jest.fn()
       },
       rpc: jest.fn()
-    }
+    };
 
     // Mock Supabase client creation
     jest.doMock('@/lib/supabase', () => ({
@@ -84,12 +94,12 @@ describe('API Endpoints Integration Tests', () => {
           mockListing({ title: `Test Listing ${i}` })
         )
 
-        mockSupabase.from().select().eq().order().range().mockResolvedValue(
+        mockSupabase.from().select().eq().order().range.mockResolvedValue(
           mockSupabaseResponse(listings)
         )
 
         // Mock count query
-        mockSupabase.from().select().mockResolvedValue(
+        mockSupabase.from().select.mockResolvedValue(
           mockSupabaseResponse(null, null, { count: 100 })
         )
 
@@ -110,7 +120,7 @@ describe('API Endpoints Integration Tests', () => {
           mockListing({ brand: 'BMW', model: '3 Series' })
         ]
 
-        mockSupabase.from().select().or().mockResolvedValue(
+        mockSupabase.from().select().or.mockResolvedValue(
           mockSupabaseResponse(filteredListings)
         )
 
@@ -126,7 +136,7 @@ describe('API Endpoints Integration Tests', () => {
         const categoryId = 'category_test_123'
         const categoryListings = [mockListing({ category_id: categoryId })]
 
-        mockSupabase.from().select().eq().mockResolvedValue(
+        mockSupabase.from().select().eq.mockResolvedValue(
           mockSupabaseResponse(categoryListings)
         )
 
@@ -142,7 +152,7 @@ describe('API Endpoints Integration Tests', () => {
         const minPrice = 10000
         const maxPrice = 50000
 
-        mockSupabase.from().select().gte().lte().mockResolvedValue(
+        mockSupabase.from().select().gte().lte.mockResolvedValue(
           mockSupabaseResponse([mockListing({ price: 30000 })])
         )
 
@@ -283,7 +293,7 @@ describe('API Endpoints Integration Tests', () => {
           mockAuction({ id: 'auction_2' })
         ]
 
-        mockSupabase.from().select().eq().order().mockResolvedValue(
+        mockSupabase.from().select().eq().order.mockResolvedValue(
           mockSupabaseResponse(auctions)
         )
 
@@ -502,7 +512,7 @@ describe('API Endpoints Integration Tests', () => {
         )
 
         // Mock favorites query
-        mockSupabase.from().select().eq().mockResolvedValue(
+        mockSupabase.from().select().eq.mockResolvedValue(
           mockSupabaseResponse(favorites)
         )
 
@@ -527,7 +537,7 @@ describe('API Endpoints Integration Tests', () => {
           mockCategory({ name_en: 'Motorcycles', slug: 'motorcycles' })
         ]
 
-        mockSupabase.from().select().eq().order().mockResolvedValue(
+        mockSupabase.from().select().eq().order.mockResolvedValue(
           mockSupabaseResponse(categories)
         )
 
@@ -550,7 +560,7 @@ describe('API Endpoints Integration Tests', () => {
           mockPackage({ name_en: 'Premium Package', price_chf: 29.90 })
         ]
 
-        mockSupabase.from().select().eq().order().mockResolvedValue(
+        mockSupabase.from().select().eq().order.mockResolvedValue(
           mockSupabaseResponse(packages)
         )
 
@@ -567,7 +577,7 @@ describe('API Endpoints Integration Tests', () => {
 
   describe('Error Handling Tests', () => {
     test('should handle database connection errors', async () => {
-      mockSupabase.from().select().mockRejectedValue(
+      mockSupabase.from().select.mockRejectedValue(
         new Error('Database connection failed')
       )
 
@@ -616,7 +626,7 @@ describe('API Endpoints Integration Tests', () => {
     test('should return consistent success response format', async () => {
       const listings = [mockListing()]
 
-      mockSupabase.from().select().mockResolvedValue(
+      mockSupabase.from().select.mockResolvedValue(
         mockSupabaseResponse(listings)
       )
 
@@ -632,7 +642,7 @@ describe('API Endpoints Integration Tests', () => {
     })
 
     test('should return consistent error response format', async () => {
-      mockSupabase.from().select().mockRejectedValue(
+      mockSupabase.from().select.mockRejectedValue(
         new Error('Database error')
       )
 

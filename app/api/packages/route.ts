@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase-api"
-import { 
+import { supabaseAdmin } from "@/lib/supabase/admin"
+import {
   createErrorResponse,
   createSuccessResponse
 } from "@/lib/auth-middleware"
@@ -14,7 +14,7 @@ type Package = Database['public']['Tables']['packages']['Row']
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerComponentClient(request)
+    const supabase = supabaseAdmin
     const { searchParams } = new URL(request.url)
     
     // Optional filters
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       filteredPackages = packages || []
     } else if (userType === 'dealer') {
       // Dealers typically don't need free packages, focus on premium/dealer packages
-      filteredPackages = (packages || []).filter(pkg => 
+      filteredPackages = (packages || []).filter((pkg: Package) =>
         pkg.price_chf > 0 || pkg.name_en.toLowerCase().includes('dealer')
       )
     }
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const supabase = await createServerComponentClient(request)
+    const supabase = supabaseAdmin
     
     // Validate required fields
     const requiredFields = ['name_en', 'name_de', 'name_fr', 'name_pl', 'price_chf', 'duration_days']

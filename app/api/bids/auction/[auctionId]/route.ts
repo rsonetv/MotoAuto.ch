@@ -59,9 +59,10 @@ export async function GET(
         .eq('id', auctionId)
         .single()
 
-      if (auctionError || !auctionInfo) {
+      if (auctionError || !auctionInfo || !auctionInfo.listings || !Array.isArray(auctionInfo.listings) || auctionInfo.listings.length === 0) {
         return createErrorResponse('Auction not found', 404)
       }
+      const listing = auctionInfo.listings[0];
 
       // Build status filter for bids
       let statusFilter = ''
@@ -133,8 +134,8 @@ export async function GET(
       const transformedBids = (bids || []).map((bid: any) => {
         // Only show max_auto_bid to the bid owner or auction seller
         const canSeeAutoBidDetails = user && (
-          bid.user_id === user.id || 
-          auctionInfo.listings.user_id === user.id
+          bid.user_id === user.id ||
+          listing.user_id === user.id
         )
 
         return {
@@ -181,14 +182,14 @@ export async function GET(
           auction: {
             id: auctionInfo.id,
             listing_id: auctionInfo.listing_id,
-            title: auctionInfo.listings.title,
-            brand: auctionInfo.listings.brand,
-            model: auctionInfo.listings.model,
-            year: auctionInfo.listings.year,
-            current_bid: auctionInfo.listings.current_bid,
-            bid_count: auctionInfo.listings.bid_count,
-            auction_end_time: auctionInfo.listings.auction_end_time,
-            status: auctionInfo.listings.status
+            title: listing.title,
+            brand: listing.brand,
+            model: listing.model,
+            year: listing.year,
+            current_bid: listing.current_bid,
+            bid_count: listing.bid_count,
+            auction_end_time: listing.auction_end_time,
+            status: listing.status
           },
           filters: {
             include_retracted: query.include_retracted,

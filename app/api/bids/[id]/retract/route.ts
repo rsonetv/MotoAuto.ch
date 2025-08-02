@@ -62,9 +62,10 @@ export async function PUT(
         .eq('id', bidId)
         .single()
 
-      if (bidError || !bidData) {
+      if (bidError || !bidData || !bidData.listings || !Array.isArray(bidData.listings) || bidData.listings.length === 0) {
         return createErrorResponse('Bid not found', 404)
       }
+      const listing = bidData.listings[0];
 
       // Verify bid ownership
       if (bidData.user_id !== user.id) {
@@ -74,7 +75,7 @@ export async function PUT(
       // Check if bid can be retracted
       const retractionCheck = canRetractBid(
         bidData.placed_at,
-        bidData.listings.auction_end_time,
+        listing.auction_end_time,
         bidData.status
       )
 
@@ -152,8 +153,8 @@ export async function PUT(
         retracted_at: now,
         reason: retractionData.reason,
         auction_updated: {
-          current_bid: bidData.status === BidStatus.WINNING ? newCurrentBid : bidData.listings.current_bid,
-          bid_count: bidData.listings.bid_count,
+          current_bid: bidData.status === BidStatus.WINNING ? newCurrentBid : listing.current_bid,
+          bid_count: listing.bid_count,
           new_winning_bidder: newWinningBidder
         }
       }

@@ -13,6 +13,15 @@ import {
 } from "@/lib/auth-middleware"
 import type { Database } from "@/lib/database.types"
 
+type BidWithProfile = Database['public']['Tables']['bids']['Row'] & {
+  profiles: {
+    full_name: string | null
+    avatar_url: string | null
+    is_dealer: boolean
+    dealer_name: string | null
+  } | null
+}
+
 type AuctionWithDetails = Database['public']['Tables']['listings']['Row'] & {
   profiles: {
     full_name: string | null
@@ -23,14 +32,14 @@ type AuctionWithDetails = Database['public']['Tables']['listings']['Row'] & {
     canton: string | null
     rating: number
     rating_count: number
-  }
+  } | null
   categories: {
     name_en: string
     name_de: string
     name_fr: string
     name_pl: string
     slug: string
-  }
+  } | null
   auctions: {
     id: string
     starting_price: number
@@ -45,26 +54,14 @@ type AuctionWithDetails = Database['public']['Tables']['listings']['Row'] & {
     payment_due_date: string | null
     payment_received: boolean
     pickup_arranged: boolean
-  }
-  bids: Array<{
-    id: string
-    amount: number
-    is_auto_bid: boolean
-    status: string
-    placed_at: string
-    profiles: {
-      full_name: string | null
-      avatar_url: string | null
-      is_dealer: boolean
-      dealer_name: string | null
-    }
-  }>
+  }[]
+  bids: BidWithProfile[]
 }
 
 /**
  * GET /api/auctions/[id]
  * Get specific auction details with bid history
- * 
+ *
  * Features:
  * - Complete auction information
  * - Bid history with bidder details (anonymized for privacy)
@@ -141,9 +138,11 @@ export async function GET(
         .eq('is_auction', true)
         .single()
 
-      if (error || !auction) {
+      if (error || !auction || !auction.auctions || !Array.isArray(auction.auctions) || auction.auctions.length === 0) {
         return createErrorResponse('Auction not found', 404)
       }
+
+      const auctionDetails = auction.auctions[0];
 
       // Get bid history - limit to recent bids for performance
       // Show more details to auction owner, less to others for privacy
@@ -158,7 +157,8 @@ export async function GET(
           is_auto_bid,
           status,
           placed_at,
-          profiles:user_id (
+          user_id,
+          profiles (
             full_name,
             avatar_url,
             is_dealer,
@@ -178,11 +178,11 @@ export async function GET(
       // Calculate auction state and timing
       const auctionState = calculateAuctionState(
         auction.auction_end_time || '',
-        auction.auctions.extended_count,
+        auctionDetails.extended_count,
         auction.status
       )
       
-      const timeRemaining = auction.auction_end_time 
+      const timeRemaining = auction.auction_end_time
         ? calculateTimeRemaining(auction.auction_end_time)
         : 0
       
@@ -193,16 +193,16 @@ export async function GET(
       
       const canExtend = auction.auction_end_time ? canExtendAuction(
         auction.auction_end_time,
-        auction.auctions.extended_count,
-        auction.auctions.max_extensions,
+        auctionDetails.extended_count,
+        auctionDetails.max_extensions,
         lastBidTime || undefined
       ) : false
 
       // Anonymize bidder information for privacy (except for owner and the bidder themselves)
-      const processedBids = (bids || []).map((bid: any, index: number) => {
-        const isBidder = user && bid.profiles && user.id === bid.user_id // Fixed user matching
+      const processedBids = (bids as unknown as BidWithProfile[] || []).map((bid, index) => {
+        const isBidder = user && bid.user_id === user.id
         const showFullDetails = isOwner || isBidder
-
+        
         return {
           id: bid.id,
           amount: bid.amount,
@@ -233,7 +233,7 @@ export async function GET(
 
       // Prepare response data
       const responseData = {
-        id: auction.auctions.id,
+        id: auctionDetails.id,
         listing_id: auction.id,
         title: auction.title,
         description: auction.description,
@@ -258,7 +258,7 @@ export async function GET(
         last_service_date: auction.last_service_date,
         
         // Pricing and location
-        price: auction.auctions.starting_price, // Starting price
+        price: auctionDetails.starting_price,
         currency: auction.currency,
         location: auction.location,
         postal_code: auction.postal_code,
@@ -278,10 +278,10 @@ export async function GET(
         min_bid_increment: auction.min_bid_increment,
         reserve_price: isOwner ? auction.reserve_price : null, // Only show reserve price to owner
         has_reserve_price: auction.reserve_price !== null,
-        reserve_met: auction.auctions.reserve_met,
+        reserve_met: auctionDetails.reserve_met,
         auto_extend_minutes: auction.auto_extend_minutes,
-        extended_count: auction.auctions.extended_count,
-        max_extensions: auction.auctions.max_extensions,
+        extended_count: auctionDetails.extended_count,
+        max_extensions: auctionDetails.max_extensions,
         
         // Calculated fields
         auction_state: auctionState,
@@ -290,19 +290,19 @@ export async function GET(
         can_extend: canExtend,
         
         // Winner information (only after auction ends)
-        winner_id: auctionState === 'ended' ? auction.auctions.winner_id : null,
-        winning_bid: auctionState === 'ended' ? auction.auctions.winning_bid : null,
+        winner_id: auctionState === 'ended' ? auctionDetails.winner_id : null,
+        winning_bid: auctionState === 'ended' ? auctionDetails.winning_bid : null,
         
         // Payment and pickup status (only for winner and seller)
-        payment_due_date: (isOwner || (user && auction.auctions.winner_id === user.id)) 
-          ? auction.auctions.payment_due_date : null,
-        payment_received: isOwner ? auction.auctions.payment_received : null,
-        pickup_arranged: isOwner ? auction.auctions.pickup_arranged : null,
+        payment_due_date: (isOwner || (user && auctionDetails.winner_id === user.id))
+          ? auctionDetails.payment_due_date : null,
+        payment_received: isOwner ? auctionDetails.payment_received : null,
+        pickup_arranged: isOwner ? auctionDetails.pickup_arranged : null,
         
         // Statistics
         views: auction.views,
         favorites_count: auction.favorites_count,
-        unique_bidders: auction.auctions.unique_bidders,
+        unique_bidders: auctionDetails.unique_bidders,
         
         // User interaction
         is_watched: isWatched,
@@ -313,7 +313,7 @@ export async function GET(
         created_at: auction.created_at,
         updated_at: auction.updated_at,
         published_at: auction.published_at,
-        ended_at: auction.auctions.ended_at,
+        ended_at: auctionDetails.ended_at,
         
         // Relations
         profiles: auction.profiles,

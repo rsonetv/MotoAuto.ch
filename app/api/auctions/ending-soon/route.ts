@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Transform the data with real-time calculations
-      const transformedAuctions = (auctions as EndingSoonAuction[]).map(auction => {
+      const transformedAuctions = (auctions as unknown as EndingSoonAuction[]).map(auction => {
         const auctionState = calculateAuctionState(
           auction.auction_end_time || '',
           auction.auctions.extended_count,

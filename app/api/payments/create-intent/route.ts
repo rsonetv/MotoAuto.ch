@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
 
       // Calculate commission if it's a commission payment
       let commissionAmount = 0
-      let commissionRate = 0.05 // 5% default
-      let maxCommission = 500 // 500 CHF max
+      const commissionRate = 0.05 // 5% default
+      const maxCommission = 500 // 500 CHF max
 
       if (paymentData.payment_type === 'commission' && listing) {
         commissionAmount = calculateCommission(paymentData.amount, commissionRate, maxCommission)

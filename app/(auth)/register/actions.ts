@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { registerSchema } from '@/lib/validations';
 import { redirect } from 'next/navigation';
 
-export async function registerAction(_prev: any, formData: FormData) {
+export async function registerAction(_prev: unknown, formData: FormData) {
   const parsed = registerSchema.safeParse({
     full_name: formData.get('full_name'),
     email: formData.get('email'),

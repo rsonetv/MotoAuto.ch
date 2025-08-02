@@ -286,7 +286,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Transform the data to include calculated auction states and time remaining
-      const transformedAuctions = (auctions as AuctionWithRelations[]).map(auction => {
+      const transformedAuctions = (auctions as unknown as AuctionWithRelations[]).map(auction => {
         const auctionState = calculateAuctionState(
           auction.auction_end_time || '',
           auction.auctions.extended_count,

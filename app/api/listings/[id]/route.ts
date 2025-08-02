@@ -169,7 +169,7 @@ export async function GET(
       }
 
       // Filter sensitive bid information for non-owners
-      let processedListing = listing as ListingWithDetails
+      const processedListing = listing as ListingWithDetails
       if (listing.bids && (!user || user.id !== listing.user_id)) {
         // Non-owners can only see winning bids and their own bids
         processedListing.bids = listing.bids.filter((bid: any) => 

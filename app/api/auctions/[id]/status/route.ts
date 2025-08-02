@@ -66,7 +66,10 @@ export async function GET(
         return createErrorResponse('Auction not found', 404)
       }
 
-      const listing = auction.listings
+      if (!auction.listings || !Array.isArray(auction.listings) || auction.listings.length === 0) {
+        return createErrorResponse('Auction listing could not be found.', 404);
+      }
+      const listing = auction.listings[0];
 
       // Get the most recent bid time for extension calculation
       const { data: lastBid } = await supabase

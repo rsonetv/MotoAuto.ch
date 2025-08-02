@@ -88,7 +88,7 @@ export function SimilarVehicles({
   }, [currentListingId, category, make, model, limit, supabase])
 
   const handleViewAll = () => {
-    let queryParams = new URLSearchParams()
+    const queryParams = new URLSearchParams()
     queryParams.append('category', category)
     
     if (make) {

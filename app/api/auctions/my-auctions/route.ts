@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Transform the data with seller-specific information
-      const transformedAuctions = (auctions as MyAuction[]).map(auction => {
+      const transformedAuctions = (auctions as unknown as MyAuction[]).map(auction => {
         const auctionState = calculateAuctionState(
           auction.auction_end_time || '',
           auction.auctions.extended_count,

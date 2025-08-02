@@ -12,8 +12,16 @@ export function OAuthButtons() {
     });
   };
   return (
-    <Button variant="outline" className="w-full h-11 gap-2" onClick={handleGoogle}>
-      <FcGoogle className="h-5 w-5" /> Zaloguj przez Google
-    </Button>
+    <>
+      {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+        <Button
+          variant="outline"
+          className="w-full h-11 gap-2"
+          onClick={handleGoogle}
+        >
+          <FcGoogle className="h-5 w-5" /> Zaloguj przez Google
+        </Button>
+      )}
+    </>
   );
 }

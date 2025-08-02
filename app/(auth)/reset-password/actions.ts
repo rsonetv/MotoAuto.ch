@@ -7,7 +7,7 @@ const emailSchema = z.object({
   email: z.string().email({ message: "Nieprawidłowy adres e-mail." }),
 });
 
-export async function resetPasswordAction(_prev: any, formData: FormData) {
+export async function resetPasswordAction(_prev: unknown, formData: FormData) {
   const parsed = emailSchema.safeParse({
     email: formData.get("email"),
   });

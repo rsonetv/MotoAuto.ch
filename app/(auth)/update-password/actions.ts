@@ -15,7 +15,7 @@ const updatePasswordSchema = z
     path: ["confirm_password"],
   });
 
-export async function updatePasswordAction(_prev: any, formData: FormData) {
+export async function updatePasswordAction(_prev: unknown, formData: FormData) {
   const parsed = updatePasswordSchema.safeParse({
     password: formData.get("password"),
     confirm_password: formData.get("confirm_password"),

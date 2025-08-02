@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { loginSchema } from '@/lib/validations';
 import { redirect } from 'next/navigation';
 
-export async function loginAction(_prev: any, formData: FormData) {
+export async function loginAction(_prev: unknown, formData: FormData) {
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),

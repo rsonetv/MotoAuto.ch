@@ -155,7 +155,11 @@ export async function GET(
         return createErrorResponse('Auction not found', 404)
       }
 
-      const listing = auction.listings as any
+      // The join returns an array, but it should only have one item
+      if (!auction.listings || !Array.isArray(auction.listings) || auction.listings.length === 0) {
+        return createErrorResponse('Auction listing could not be found.', 404);
+      }
+      const listing = auction.listings[0];
 
       // Check if user is the auction owner
       const isOwner = listing.user_id === user.id
