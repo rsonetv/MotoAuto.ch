@@ -66,6 +66,7 @@
     "@types/uuid": "^10.0.0",
     "bull": "^4.16.5",
     "class-variance-authority": "^0.7.1",
+    "claude-flow": "^2.0.0-alpha.83",
     "clsx": "^2.1.1",
     "cmdk": "latest",
     "date-fns": "^4.1.0",
