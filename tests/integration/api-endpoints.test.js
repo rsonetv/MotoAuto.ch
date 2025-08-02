@@ -77,7 +77,7 @@ describe('API Endpoints Integration Tests', () => {
     };
 
     // Mock Supabase client creation
-    jest.doMock('@/lib/supabase', () => ({
+    jest.doMock('@/lib/supabase-api', () => ({
       createServerComponentClient: () => mockSupabase
     }))
   })
