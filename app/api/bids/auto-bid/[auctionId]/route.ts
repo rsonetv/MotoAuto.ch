@@ -56,14 +56,16 @@ export async function DELETE(
         .neq('status', BidStatus.RETRACTED)
         .single()
 
-      if (autoBidError || !autoBidData) {
-        return createErrorResponse('No active auto-bid found for this auction', 404)
+      if (autoBidError || !autoBidData || !autoBidData.listings || !Array.isArray(autoBidData.listings) || autoBidData.listings.length === 0) {
+        return createErrorResponse('No active auto-bid or associated auction details found for this auction', 404)
       }
+
+      const auctionDetails = autoBidData.listings[0]
 
       // Verify auction is still active (optional - user might want to cancel even for ended auctions)
       const now = new Date()
-      const endTime = new Date(autoBidData.listings.auction_end_time)
-      const isAuctionActive = endTime > now && autoBidData.listings.status === 'active'
+      const endTime = new Date(auctionDetails.auction_end_time)
+      const isAuctionActive = endTime > now && auctionDetails.status === 'active'
 
       // Cancel the auto-bid by setting auto_bid_active to false
       const { error: updateError } = await supabase
@@ -93,13 +95,13 @@ export async function DELETE(
           status: autoBidData.status
         },
         auction: {
-          id: autoBidData.listings.id,
-          title: autoBidData.listings.title,
-          auction_end_time: autoBidData.listings.auction_end_time,
-          current_bid: autoBidData.listings.current_bid,
+          id: auctionDetails.id,
+          title: auctionDetails.title,
+          auction_end_time: auctionDetails.auction_end_time,
+          current_bid: auctionDetails.current_bid,
           is_active: isAuctionActive
         },
-        message: isAuctionActive 
+        message: isAuctionActive
           ? "Auto-bid cancelled successfully. Your existing bids remain active."
           : "Auto-bid cancelled successfully. Auction has ended, so no future auto-bids would have been placed anyway."
       }
