@@ -121,7 +121,7 @@ body {
   
   /* Mobile menu specific variables */
   --mobile-menu-bg: 0 0% 100%;          /* Pure white background */
-  --mobile-menu-text: 224 15% 15%;      /* Dark text for maximum contrast */
+  --mobile-menu-text: 0 0% 0%;          /* Pure black text for maximum contrast */
   --mobile-menu-border: 214.3 31.8% 91.4%;
   --mobile-menu-hover: 210 40% 94%;     /* Light hover state */
   --mobile-menu-overlay: 0 0% 0% / 0.5;  /* Semi-transparent overlay */
@@ -150,10 +150,10 @@ body {
   --ring: 189 100% 45%;
   
   /* Mobile menu specific variables for dark theme */
-  --mobile-menu-bg: 224 71.4% 4.1%;     /* Dark background */
-  --mobile-menu-text: 210 40% 98%;      /* Light text */
-  --mobile-menu-border: 215 27.9% 16.9%;
-  --mobile-menu-hover: 215 27.9% 20%;   /* Slightly lighter hover */
+  --mobile-menu-bg: 0 0% 0%;            /* Pure black background */
+  --mobile-menu-text: 0 0% 100%;        /* Pure white text */
+  --mobile-menu-border: 0 0% 20%;       /* Dark border */
+  --mobile-menu-hover: 0 0% 15%;        /* Dark hover */
   --mobile-menu-overlay: 0 0% 0% / 0.7;  /* Darker overlay for dark theme */
 }
 
@@ -164,25 +164,99 @@ body {
     background-color: hsl(var(--mobile-menu-overlay));
   }
   
-  /* Sheet content with enhanced contrast */
-  .mobile-menu-content,
-  [data-radix-dialog-content] {
-    background-color: hsl(var(--mobile-menu-bg)) !important;
-    border-color: hsl(var(--mobile-menu-border)) !important;
-    color: hsl(var(--mobile-menu-text)) !important;
+  /* Universal sheet content fix - multiple approaches */
+  /* Approach 1: By attribute selectors */
+  div[role="dialog"][data-state="open"],
+  div[role="dialog"],
+  [data-radix-dialog-content],
+  /* Approach 2: By class combinations */
+  .fixed.z-50.gap-4.p-6.shadow-lg.transition.ease-in-out,
+  /* Approach 3: By ID pattern */
+  div[id*="radix-"][class*="fixed"][class*="z-50"],
+  /* Approach 4: By inline style */
+  div[style*="pointer-events: auto"][class*="fixed"],
+  /* Approach 5: Custom class */
+  .mobile-menu-content {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Force override Tailwind classes */
+    --tw-bg-opacity: 1 !important;
+    /* Use CSS custom properties */
+    --background: 0 0% 100% !important;
   }
   
-  /* Navigation links in mobile menu */
+  /* Dark theme overrides */
+  .dark div[role="dialog"][data-state="open"],
+  .dark div[role="dialog"],
+  .dark [data-radix-dialog-content],
+  .dark .fixed.z-50.gap-4.p-6.shadow-lg.transition.ease-in-out,
+  .dark div[id*="radix-"][class*="fixed"][class*="z-50"],
+  .dark div[style*="pointer-events: auto"][class*="fixed"],
+  .dark .mobile-menu-content {
+    background: black !important;
+    background-color: black !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    --tw-bg-opacity: 1 !important;
+    --background: 0 0% 0% !important;
+  }
+  
+  /* Navigation links in mobile menu - enhanced visibility */
   .mobile-menu-content nav a,
-  [data-radix-dialog-content] nav a {
+  [data-radix-dialog-content] nav a,
+  [role="dialog"] nav a,
+  [role="dialog"] .text-foreground,
+  div[id*="radix-"] .text-foreground,
+  div[id*="radix-"] a,
+  div[id*="radix-"] span,
+  div[id*="radix-"] .block.text-lg {
     color: hsl(var(--mobile-menu-text)) !important;
     transition: all 0.2s ease-in-out;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Dark theme text override */
+  .dark [role="dialog"] .text-foreground,
+  .dark div[id*="radix-"] .text-foreground,
+  .dark div[id*="radix-"] a,
+  .dark div[id*="radix-"] span,
+  .dark div[id*="radix-"] .block.text-lg,
+  .dark div[id*="radix-"] .font-medium {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  /* Light theme text override */
+  .light [role="dialog"] .text-foreground,
+  div[id*="radix-"] .text-foreground,
+  div[id*="radix-"] a,
+  div[id*="radix-"] span,
+  div[id*="radix-"] .block.text-lg,
+  div[id*="radix-"] .font-medium {
+    color: rgba(0, 0, 0, 0.95) !important;
   }
   
   .mobile-menu-content nav a:hover,
-  [data-radix-dialog-content] nav a:hover {
+  [data-radix-dialog-content] nav a:hover,
+  [role="dialog"] nav a:hover {
     background-color: hsl(var(--mobile-menu-hover)) !important;
     color: hsl(var(--primary)) !important;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 0 -12px;
+  }
+  
+  /* All text elements in mobile menu */
+  [role="dialog"] span,
+  [role="dialog"] button,
+  [role="dialog"] .text-sm,
+  [role="dialog"] .font-medium {
+    color: hsl(var(--mobile-menu-text)) !important;
+    opacity: 1 !important;
   }
   
   /* Mobile menu trigger button (hamburger) */
@@ -206,40 +280,86 @@ body {
     color: hsl(var(--mobile-menu-text)) !important;
     background-color: hsl(var(--mobile-menu-hover)) !important;
     border-radius: 4px;
+    opacity: 1 !important;
   }
   
   .mobile-menu-close:hover,
   [data-radix-dialog-close]:hover {
-    opacity: 0.8;
+    opacity: 0.8 !important;
+    background-color: hsl(var(--destructive) / 0.1) !important;
   }
   
   /* Language and theme controls */
-  .mobile-menu-controls {
-    border-top: 1px solid hsl(var(--mobile-menu-border));
-    background-color: hsl(var(--mobile-menu-bg));
+  .mobile-menu-controls,
+  [role="dialog"] .border-t {
+    border-top: 1px solid hsl(var(--mobile-menu-border)) !important;
+    background-color: hsl(var(--mobile-menu-bg)) !important;
   }
   
-  .mobile-menu-controls button {
+  .mobile-menu-controls button,
+  [role="dialog"] button {
     color: hsl(var(--mobile-menu-text)) !important;
     border-color: hsl(var(--mobile-menu-border)) !important;
+    background-color: hsl(var(--mobile-menu-bg)) !important;
+    opacity: 1 !important;
   }
   
-  .mobile-menu-controls button:hover {
+  .mobile-menu-controls button:hover,
+  [role="dialog"] button:hover {
     background-color: hsl(var(--mobile-menu-hover)) !important;
+    color: hsl(var(--primary)) !important;
   }
   
   /* User listings in mobile menu */
-  .mobile-user-listing {
-    background-color: hsl(var(--muted)) !important;
+  .mobile-user-listing,
+  [role="dialog"] .bg-muted {
+    background-color: hsl(var(--mobile-menu-hover)) !important;
     color: hsl(var(--mobile-menu-text)) !important;
-    border: 1px solid hsl(var(--mobile-menu-border));
+    border: 1px solid hsl(var(--mobile-menu-border)) !important;
   }
   
   /* Focus indicators for accessibility */
   .mobile-menu-content *:focus,
-  [data-radix-dialog-content] *:focus {
+  [data-radix-dialog-content] *:focus,
+  [role="dialog"] *:focus {
     outline: 2px solid hsl(var(--ring)) !important;
     outline-offset: 2px !important;
+  }
+  
+  /* Force text contrast in dark mode */
+  .dark [role="dialog"],
+  .dark [role="dialog"] * {
+    color: hsl(var(--mobile-menu-text)) !important;
+  }
+  
+  .dark [role="dialog"] {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  .dark [role="dialog"] .text-foreground,
+  .dark [role="dialog"] .font-medium,
+  .dark [role="dialog"] span,
+  .dark [role="dialog"] a {
+    color: rgba(255, 255, 255, 0.95) !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+  
+  /* Light mode explicit colors */
+  html:not(.dark) [role="dialog"] {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  html:not(.dark) [role="dialog"] .text-foreground,
+  html:not(.dark) [role="dialog"] .font-medium,
+  html:not(.dark) [role="dialog"] span,
+  html:not(.dark) [role="dialog"] a {
+    color: rgba(0, 0, 0, 0.9) !important;
+    opacity: 1 !important;
   }
 }
 
@@ -248,15 +368,27 @@ body {
   :root {
     --mobile-menu-text: 0 0% 0%;          /* Pure black text */
     --mobile-menu-bg: 0 0% 100%;          /* Pure white background */
-    --mobile-menu-border: 0 0% 50%;       /* Medium gray borders */
+    --mobile-menu-border: 0 0% 0%;        /* Black borders */
     --mobile-menu-hover: 0 0% 90%;        /* Light gray hover */
   }
   
   .dark {
     --mobile-menu-text: 0 0% 100%;        /* Pure white text */
     --mobile-menu-bg: 0 0% 0%;            /* Pure black background */
-    --mobile-menu-border: 0 0% 50%;       /* Medium gray borders */
+    --mobile-menu-border: 0 0% 100%;      /* White borders */
     --mobile-menu-hover: 0 0% 20%;        /* Dark gray hover */
+  }
+  
+  /* Force maximum contrast in high contrast mode */
+  [role="dialog"] {
+    background-color: hsl(var(--mobile-menu-bg)) !important;
+    color: hsl(var(--mobile-menu-text)) !important;
+    border: 2px solid hsl(var(--mobile-menu-text)) !important;
+  }
+  
+  [role="dialog"] * {
+    color: hsl(var(--mobile-menu-text)) !important;
+    border-color: hsl(var(--mobile-menu-text)) !important;
   }
 }
 
@@ -286,6 +418,35 @@ body {
 
 .border-high-contrast {
   border-color: hsl(var(--mobile-menu-border)) !important;
+}
+
+/* Force solid backgrounds for mobile menu */
+@media (max-width: 768px) {
+  [role="dialog"] {
+    background: var(--mobile-menu-bg-solid) !important;
+  }
+  
+  .dark [role="dialog"] {
+    --mobile-menu-bg-solid: #000000 !important;
+  }
+  
+  html:not(.dark) [role="dialog"] {
+    --mobile-menu-bg-solid: #ffffff !important;
+  }
+  
+  /* Remove any transparency effects */
+  [role="dialog"] * {
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Force button visibility */
+  [role="dialog"] button {
+    background-color: hsl(var(--mobile-menu-hover)) !important;
+    border: 1px solid hsl(var(--mobile-menu-border)) !important;
+    color: hsl(var(--mobile-menu-text)) !important;
+  }
 }
 
 /* Ensure all interactive elements meet WCAG AA */

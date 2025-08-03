@@ -56,9 +56,6 @@ export function Header() {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">M</span>
-            </div>
             <span className="font-bold text-xl">
               MotoAuto<span className="text-red-600">.ch</span>
             </span>
@@ -89,7 +86,7 @@ export function Header() {
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
           >
             <div className="h-4 w-4 fill-current">
-              {theme === "dark" ? "🌞" : "🌙"}
+              {theme === "dark" ? "🌙" : "🌞"}
             </div>
           </Button>
 
@@ -191,9 +188,6 @@ export function Header() {
                 {/* Header with logo and close button (close button is auto-added by SheetContent) */}
                 <div className="flex items-center pb-4 border-b border-border">
                   <Link href="/" className="flex items-center space-x-2" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-primary-foreground font-bold text-sm">M</span>
-                    </div>
                     <span className="font-bold text-xl text-foreground">
                       MotoAuto<span className="text-red-600">.ch</span>
                     </span>
