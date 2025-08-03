@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { OAuthButtons } from './OAuthButtons';
@@ -15,20 +16,20 @@ export default function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, null);
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Zaloguj się</h1>
-        <p className="text-muted-foreground">Wprowadź swoje dane logowania</p>
-      </div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Zaloguj się</CardTitle>
+        <CardDescription>Wprowadź swoje dane logowania</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {state?.error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
 
-      {state?.error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      )}
-
-      <form action={action} className="space-y-4">
+        <form action={action} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
           <Input id="email" name="email" type="email" required autoComplete="email"
@@ -70,10 +71,11 @@ export default function LoginForm() {
 
       <OAuthButtons />
 
-      <div className="flex justify-between text-sm">
-        <Link href="/auth/reset-password" className="underline">Nie pamiętasz hasła?</Link>
-        <Link href="/auth/register" className="underline">Załóż konto</Link>
-      </div>
-    </div>
+        <div className="flex justify-between text-sm">
+          <Link href="/auth/reset-password" className="underline hover:text-primary">Nie pamiętasz hasła?</Link>
+          <Link href="/auth/register" className="underline hover:text-primary">Załóż konto</Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

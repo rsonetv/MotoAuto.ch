@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { OAuthButtons } from './OAuthButtons';
@@ -15,20 +16,20 @@ export default function RegisterForm() {
   const [state, action, pending] = useActionState(registerAction, null);
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Załóż konto</h1>
-        <p className="text-muted-foreground">Wprowadź swoje dane, aby się zarejestrować</p>
-      </div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Załóż konto</CardTitle>
+        <CardDescription>Wprowadź swoje dane, aby się zarejestrować</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {state?.error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
 
-      {state?.error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      )}
-
-      <form action={action} className="space-y-4">
+        <form action={action} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="full_name">Imię i nazwisko</Label>
           <Input id="full_name" name="full_name" required
@@ -91,12 +92,13 @@ export default function RegisterForm() {
 
       <OAuthButtons />
 
-      <div className="text-center text-sm">
-        Masz już konto?{' '}
-        <Link href="/auth/login" className="underline">
-          Zaloguj się
-        </Link>
-      </div>
-    </div>
+        <div className="text-center text-sm">
+          Masz już konto?{' '}
+          <Link href="/auth/login" className="underline hover:text-primary">
+            Zaloguj się
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

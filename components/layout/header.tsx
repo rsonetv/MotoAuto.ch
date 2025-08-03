@@ -267,7 +267,7 @@ export function Header() {
                       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                       className="h-8 px-3"
                     >
-                      {theme === "dark" ? "🌞 Jasny" : "🌙 Ciemny"}
+                      {theme === "dark" ? "🌙 Ciemny" : "🌞 Jasny"}
                     </Button>
                   </div>
 
