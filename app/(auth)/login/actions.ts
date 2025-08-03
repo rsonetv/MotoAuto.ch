@@ -6,12 +6,17 @@ import { redirect } from 'next/navigation';
 async function verifyHCaptcha(token: string): Promise<boolean> {
   const secretKey = process.env.HCAPTCHA_SECRET_KEY;
   
+  console.log('🔍 HCaptcha verification started');
+  console.log('🔑 Secret key configured:', !!secretKey);
+  console.log('🎫 Token received:', token ? 'Yes' : 'No');
+  
   if (!secretKey) {
-    console.error('HCAPTCHA_SECRET_KEY not configured');
+    console.error('❌ HCAPTCHA_SECRET_KEY not configured');
     return false;
   }
 
   try {
+    console.log('📡 Making request to hCaptcha API...');
     const response = await fetch('https://hcaptcha.com/siteverify', {
       method: 'POST',
       headers: {
@@ -24,9 +29,10 @@ async function verifyHCaptcha(token: string): Promise<boolean> {
     });
 
     const data = await response.json();
+    console.log('📊 HCaptcha API Response:', data);
     return data.success === true;
   } catch (error) {
-    console.error('HCaptcha verification error:', error);
+    console.error('❌ HCaptcha verification error:', error);
     return false;
   }
 }
