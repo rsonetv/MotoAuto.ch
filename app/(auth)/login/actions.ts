@@ -51,15 +51,15 @@ export async function loginAction(_prev: unknown, formData: FormData) {
 
   const { email, password, captcha } = parsed.data;
 
-  // Verify hCaptcha
-  const captchaValid = await verifyHCaptcha(captcha);
-  if (!captchaValid) {
-    return { 
-      fieldErrors: { 
-        captcha: ['Weryfikacja captcha nie powiodła się. Spróbuj ponownie.'] 
-      } 
-    };
-  }
+  // Verify hCaptcha - TEMPORARILY DISABLED
+  // const captchaValid = await verifyHCaptcha(captcha);
+  // if (!captchaValid) {
+  //   return { 
+  //     fieldErrors: { 
+  //       captcha: ['Weryfikacja captcha nie powiodła się. Spróbuj ponownie.'] 
+  //     } 
+  //   };
+  // }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });

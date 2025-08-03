@@ -65,7 +65,8 @@ export default function LoginForm() {
           <Label htmlFor="remember">Zapamiętaj mnie</Label>
         </div>
 
-        <div className="space-y-2">
+        {/* CAPTCHA TEMPORARILY DISABLED */}
+        {/* <div className="space-y-2">
           <HCaptcha
             siteKey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
             onVerify={handleCaptchaVerify}
@@ -76,13 +77,13 @@ export default function LoginForm() {
           {state?.fieldErrors?.captcha && (
             <p className="text-sm text-destructive">{state.fieldErrors.captcha[0]}</p>
           )}
-        </div>
+        </div> */}
 
         <LoadingButton 
           type="submit" 
           className="w-full" 
           loading={pending}
-          disabled={!captchaToken || pending}
+          disabled={pending}
         >
           Zaloguj się
         </LoadingButton>

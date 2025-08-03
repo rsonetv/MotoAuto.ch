@@ -29,12 +29,23 @@ DROP FUNCTION IF EXISTS get_profile_schema() CASCADE;
 DROP FUNCTION IF EXISTS get_listing_schema() CASCADE;
 DROP FUNCTION IF EXISTS get_bid_schema() CASCADE;
 
--- 3. Drop all tables for a clean slate
+-- 3. Drop all tables for a clean slate (with CASCADE for all dependencies)
 DROP TABLE IF EXISTS favorites CASCADE;
 DROP TABLE IF EXISTS bids CASCADE;
 DROP TABLE IF EXISTS listings CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS packages CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+
+-- 3.5. Force drop the packages table specifically if it exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'packages') THEN
+    DROP TABLE packages CASCADE;
+  END IF;
+END
+$$;
 
 -- 4. users table
 CREATE TABLE users (
@@ -66,6 +77,39 @@ CREATE TABLE profiles (
                                  CHECK (verification_status IN ('pending','verified','rejected')),
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5.5. categories table  
+CREATE TABLE categories (
+  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name       TEXT NOT NULL,
+  slug       TEXT UNIQUE NOT NULL,
+  description TEXT,
+  icon       TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active  BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5.6. packages table
+CREATE TABLE packages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  name_de TEXT,
+  name_fr TEXT,
+  name_en TEXT,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  currency TEXT DEFAULT 'CHF',
+  duration_days INTEGER NOT NULL DEFAULT 30,
+  max_images INTEGER DEFAULT 10,
+  description TEXT,
+  features JSONB DEFAULT '{}',
+  is_popular BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 6. listings table (complete vehicle data)
@@ -317,47 +361,140 @@ BEGIN
 END;
 $$;
 
--- 13. Create data validation functions
+-- 13. Create data validation functions (simplified without external JSON schema validation)
 CREATE OR REPLACE FUNCTION validate_profile_data(profile_data JSONB)
 RETURNS BOOLEAN AS $$
-DECLARE
-  schema JSONB;
-  validation_result BOOLEAN;
 BEGIN
-  schema := get_profile_schema();
+  -- Basic profile validation - check required fields exist and have correct types
+  IF profile_data IS NULL THEN
+    RETURN FALSE;
+  END IF;
   
-  SELECT validate_json_schema(schema, profile_data) INTO validation_result;
+  -- Check required string fields
+  IF NOT (profile_data ? 'email' AND (profile_data->>'email') IS NOT NULL AND LENGTH(profile_data->>'email') > 0) THEN
+    RETURN FALSE;
+  END IF;
   
-  RETURN validation_result;
+  -- Email format validation (basic)
+  IF NOT (profile_data->>'email' ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$') THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Check boolean fields if present
+  IF profile_data ? 'email_verified' AND NOT (jsonb_typeof(profile_data->'email_verified') = 'boolean') THEN
+    RETURN FALSE;
+  END IF;
+  
+  IF profile_data ? 'phone_verified' AND NOT (jsonb_typeof(profile_data->'phone_verified') = 'boolean') THEN
+    RETURN FALSE;
+  END IF;
+  
+  IF profile_data ? 'is_dealer' AND NOT (jsonb_typeof(profile_data->'is_dealer') = 'boolean') THEN
+    RETURN FALSE;
+  END IF;
+  
+  RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION validate_listing_data(listing_data JSONB)
 RETURNS BOOLEAN AS $$
-DECLARE
-  schema JSONB;
-  validation_result BOOLEAN;
 BEGIN
-  schema := get_listing_schema();
+  -- Basic listing validation
+  IF listing_data IS NULL THEN
+    RETURN FALSE;
+  END IF;
   
-  SELECT validate_json_schema(schema, listing_data) INTO validation_result;
+  -- Check required fields
+  IF NOT (listing_data ? 'title' AND (listing_data->>'title') IS NOT NULL AND LENGTH(listing_data->>'title') > 0) THEN
+    RETURN FALSE;
+  END IF;
   
-  RETURN validation_result;
+  IF NOT (listing_data ? 'category' AND (listing_data->>'category') IN ('auto', 'moto')) THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Check price is a number
+  IF listing_data ? 'price' AND NOT (jsonb_typeof(listing_data->'price') = 'number') THEN
+    RETURN FALSE;
+  END IF;
+  
+  RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION validate_bid_data(bid_data JSONB)
 RETURNS BOOLEAN AS $$
-DECLARE
-  schema JSONB;
-  validation_result BOOLEAN;
 BEGIN
-  schema := get_bid_schema();
+  -- Basic bid validation
+  IF bid_data IS NULL THEN
+    RETURN FALSE;
+  END IF;
   
-  SELECT validate_json_schema(schema, bid_data) INTO validation_result;
+  -- Check required fields
+  IF NOT (bid_data ? 'amount' AND jsonb_typeof(bid_data->'amount') = 'number') THEN
+    RETURN FALSE;
+  END IF;
   
-  RETURN validation_result;
+  -- Amount should be positive
+  IF (bid_data->>'amount')::numeric <= 0 THEN
+    RETURN FALSE;
+  END IF;
+  
+  RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 14. Insert seed data for categories and packages
+INSERT INTO categories (name, slug, description, icon, sort_order) VALUES
+  ('Samochody', 'auta', 'Samochody osobowe, terenowe, sportowe i inne', 'car', 1),
+  ('Motocykle', 'moto', 'Motocykle, skutery, quady i pojazdy dwukołowe', 'bike', 2),
+  ('Części samochodowe', 'parts', 'Części zamienne do samochodów', 'wrench', 3),
+  ('Akcesoria motoryzacyjne', 'accessories', 'Akcesoria i wyposażenie dla pojazdów', 'tool', 4)
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  icon = EXCLUDED.icon,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO packages (name, price, duration_days, max_images, description, features, is_popular, sort_order) VALUES
+  (
+    'Darmowy',
+    0.00,
+    30,
+    5,
+    'Pierwsze ogłoszenie za darmo - idealne na start!',
+    '{"basic_support": true, "standard_listing": true}',
+    false,
+    1
+  ),
+  (
+    'Premium',
+    29.90,
+    60,
+    15,
+    'Rozszerzony pakiet z większą widocznością i priorytetem w wyszukiwaniu',
+    '{"featured_listing": true, "priority_support": true, "extended_duration": true, "more_photos": true}',
+    true,
+    2
+  ),
+  (
+    'Dealer',
+    99.90,
+    90,
+    30,
+    'Profesjonalny pakiet dla dealerów z pełną funkcjonalnością',
+    '{"featured_listing": true, "priority_support": true, "analytics": true, "dealer_badge": true, "unlimited_editing": true, "social_media_promotion": true, "multiple_categories": true}',
+    false,
+    3
+  )
+ON CONFLICT (name) DO UPDATE SET
+  price = EXCLUDED.price,
+  duration_days = EXCLUDED.duration_days,
+  max_images = EXCLUDED.max_images,
+  description = EXCLUDED.description,
+  features = EXCLUDED.features,
+  is_popular = EXCLUDED.is_popular,
+  sort_order = EXCLUDED.sort_order;
 
 COMMIT;

@@ -93,13 +93,13 @@ export function RecentActivity() {
 
   const getActivityColor = (type: string) => {
     const colorMap = {
-      view: 'text-blue-600',
-      message: 'text-green-600',
-      bid: 'text-orange-600',
-      favorite: 'text-red-600',
-      listing_update: 'text-purple-600'
+      view: 'text-blue-600 dark:text-blue-400',
+      message: 'text-green-600 dark:text-green-400',
+      bid: 'text-orange-600 dark:text-orange-400',
+      favorite: 'text-red-600 dark:text-red-400',
+      listing_update: 'text-purple-600 dark:text-purple-400'
     }
-    return colorMap[type as keyof typeof colorMap] || 'text-gray-600'
+    return colorMap[type as keyof typeof colorMap] || 'text-muted-foreground'
   }
 
   return (
@@ -114,8 +114,8 @@ export function RecentActivity() {
         <div className="space-y-4">
           {activities.length === 0 ? (
             <div className="text-center py-8">
-              <Bell className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600 text-sm">Brak ostatniej aktywności</p>
+              <Bell className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">Brak ostatniej aktywności</p>
             </div>
           ) : (
             activities.map((activity) => {
@@ -124,22 +124,22 @@ export function RecentActivity() {
 
               return (
                 <div key={activity.id} className="flex items-start space-x-3">
-                  <div className={`p-2 rounded-full bg-gray-100 ${colorClass}`}>
+                  <div className={`p-2 rounded-full bg-accent ${colorClass}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm text-gray-900">
+                      <p className="font-medium text-sm text-foreground">
                         {activity.title}
                       </p>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(activity.timestamp), { 
                           addSuffix: true, 
                           locale: pl 
                         })}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {activity.description}
                     </p>
                     {activity.user && (
@@ -150,7 +150,7 @@ export function RecentActivity() {
                             {activity.user.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {activity.user.name}
                         </span>
                       </div>

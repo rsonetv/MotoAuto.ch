@@ -51,7 +51,7 @@ export function AnalyticsDashboard() {
         <div className="space-y-6">
           {/* Wyświetlenia w czasie */}
           <div>
-            <h4 className="text-sm font-medium text-gray-600 mb-3">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">
               Wyświetlenia w ostatnim tygodniu
             </h4>
             <ResponsiveContainer width="100%" height={200}>
@@ -73,7 +73,7 @@ export function AnalyticsDashboard() {
 
           {/* Statystyki kategorii */}
           <div>
-            <h4 className="text-sm font-medium text-gray-600 mb-3">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">
               Rozkład ogłoszeń po kategoriach
             </h4>
             <div className="flex items-center justify-between">

@@ -44,7 +44,7 @@ export function PackageSelection() {
   };
 
   if (loading) {
-    return <div>Ładowanie pakietów...</div>;
+    return <div className="text-foreground">Ładowanie pakietów...</div>;
   }
 
   return (
@@ -56,13 +56,13 @@ export function PackageSelection() {
             <CardDescription>{pkg.description}</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-4xl font-bold mb-4">
-              {pkg.price} <span className="text-lg font-normal">CHF/miesiąc</span>
+            <div className="text-4xl font-bold mb-4 text-foreground">
+              {pkg.price} <span className="text-lg font-normal text-muted-foreground">CHF/miesiąc</span>
             </div>
             <ul className="space-y-2 text-sm text-muted-foreground">
               {pkg.features.map((feature, index) => (
                 <li key={index} className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-500 dark:text-green-400" />
                   {feature}
                 </li>
               ))}

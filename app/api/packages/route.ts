@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('packages')
       .select('*')
-      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true })
     
     // Filter by active status
     if (isActive) {

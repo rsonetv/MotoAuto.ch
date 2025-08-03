@@ -86,15 +86,15 @@ export function DashboardNav() {
               className={cn(
                 "group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
                 item.current
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
               <div className="flex items-center space-x-3">
                 <Icon
                   className={cn(
                     "w-5 h-5",
-                    item.current ? "text-blue-700" : "text-gray-400 group-hover:text-gray-600"
+                    item.current ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 />
                 <span>{item.name}</span>
@@ -109,7 +109,7 @@ export function DashboardNav() {
         })}
       </div>
 
-      <div className="pt-4 mt-4 border-t border-gray-200">
+      <div className="pt-4 mt-4 border-t border-border">
         <div className="space-y-1">
           {secondaryNavigation.map((item) => {
             const Icon = item.icon
@@ -118,9 +118,9 @@ export function DashboardNav() {
                 <form action={item.href} method="post" key={item.name}>
                   <button
                     type="submit"
-                    className="group flex w-full items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="group flex w-full items-center px-3 py-2 text-sm font-medium text-foreground rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
-                    <Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 mr-3" />
+                    <Icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground mr-3" />
                     <span>{item.name}</span>
                   </button>
                 </form>
@@ -133,14 +133,14 @@ export function DashboardNav() {
                 className={cn(
                   "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                   item.current
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "w-5 h-5 mr-3",
-                    item.current ? "text-blue-700" : "text-gray-400 group-hover:text-gray-600"
+                    item.current ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 />
                 <span>{item.name}</span>
@@ -151,19 +151,19 @@ export function DashboardNav() {
       </div>
 
       {/* Powiadomienia */}
-      <div className="pt-4 mt-4 border-t border-gray-200">
+      <div className="pt-4 mt-4 border-t border-border">
         <div className="px-3 py-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Powiadomienia
             </span>
-            <Bell className="w-4 h-4 text-gray-400" />
+            <Bell className="w-4 h-4 text-muted-foreground" />
           </div>
           <div className="mt-2 space-y-1">
-            <div className="text-xs text-gray-600 p-2 bg-blue-50 rounded">
+            <div className="text-xs text-foreground p-2 bg-primary/10 rounded">
               <strong>Nowa wiadomość</strong> dotycząca BMW X5
             </div>
-            <div className="text-xs text-gray-600 p-2 bg-green-50 rounded">
+            <div className="text-xs text-foreground p-2 bg-green-500/10 rounded">
               <strong>Oferta przyjęta</strong> za Mercedes C-Class
             </div>
           </div>

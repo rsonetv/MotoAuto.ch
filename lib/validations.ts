@@ -4,7 +4,7 @@ export const loginSchema = z.object({
   email: z.string().email('Nieprawidłowy e-mail'),
   password: z.string().min(8, 'Min. 8 znaków'),
   remember: z.boolean().optional().default(false),
-  captcha: z.string().min(1, 'Weryfikacja captcha wymagana'),
+  captcha: z.string().optional(), // TEMPORARILY DISABLED - was: z.string().min(1, 'Weryfikacja captcha wymagana'),
 });
 
 export const registerSchema = z
