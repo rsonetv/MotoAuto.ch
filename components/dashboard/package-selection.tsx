@@ -6,14 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Package {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  features: string[];
-}
+import { packagesSchema, type Package } from '@/lib/schemas/packages';
 
 export function PackageSelection() {
   const [packages, setPackages] = useState<Package[]>([]);
@@ -28,20 +21,17 @@ export function PackageSelection() {
           throw new Error('Failed to fetch packages');
         }
         const result = await response.json();
-        const data = result.success ? result.data.data : [];
-        const packagesWithParsedFeatures = data.map((pkg: any) => {
-          let features = pkg.features;
-          if (typeof features === 'string') {
-            try {
-              features = JSON.parse(features);
-            } catch (e) {
-              console.error('Failed to parse features:', e);
-              features = [];
-            }
-          }
-          return { ...pkg, features: Array.isArray(features) ? features : [] };
-        });
-        setPackages(packagesWithParsedFeatures);
+        const rawData = result.success ? result.data.data : [];
+        
+        const parsed = packagesSchema.safeParse(rawData);
+
+        if (parsed.success) {
+          setPackages(parsed.data);
+        } else {
+          console.error('Failed to validate packages:', parsed.error);
+          toast.error('Otrzymano nieprawidłowe dane pakietów.');
+          setPackages([]);
+        }
       } catch (error) {
         console.error(error);
         toast.error('Nie udało się załadować pakietów.');

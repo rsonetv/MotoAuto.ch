@@ -2,9 +2,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { loginSchema } from '@/lib/validations';
 import { redirect } from 'next/navigation';
+import { env } from '@/lib/env';
 
 async function verifyHCaptcha(token: string): Promise<boolean> {
-  const secretKey = process.env.HCAPTCHA_SECRET_KEY;
+  const secretKey = env.HCAPTCHA_SECRET_KEY;
   
   console.log('🔍 HCaptcha verification started');
   console.log('🔑 Secret key configured:', !!secretKey);

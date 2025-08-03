@@ -2,11 +2,13 @@ import { type NextRequest, NextResponse } from "next/server"
 import { readFileSync } from "fs"
 import { join } from "path"
 import { supabaseAdmin } from "@/lib/supabase-admin"
+import { env } from '@/lib/env'
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate environment variables first
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // The env object from lib/env.ts already validates this at startup.
+    // This check is now redundant, but we'll keep it for clarity.
+    if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error("❌ Missing required environment variables")
       return NextResponse.json(
         {

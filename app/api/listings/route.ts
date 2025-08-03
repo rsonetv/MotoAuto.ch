@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
           } else {
             listingIdsFromRadius = ids ? ids.map((item: { id: string }) => item.id) : [];
             // If no listings are found in the radius, we can short-circuit
-            if (listingIdsFromRadius.length === 0) {
+            if (listingIdsFromRadius && listingIdsFromRadius.length === 0) {
               return createSuccessResponse({ data: [], pagination: { page: 1, limit: query.limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false }, filters: {} }, 200);
             }
           }
@@ -308,7 +308,7 @@ export async function GET(request: NextRequest) {
       // Return paginated response
       return createSuccessResponse(
         {
-          data: listings as ListingWithRelations[],
+          data: listings as unknown as ListingWithRelations[],
           pagination: paginationMeta,
           filters: {
             category_id: query.category_id,

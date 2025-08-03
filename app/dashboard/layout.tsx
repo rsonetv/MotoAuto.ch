@@ -6,6 +6,7 @@ import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import type { Database } from '@/lib/database.types'
+import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Dashboard | MotoAuto.ch',
@@ -20,8 +21,8 @@ export default async function DashboardLayout({
   const cookieStore = await cookies()
   
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         get(name) {
