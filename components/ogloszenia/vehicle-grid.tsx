@@ -62,7 +62,7 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
     const fetchListings = async () => {
       setLoading(true);
       try {
-        const categoryType = category === 'auto' ? 'car' : 'motorcycle';
+        const categoryType = category === 'auto' ? 'auto' : category === 'moto' ? 'moto' : null;
         
         let query = supabase
           .from('listings')
@@ -70,12 +70,12 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
             *,
             profiles (*)
           `)
-          .eq('sale_type', 'listing')
+          .eq('status', 'active')
           .order('created_at', { ascending: false })
           .limit(6);
           
-        if (category !== 'all') {
-          query = query.eq('type', categoryType);
+        if (category !== 'all' && categoryType) {
+          query = query.eq('sale_type', categoryType);
         }
         
         const { data, error } = await query;

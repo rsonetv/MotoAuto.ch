@@ -47,6 +47,17 @@ BEGIN
 END
 $$;
 
+-- 3.6. Also check and add sort_order column if packages table exists but doesn't have it
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'packages') THEN
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'packages' AND column_name = 'sort_order') THEN
+      ALTER TABLE packages ADD COLUMN sort_order INTEGER DEFAULT 0;
+    END IF;
+  END IF;
+END
+$$;
+
 -- 4. users table
 CREATE TABLE users (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

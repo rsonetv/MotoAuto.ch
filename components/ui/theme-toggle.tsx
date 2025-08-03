@@ -18,6 +18,11 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ isScrolled = false }: ThemeToggleProps) {
   const { setTheme, theme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <DropdownMenu>
@@ -35,21 +40,21 @@ export function ThemeToggle({ isScrolled = false }: ThemeToggleProps) {
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={() => setTheme("light")}
-          className={theme === "light" ? "bg-accent" : ""}
+          className={mounted && theme === "light" ? "bg-accent" : ""}
         >
           <Sun className="mr-2 h-4 w-4" />
           Jasny
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => setTheme("dark")}
-          className={theme === "dark" ? "bg-accent" : ""}
+          className={mounted && theme === "dark" ? "bg-accent" : ""}
         >
           <Moon className="mr-2 h-4 w-4" />
           Ciemny
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => setTheme("system")}
-          className={theme === "system" ? "bg-accent" : ""}
+          className={mounted && theme === "system" ? "bg-accent" : ""}
         >
           <Monitor className="mr-2 h-4 w-4" />
           System

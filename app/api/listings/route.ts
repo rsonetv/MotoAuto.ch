@@ -55,17 +55,14 @@ type ListingWithRelations = Database['public']['Tables']['listings']['Row'] & {
     dealer_name: string | null
   }
   categories: {
-    name_en: string
-    name_de: string
-    name_fr: string
-    name_pl: string
+    name: string
     slug: string
   }
   packages?: {
-    name_en: string
-    name_de: string
-    name_fr: string
-    name_pl: string
+    name: string
+    name_de: string | null
+    name_fr: string | null
+    name_en: string | null
   }
 }
 
@@ -145,17 +142,14 @@ export async function GET(request: NextRequest) {
             dealer_name
           ),
           categories:category_id (
-            name_en,
-            name_de,
-            name_fr,
-            name_pl,
+            name,
             slug
           ),
           packages:package_id (
-            name_en,
+            name,
             name_de,
             name_fr,
-            name_pl
+            name_en
           )
         `)
 
@@ -429,17 +423,14 @@ export async function POST(request: NextRequest) {
             dealer_name
           ),
           categories:category_id (
-            name_en,
-            name_de,
-            name_fr,
-            name_pl,
+            name,
             slug
           ),
           packages:package_id (
-            name_en,
+            name,
             name_de,
             name_fr,
-            name_pl
+            name_en
           )
         `)
         .single()

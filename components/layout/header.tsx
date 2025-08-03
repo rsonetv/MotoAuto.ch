@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Globe, User, Menu, Plus, Settings, LogOut, FileText, Gavel, Edit, Trash2 } from "lucide-react"
 import { useAuth } from "@/lib/hooks/use-auth"
@@ -22,7 +22,13 @@ export function Header() {
   const authUser = user as AuthUser
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("PL")
+  const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const languages = [
     { code: "PL", name: "Polski", flag: "🇵🇱" },
@@ -83,10 +89,10 @@ export function Header() {
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="h-9 w-9 p-0"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+            aria-label={mounted ? `Switch to ${theme === "dark" ? "light" : "dark"} theme` : "Switch theme"}
           >
             <div className="h-4 w-4 fill-current">
-              {theme === "dark" ? "🌙" : "🌞"}
+              {mounted ? (theme === "dark" ? "🌙" : "🌞") : "🌗"}
             </div>
           </Button>
 
@@ -140,7 +146,7 @@ export function Header() {
                 </DropdownMenuItem>
                 
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/add" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+                  <Link href="/ogloszenia/dodaj" className="text-foreground hover:bg-accent hover:text-accent-foreground">
                     <Plus className="mr-2 h-4 w-4" />
                     Dodaj ogłoszenie
                   </Link>
@@ -267,7 +273,7 @@ export function Header() {
                       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                       className="h-8 px-3"
                     >
-                      {theme === "dark" ? "🌙 Ciemny" : "🌞 Jasny"}
+                      {mounted ? (theme === "dark" ? "🌙 Ciemny" : "🌞 Jasny") : "🌗 Motyw"}
                     </Button>
                   </div>
 

@@ -27,8 +27,21 @@ export function PackageSelection() {
         if (!response.ok) {
           throw new Error('Failed to fetch packages');
         }
-        const data = await response.json();
-        setPackages(data);
+        const result = await response.json();
+        const data = result.success ? result.data.data : [];
+        const packagesWithParsedFeatures = data.map((pkg: any) => {
+          let features = pkg.features;
+          if (typeof features === 'string') {
+            try {
+              features = JSON.parse(features);
+            } catch (e) {
+              console.error('Failed to parse features:', e);
+              features = [];
+            }
+          }
+          return { ...pkg, features: Array.isArray(features) ? features : [] };
+        });
+        setPackages(packagesWithParsedFeatures);
       } catch (error) {
         console.error(error);
         toast.error('Nie udało się załadować pakietów.');
@@ -45,6 +58,10 @@ export function PackageSelection() {
 
   if (loading) {
     return <div className="text-foreground">Ładowanie pakietów...</div>;
+  }
+
+  if (!Array.isArray(packages) || packages.length === 0) {
+    return <div className="text-foreground">Brak dostępnych pakietów.</div>;
   }
 
   return (
