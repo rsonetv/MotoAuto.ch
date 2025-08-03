@@ -874,7 +874,7 @@ export default function PricingClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground pricing-page" data-page="cennik">
       <Header />
       
       {/* Hero Section */}

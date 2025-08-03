@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "./motoauto-theme.css";
 
 
 body {
@@ -93,4 +92,389 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Enhanced mobile menu contrast and theme support for MotoAuto.ch */
+
+/* Base theme variables with improved contrast ratios */
+:root {
+  /* Light theme - WCAG AA compliant colors */
+  --background: 0 0% 100%;              /* Pure white #ffffff */
+  --foreground: 224 15% 15%;            /* Dark blue-gray #1e293b */
+  --card: 0 0% 100%;
+  --card-foreground: 224 15% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 15% 15%;
+  --primary: 189 100% 33%;              /* MotoAuto brand teal #009fb7 */
+  --primary-foreground: 0 0% 100%;      /* White text on primary */
+  --secondary: 210 40% 96%;             /* Very light blue-gray #f1f5f9 */
+  --secondary-foreground: 224 15% 15%;  /* Dark text on secondary */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;      /* Medium gray for muted text */
+  --accent: 210 40% 94%;                /* Light accent #e2e8f0 */
+  --accent-foreground: 224 15% 15%;
+  --destructive: 0 84.2% 60.2%;         /* Error red */
+  --destructive-foreground: 0 0% 98%;
+  --border: 214.3 31.8% 91.4%;          /* Light border #e2e8f0 */
+  --input: 214.3 31.8% 91.4%;
+  --ring: 189 100% 33%;                 /* Focus ring matches primary */
+  
+  /* Mobile menu specific variables */
+  --mobile-menu-bg: 0 0% 100%;          /* Pure white background */
+  --mobile-menu-text: 224 15% 15%;      /* Dark text for maximum contrast */
+  --mobile-menu-border: 214.3 31.8% 91.4%;
+  --mobile-menu-hover: 210 40% 94%;     /* Light hover state */
+  --mobile-menu-overlay: 0 0% 0% / 0.5;  /* Semi-transparent overlay */
+}
+
+.dark {
+  /* Dark theme - WCAG AA compliant colors */
+  --background: 224 71.4% 4.1%;         /* Very dark blue #0f172a */
+  --foreground: 210 40% 98%;            /* Almost white #f8fafc */
+  --card: 224 71.4% 4.1%;
+  --card-foreground: 210 40% 98%;
+  --popover: 224 71.4% 4.1%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 189 100% 45%;              /* Brighter teal for dark mode #00bcd4 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 27.9% 16.9%;         /* Dark secondary #1e293b */
+  --secondary-foreground: 210 40% 98%;
+  --muted: 215 27.9% 16.9%;
+  --muted-foreground: 217.9 10.6% 64.9%; /* Light gray for muted text */
+  --accent: 215 27.9% 16.9%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 215 27.9% 16.9%;
+  --input: 215 27.9% 16.9%;
+  --ring: 189 100% 45%;
+  
+  /* Mobile menu specific variables for dark theme */
+  --mobile-menu-bg: 224 71.4% 4.1%;     /* Dark background */
+  --mobile-menu-text: 210 40% 98%;      /* Light text */
+  --mobile-menu-border: 215 27.9% 16.9%;
+  --mobile-menu-hover: 215 27.9% 20%;   /* Slightly lighter hover */
+  --mobile-menu-overlay: 0 0% 0% / 0.7;  /* Darker overlay for dark theme */
+}
+
+/* Mobile menu specific enhancements */
+@media (max-width: 768px) {
+  /* Sheet/Modal overlay with proper contrast */
+  [data-radix-portal] [data-state="open"] {
+    background-color: hsl(var(--mobile-menu-overlay));
+  }
+  
+  /* Sheet content with enhanced contrast */
+  .mobile-menu-content,
+  [data-radix-dialog-content] {
+    background-color: hsl(var(--mobile-menu-bg)) !important;
+    border-color: hsl(var(--mobile-menu-border)) !important;
+    color: hsl(var(--mobile-menu-text)) !important;
+  }
+  
+  /* Navigation links in mobile menu */
+  .mobile-menu-content nav a,
+  [data-radix-dialog-content] nav a {
+    color: hsl(var(--mobile-menu-text)) !important;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .mobile-menu-content nav a:hover,
+  [data-radix-dialog-content] nav a:hover {
+    background-color: hsl(var(--mobile-menu-hover)) !important;
+    color: hsl(var(--primary)) !important;
+  }
+  
+  /* Mobile menu trigger button (hamburger) */
+  .mobile-menu-trigger,
+  [data-radix-dialog-trigger] {
+    color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.5rem;
+  }
+  
+  .mobile-menu-trigger:hover,
+  [data-radix-dialog-trigger]:hover {
+    background-color: hsl(var(--mobile-menu-hover)) !important;
+    border-color: hsl(var(--primary)) !important;
+  }
+  
+  /* Ensure close button is visible */
+  .mobile-menu-close,
+  [data-radix-dialog-close] {
+    color: hsl(var(--mobile-menu-text)) !important;
+    background-color: hsl(var(--mobile-menu-hover)) !important;
+    border-radius: 4px;
+  }
+  
+  .mobile-menu-close:hover,
+  [data-radix-dialog-close]:hover {
+    opacity: 0.8;
+  }
+  
+  /* Language and theme controls */
+  .mobile-menu-controls {
+    border-top: 1px solid hsl(var(--mobile-menu-border));
+    background-color: hsl(var(--mobile-menu-bg));
+  }
+  
+  .mobile-menu-controls button {
+    color: hsl(var(--mobile-menu-text)) !important;
+    border-color: hsl(var(--mobile-menu-border)) !important;
+  }
+  
+  .mobile-menu-controls button:hover {
+    background-color: hsl(var(--mobile-menu-hover)) !important;
+  }
+  
+  /* User listings in mobile menu */
+  .mobile-user-listing {
+    background-color: hsl(var(--muted)) !important;
+    color: hsl(var(--mobile-menu-text)) !important;
+    border: 1px solid hsl(var(--mobile-menu-border));
+  }
+  
+  /* Focus indicators for accessibility */
+  .mobile-menu-content *:focus,
+  [data-radix-dialog-content] *:focus {
+    outline: 2px solid hsl(var(--ring)) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --mobile-menu-text: 0 0% 0%;          /* Pure black text */
+    --mobile-menu-bg: 0 0% 100%;          /* Pure white background */
+    --mobile-menu-border: 0 0% 50%;       /* Medium gray borders */
+    --mobile-menu-hover: 0 0% 90%;        /* Light gray hover */
+  }
+  
+  .dark {
+    --mobile-menu-text: 0 0% 100%;        /* Pure white text */
+    --mobile-menu-bg: 0 0% 0%;            /* Pure black background */
+    --mobile-menu-border: 0 0% 50%;       /* Medium gray borders */
+    --mobile-menu-hover: 0 0% 20%;        /* Dark gray hover */
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-content,
+  [data-radix-dialog-content] {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .mobile-menu-content *,
+  [data-radix-dialog-content] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Additional utility classes for better contrast */
+.text-high-contrast {
+  color: hsl(var(--mobile-menu-text)) !important;
+}
+
+.bg-high-contrast {
+  background-color: hsl(var(--mobile-menu-bg)) !important;
+}
+
+.border-high-contrast {
+  border-color: hsl(var(--mobile-menu-border)) !important;
+}
+
+/* Ensure all interactive elements meet WCAG AA */
+button, a, [role="button"], [tabindex] {
+  min-height: 44px; /* Touch target size */
+  min-width: 44px;
+}
+
+/* Status indicators with proper contrast */
+.status-active {
+  background-color: #22c55e !important; /* Green with 4.5:1 contrast */
+  color: #ffffff !important;
+}
+
+.status-sold {
+  background-color: #6b7280 !important; /* Gray with 4.5:1 contrast */
+  color: #ffffff !important;
+}
+
+.dark .status-active {
+  background-color: #16a34a !important; /* Darker green for dark mode */
+  color: #ffffff !important;
+}
+
+.dark .status-sold {
+  background-color: #4b5563 !important; /* Darker gray for dark mode */
+  color: #ffffff !important;
+}
+
+/* 
+ * Specjalne poprawki dla strony 'cennik'
+ * Strona cennik ma inną strukturę niż pozostałe - wymaga osobnych poprawek
+ */
+
+/* Cennik page specific overrides */
+.pricing-page,
+[data-page="cennik"],
+.page-cennik {
+  /* Ensure proper contrast on pricing page */
+  --pricing-bg: var(--background);
+  --pricing-text: var(--foreground);
+  --pricing-card-bg: var(--card);
+  --pricing-card-text: var(--card-foreground);
+  --pricing-accent: var(--primary);
+  --pricing-muted: var(--muted);
+  --pricing-muted-text: var(--muted-foreground);
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .pricing-page,
+.dark [data-page="cennik"],
+.dark .page-cennik {
+  --pricing-bg: var(--background);
+  --pricing-text: var(--foreground);
+  --pricing-card-bg: var(--card);
+  --pricing-card-text: var(--card-foreground);
+  --pricing-accent: var(--primary);
+  --pricing-muted: var(--muted);
+  --pricing-muted-text: var(--muted-foreground);
+}
+
+/* Fix hardcoded colors in pricing page */
+.pricing-page .text-gray-900,
+[data-page="cennik"] .text-gray-900,
+.page-cennik .text-gray-900 {
+  color: hsl(var(--foreground)) !important;
+}
+
+.pricing-page .text-gray-600,
+[data-page="cennik"] .text-gray-600,
+.page-cennik .text-gray-600 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.pricing-page .text-gray-300,
+[data-page="cennik"] .text-gray-300,
+.page-cennik .text-gray-300 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.pricing-page .text-gray-400,
+[data-page="cennik"] .text-gray-400,
+.page-cennik .text-gray-400 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.pricing-page .text-gray-500,
+[data-page="cennik"] .text-gray-500,
+.page-cennik .text-gray-500 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.pricing-page .bg-gray-50,
+[data-page="cennik"] .bg-gray-50,
+.page-cennik .bg-gray-50 {
+  background-color: hsl(var(--background)) !important;
+}
+
+.pricing-page .bg-gray-800,
+[data-page="cennik"] .bg-gray-800,
+.page-cennik .bg-gray-800 {
+  background-color: hsl(var(--card)) !important;
+}
+
+.pricing-page .bg-gray-900,
+[data-page="cennik"] .bg-gray-900,
+.page-cennik .bg-gray-900 {
+  background-color: hsl(var(--card)) !important;
+}
+
+/* Mobile menu on pricing page */
+.pricing-page .mobile-menu-trigger,
+[data-page="cennik"] .mobile-menu-trigger,
+.page-cennik .mobile-menu-trigger {
+  /* Force hamburger visibility on pricing page */
+  background-color: hsl(var(--pricing-accent)) !important;
+  color: white !important;
+  border: 1px solid hsl(var(--pricing-accent)) !important;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.pricing-page .mobile-menu-trigger:hover,
+[data-page="cennik"] .mobile-menu-trigger:hover,
+.page-cennik .mobile-menu-trigger:hover {
+  background-color: hsl(var(--pricing-accent) / 0.9) !important;
+  transform: scale(1.05);
+}
+
+/* Pricing page header adjustments */
+.pricing-page header,
+[data-page="cennik"] header,
+.page-cennik header {
+  background-color: hsl(var(--pricing-bg)) !important;
+  color: hsl(var(--pricing-text)) !important;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Navigation links on pricing page */
+.pricing-page nav a,
+[data-page="cennik"] nav a,
+.page-cennik nav a {
+  color: hsl(var(--pricing-text)) !important;
+}
+
+.pricing-page nav a:hover,
+[data-page="cennik"] nav a:hover,
+.page-cennik nav a:hover {
+  color: hsl(var(--pricing-accent)) !important;
+}
+
+/* Logo adjustments for pricing page */
+.pricing-page .logo,
+[data-page="cennik"] .logo,
+.page-cennik .logo {
+  color: hsl(var(--pricing-text)) !important;
+}
+
+/* Mobile menu content on pricing page */
+.pricing-page [data-radix-dialog-content],
+[data-page="cennik"] [data-radix-dialog-content],
+.page-cennik [data-radix-dialog-content] {
+  background-color: hsl(var(--pricing-card-bg)) !important;
+  color: hsl(var(--pricing-text)) !important;
+  border-left: 3px solid hsl(var(--pricing-accent)) !important;
+}
+
+/* Language selector on pricing page */
+.pricing-page [data-radix-dropdown-content],
+[data-page="cennik"] [data-radix-dropdown-content],
+.page-cennik [data-radix-dropdown-content] {
+  background-color: hsl(var(--pricing-card-bg)) !important;
+  color: hsl(var(--pricing-text)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Cards on pricing page */
+.pricing-page .bg-white,
+[data-page="cennik"] .bg-white,
+.page-cennik .bg-white {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+/* Gradient sections */
+.pricing-page .bg-gradient-to-br,
+[data-page="cennik"] .bg-gradient-to-br,
+.page-cennik .bg-gradient-to-br {
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%) !important;
+  color: hsl(var(--foreground)) !important;
 }

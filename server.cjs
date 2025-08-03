@@ -5,7 +5,7 @@ const { initializeWebSocketServer } = require('./lib/websocket/server.cjs');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOST || '0.0.0.0';
-const port = process.env.PORT || 12000;
+const port = process.env.PORT || 12001;
 
 // Create Next.js app
 const app = next({ dev, hostname, port });
