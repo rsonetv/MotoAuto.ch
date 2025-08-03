@@ -1,5 +1,5 @@
 'use client';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { loginAction } from '@/app/(auth)/login/actions';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -8,12 +8,24 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { HCaptcha } from '@/components/ui/hcaptcha';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { OAuthButtons } from './OAuthButtons';
 
 export default function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, null);
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
+  };
+
+  const handleSubmit = (formData: FormData) => {
+    // Add captcha token to form data
+    formData.append('captcha', captchaToken);
+    action(formData);
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -29,7 +41,7 @@ export default function LoginForm() {
           </Alert>
         )}
 
-        <form action={action} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
           <Input id="email" name="email" type="email" required autoComplete="email"
@@ -53,7 +65,25 @@ export default function LoginForm() {
           <Label htmlFor="remember">Zapamiętaj mnie</Label>
         </div>
 
-        <LoadingButton type="submit" className="w-full" loading={pending}>
+        <div className="space-y-2">
+          <HCaptcha
+            siteKey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
+            onVerify={handleCaptchaVerify}
+            theme="light"
+            size="normal"
+            className="flex justify-center"
+          />
+          {state?.fieldErrors?.captcha && (
+            <p className="text-sm text-destructive">{state.fieldErrors.captcha[0]}</p>
+          )}
+        </div>
+
+        <LoadingButton 
+          type="submit" 
+          className="w-full" 
+          loading={pending}
+          disabled={!captchaToken || pending}
+        >
           Zaloguj się
         </LoadingButton>
       </form>
