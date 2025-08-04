@@ -5,9 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { VehicleList } from "@/components/ogloszenia/vehicle-list"
-import { VehicleFilters } from "@/components/ogloszenia/vehicle-filters"
+import { UnifiedVehicleFilters } from "@/components/ogloszenia/unified-vehicle-filters";
 import { CategoryTabs } from "@/components/ogloszenia/category-tabs"
 import { SearchBar } from "@/components/ogloszenia/search-bar"
+import { SearchBarEnhanced } from "@/components/ogloszenia/search-bar-enhanced"
 import { SortControls } from "@/components/ogloszenia/sort-controls"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,6 +36,7 @@ type ListingItem = {
   mileage?: number;
   fuel_type?: string;
   transmission?: string;
+  body_type?: string;
   condition?: string;
   location?: string;
   sale_type: string;
@@ -63,21 +65,6 @@ type Category = {
   sort_order: number;
 };
 
-interface VehicleFilters {
-  search: string
-  brand?: string
-  priceMin?: number
-  priceMax?: number
-  yearMin?: number
-  yearMax?: number
-  mileageMax?: number
-  fuelType?: string
-  transmission?: string
-  condition?: string
-  location?: string
-  sortBy: 'newest' | 'price_asc' | 'price_desc' | 'mileage' | 'year'
-}
-
 function OgloszeniaTabs() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -87,9 +74,20 @@ function OgloszeniaTabs() {
   const [listings, setListings] = useState<ListingItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<VehicleFilters>({
+  const [filters, setFilters] = useState({
     search: searchParams?.get('search') || '',
-    sortBy: 'newest'
+    sortBy: 'newest',
+    brand: undefined as string | undefined,
+    priceMin: undefined as number | undefined,
+    priceMax: undefined as number | undefined,
+    yearMin: undefined as number | undefined,
+    yearMax: undefined as number | undefined,
+    mileageMax: undefined as number | undefined,
+    fuelType: undefined as string | undefined,
+    transmission: undefined as string | undefined,
+    bodyType: undefined as string | undefined,
+    condition: undefined as string | undefined,
+    location: undefined as string | undefined,
   })
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -210,6 +208,10 @@ function OgloszeniaTabs() {
         query = query.eq('transmission', filters.transmission)
       }
 
+      if (filters.bodyType) {
+        query = query.eq('body_type', filters.bodyType)
+      }
+
       if (filters.condition) {
         query = query.eq('condition', filters.condition)
       }
@@ -290,7 +292,7 @@ function OgloszeniaTabs() {
     setCurrentPage(1)
   }
 
-  const handleFiltersChange = (newFilters: Partial<VehicleFilters>) => {
+  const handleFiltersChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }))
     setCurrentPage(1)
   }
@@ -385,30 +387,21 @@ function OgloszeniaTabs() {
         <div className="mb-6 space-y-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
-              <SearchBar 
+              <SearchBarEnhanced 
                 value={filters.search}
                 onChange={handleSearch}
                 placeholder="Szukaj po marce, modelu, tytule..."
+                recentSearches={["BMW", "Toyota Corolla", "Audi A4", "SUV"]}
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setFiltersOpen(!filtersOpen)}
-                className="lg:hidden"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filtry
-              </Button>
               <SortControls
-                value={filters.sortBy}
+                value={filters.sortBy || 'newest'}
                 onChange={(sortBy) => handleFiltersChange({ sortBy: sortBy as 'newest' | 'price_asc' | 'price_desc' | 'mileage' | 'year' })}
               />
             </div>
-          </div>
-
-          {/* Active Filters Display */}
-          {(filters.brand || filters.priceMin || filters.priceMax || filters.location) && (
+          </div>          {/* Active Filters Display */}
+          {(filters.brand || filters.priceMin || filters.priceMax || filters.location || filters.fuelType || filters.transmission || filters.bodyType || filters.condition) && (
             <div className="flex flex-wrap gap-2">
               {filters.brand && (
                 <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ brand: undefined })}>
@@ -431,15 +424,35 @@ function OgloszeniaTabs() {
                   {filters.location} ×
                 </Badge>
               )}
+              {filters.fuelType && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ fuelType: undefined })}>
+                  Paliwo: {filters.fuelType} ×
+                </Badge>
+              )}
+              {filters.transmission && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ transmission: undefined })}>
+                  Skrzynia: {filters.transmission} ×
+                </Badge>
+              )}
+              {filters.bodyType && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ bodyType: undefined })}>
+                  Nadwozie: {filters.bodyType} ×
+                </Badge>
+              )}
+              {filters.condition && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => handleFiltersChange({ condition: undefined })}>
+                  Stan: {filters.condition} ×
+                </Badge>
+              )}
             </div>
           )}
         </div>
 
         {/* Main Content */}
         <div className="grid lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
-          <div className={`lg:block ${filtersOpen ? 'block' : 'hidden'}`}>
-            <VehicleFilters
+          {/* Unified Filters Component */}
+          <div className="lg:col-span-1">
+            <UnifiedVehicleFilters
               filters={filters}
               onChange={handleFiltersChange}
               category={category}
@@ -448,7 +461,7 @@ function OgloszeniaTabs() {
           </div>
 
           {/* Listings Grid */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3">            
             <VehicleList
               listings={listings as any}
               loading={loading}
@@ -460,6 +473,7 @@ function OgloszeniaTabs() {
           </div>
         </div>
       </div>
+      
     </div>
   )
 }
