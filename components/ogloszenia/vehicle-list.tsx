@@ -27,7 +27,7 @@ import { createClientComponentClient } from "@/lib/supabase"
 import { toast } from "sonner"
 import type { Database } from "@/lib/database.types"
 
-type Listing = Database['public']['Tables']['listings']['Row'] & {
+export type Listing = Database['public']['Tables']['listings']['Row'] & {
   profiles?: {
     id: string;
     full_name: string | null;
@@ -48,6 +48,7 @@ type Listing = Database['public']['Tables']['listings']['Row'] & {
   is_premium?: boolean;
   fuel_type?: string;
   transmission?: string;
+  body_type?: string;
 }
 
 interface VehicleListProps {
@@ -57,6 +58,7 @@ interface VehicleListProps {
   currentPage: number
   onPageChange: (page: number) => void
   category: string
+  onClearFilters: () => void
 }
 
 interface VehicleCardProps {
@@ -177,6 +179,17 @@ function VehicleCard({ listing, onFavoriteToggle }: VehicleCardProps) {
     return labels[transmission] || transmission
   }
 
+  const getBodyTypeLabel = (bodyType: string) => {
+    const labels: Record<string, string> = {
+      sedan: 'Sedan',
+      suv: 'SUV',
+      coupe: 'Coupe',
+      kombi: 'Kombi',
+      hatchback: 'Hatchback',
+    }
+    return labels[bodyType] || bodyType
+  }
+
   return (
     <Card className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
       <div onClick={handleCardClick}>
@@ -256,6 +269,12 @@ function VehicleCard({ listing, onFavoriteToggle }: VehicleCardProps) {
               <Settings className="h-4 w-4" />
               <span>{listing.transmission ? getTransmissionLabel(listing.transmission) : 'N/A'}</span>
             </div>
+            {listing.body_type && (
+              <div className="flex items-center gap-1">
+                <User className="h-4 w-4" />
+                <span>{getBodyTypeLabel(listing.body_type)}</span>
+              </div>
+            )}
           </div>
 
           {/* Location & Seller */}
@@ -320,7 +339,8 @@ export function VehicleList({
   totalCount, 
   currentPage, 
   onPageChange,
-  category 
+  category,
+  onClearFilters
 }: VehicleListProps) {
   const itemsPerPage = 20
   const totalPages = Math.ceil(totalCount / itemsPerPage)
@@ -363,7 +383,7 @@ export function VehicleList({
           <p className="text-muted-foreground mb-6">
             Nie znaleziono ogłoszeń spełniających kryteria wyszukiwania.
           </p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={onClearFilters}>
             Wyczyść filtry
           </Button>
         </div>

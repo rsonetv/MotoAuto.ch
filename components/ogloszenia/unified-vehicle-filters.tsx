@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import useMediaQuery from "@/hooks/use-media-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -118,8 +117,6 @@ const formatPrice = (price: number): string => {
 }
 
 export function UnifiedVehicleFilters({ filters, category, categories, onChange }: VehicleFiltersProps) {
-  const isDesktop = useMediaQuery("(min-width: 1024px)")
-
   const currentYear = new Date().getFullYear();
   const minYear = 1995;
   const maxPrice = 500000;
@@ -188,7 +185,7 @@ export function UnifiedVehicleFilters({ filters, category, categories, onChange 
   }
 
   const desktopFilters = (
-    <Card className="sticky top-24">
+    <Card className="sticky top-24 hidden lg:block">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -530,5 +527,10 @@ export function UnifiedVehicleFilters({ filters, category, categories, onChange 
     </Sheet>
   );
 
-  return isDesktop ? desktopFilters : mobileFilters;
+  return (
+    <>
+      {desktopFilters}
+      {mobileFilters}
+    </>
+  );
 }

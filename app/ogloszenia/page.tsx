@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { VehicleList } from "@/components/ogloszenia/vehicle-list"
+import { VehicleList, type Listing } from "@/components/ogloszenia/vehicle-list"
 import { UnifiedVehicleFilters } from "@/components/ogloszenia/unified-vehicle-filters";
 import { CategoryTabs } from "@/components/ogloszenia/category-tabs"
 import { SearchBar } from "@/components/ogloszenia/search-bar"
@@ -20,42 +20,6 @@ import { toast } from "sonner"
 import type { Database } from "@/lib/database.types"
 
 // Define ListingItem and Category types based on Database type
-type ListingItem = {
-  id: string;
-  title: string;
-  price: number;
-  created_at: string;
-  updated_at: string;
-  images?: string[];
-  is_promoted?: boolean;
-  status: string;
-  category_id?: string;
-  brand?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  fuel_type?: string;
-  transmission?: string;
-  body_type?: string;
-  condition?: string;
-  location?: string;
-  sale_type: string;
-  view_count?: number;
-  profiles?: {
-    id: string;
-    full_name?: string;
-    dealer_name?: string;
-    is_dealer?: boolean;
-    location?: string;
-    phone?: string;
-    email?: string;
-  };
-  categories?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-};
 
 type Category = {
   id: string;
@@ -71,31 +35,43 @@ function OgloszeniaTabs() {
   const category = searchParams?.get('category') || 'all'
   const supabase = createClientComponentClient()
   
-  const [listings, setListings] = useState<ListingItem[]>([])
+  const [listings, setListings] = useState<Listing[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({
-    search: searchParams?.get('search') || '',
-    sortBy: 'newest',
-    brand: undefined as string | undefined,
-    priceMin: undefined as number | undefined,
-    priceMax: undefined as number | undefined,
-    yearMin: undefined as number | undefined,
-    yearMax: undefined as number | undefined,
-    mileageMax: undefined as number | undefined,
-    fuelType: undefined as string | undefined,
-    transmission: undefined as string | undefined,
-    bodyType: undefined as string | undefined,
-    condition: undefined as string | undefined,
-    location: undefined as string | undefined,
+  const [filters, setFilters] = useState(() => {
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    return {
+      search: params.get('search') || '',
+      sortBy: params.get('sortBy') || 'newest',
+      brand: params.get('brand') || undefined,
+      priceMin: params.has('priceMin') ? Number(params.get('priceMin')) : undefined,
+      priceMax: params.has('priceMax') ? Number(params.get('priceMax')) : undefined,
+      yearMin: params.has('yearMin') ? Number(params.get('yearMin')) : undefined,
+      yearMax: params.has('yearMax') ? Number(params.get('yearMax')) : undefined,
+      mileageMax: params.has('mileageMax') ? Number(params.get('mileageMax')) : undefined,
+      fuelType: params.get('fuelType') || undefined,
+      transmission: params.get('transmission') || undefined,
+      bodyType: params.get('bodyType') || undefined,
+      condition: params.get('condition') || undefined,
+      location: params.get('location') || undefined,
+      radius: params.has('radius') ? Number(params.get('radius')) : undefined,
+    }
   })
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [categoryStats, setCategoryStats] = useState({
+    auto: { count: 0, avgPrice: 0 },
+    moto: { count: 0, avgPrice: 0 },
+  })
 
   // Load categories
   useEffect(() => {
-    loadCategories()
+    loadCategories().then(loadedCategories => {
+      if (loadedCategories) {
+        loadCategoryStats(loadedCategories)
+      }
+    })
   }, [])
 
   // Load listings when category or filters change
@@ -105,7 +81,23 @@ function OgloszeniaTabs() {
     }
   }, [category, filters, currentPage])
 
-  const loadCategories = async () => {
+  // Sync filters state to URL search params
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (category && category !== 'all') {
+      params.set('category', category)
+    }
+    Object.entries(filters).forEach(([key, value]) => {
+      // Add filter to params if it has a meaningful value
+      if (value !== undefined && value !== null && value !== '' && !(key === 'sortBy' && value === 'newest')) {
+        params.set(key, String(value))
+      }
+    })
+    // Use router.replace to update URL without adding to history
+    router.replace(`/ogloszenia?${params.toString()}`, { scroll: false })
+  }, [filters, category, router])
+
+  const loadCategories = async (): Promise<Category[] | null> => {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -114,27 +106,55 @@ function OgloszeniaTabs() {
         .order('sort_order')
 
       if (error) {
-        console.error('Supabase error (categories):', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        })
         toast.error(`Błąd podczas ładowania kategorii: ${error.message}`)
-        return
+        return null
       }
 
       if (!data) {
-        console.warn('No categories data received')
         setCategories([])
-        return
+        return null
       }
-
-      console.log('Categories loaded successfully:', data.length)
+      
       setCategories(data)
+      return data
     } catch (error) {
-      console.error('Network error (categories):', JSON.stringify(error))
       toast.error('Błąd sieci podczas ładowania kategorii')
+      return null
+    }
+  }
+
+  const loadCategoryStats = async (loadedCategories: Category[]) => {
+    try {
+      const statsPromises = loadedCategories
+        .filter(c => c.slug === 'auto' || c.slug === 'moto')
+        .map(async (cat) => {
+          const { count, error } = await supabase
+            .from('listings')
+            .select('id', { count: 'exact', head: true })
+            .eq('category_id', cat.id)
+            .eq('status', 'active')
+            .eq('sale_type', 'listing')
+
+          // Note: Calculating average price would require another query or a database function.
+          // This is a simplification for now. A dedicated backend endpoint would be better.
+          if (error) {
+            console.error(`Error fetching stats for ${cat.name}:`, error)
+            return { slug: cat.slug, count: 0, avgPrice: 0 }
+          }
+          return { slug: cat.slug, count: count || 0, avgPrice: 0 } // avgPrice is placeholder
+        })
+
+      const statsResults = await Promise.all(statsPromises)
+      
+      const newStats = { auto: { count: 0, avgPrice: 0 }, moto: { count: 0, avgPrice: 0 } };
+      statsResults.forEach(stat => {
+        if (stat.slug === 'auto') newStats.auto = { count: stat.count, avgPrice: stat.avgPrice };
+        if (stat.slug === 'moto') newStats.moto = { count: stat.count, avgPrice: stat.avgPrice };
+      });
+
+      setCategoryStats(newStats)
+    } catch (error) {
+      console.error('Error loading category stats:', error)
     }
   }
 
@@ -220,6 +240,8 @@ function OgloszeniaTabs() {
         query = query.ilike('location', `%${filters.location}%`)
       }
 
+      // TODO: Implement radius search. This requires a PostGIS function on Supabase.
+
       // Apply sorting
       switch (filters.sortBy) {
         case 'price_asc':
@@ -262,7 +284,7 @@ function OgloszeniaTabs() {
 
       if (!Array.isArray(data)) {
         console.error('Invalid data format received:', typeof data)
-        toast.error('Nieprawidłowy format danych')
+        toast.error('Otrzymano nieprawidłowy format danych z bazy.')
         setListings([])
         setTotalCount(0)
         return
@@ -301,6 +323,26 @@ function OgloszeniaTabs() {
     handleFiltersChange({ search: searchTerm })
   }
 
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      sortBy: 'newest',
+      brand: undefined,
+      priceMin: undefined,
+      priceMax: undefined,
+      yearMin: undefined,
+      yearMax: undefined,
+      mileageMax: undefined,
+      fuelType: undefined,
+      transmission: undefined,
+      bodyType: undefined,
+      condition: undefined,
+      location: undefined,
+      radius: undefined,
+    })
+    setCurrentPage(1)
+  }
+
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
       case 'auto':
@@ -310,16 +352,6 @@ function OgloszeniaTabs() {
       default:
         return <Car className="h-4 w-4" />
     }
-  }
-
-  const getCategoryStats = (categorySlug: string) => {
-    // This would typically come from the API
-    const stats = {
-      auto: { count: 1247, avgPrice: 35000 },
-      moto: { count: 389, avgPrice: 15000 },
-      all: { count: totalCount, avgPrice: 25000 }
-    }
-    return stats[categorySlug as keyof typeof stats] || stats.all
   }
 
   return (
@@ -337,7 +369,7 @@ function OgloszeniaTabs() {
               <p className="text-muted-foreground">
                 {category === 'all' 
                   ? `Znajdź swój wymarzony pojazd wśród ${totalCount.toLocaleString()} ofert`
-                  : `${getCategoryStats(category).count.toLocaleString()} dostępnych pojazdów`
+                  : `${(category === 'auto' ? categoryStats.auto.count : categoryStats.moto.count).toLocaleString()} dostępnych pojazdów`
                 }
               </p>
             </div>
@@ -349,31 +381,35 @@ function OgloszeniaTabs() {
 
           {/* Category Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {['all', 'auto', 'moto'].map(cat => {
-              const stats = getCategoryStats(cat)
-              const isActive = category === cat
+            {['all', 'auto', 'moto'].map(catSlug => {
+              const isActive = category === catSlug
+              const stats = catSlug === 'all'
+                ? { count: totalCount, avgPrice: 0 }
+                : categoryStats[catSlug as 'auto' | 'moto']
+              
+              const name = catSlug === 'all' ? 'Wszystkie' : catSlug === 'auto' ? 'Samochody' : 'Motocykle'
+
               return (
-                <Card 
-                  key={cat}
+                <Card
+                  key={catSlug}
                   className={`cursor-pointer transition-all hover:shadow-md ${
                     isActive ? 'ring-2 ring-primary' : ''
                   }`}
-                  onClick={() => handleCategoryChange(cat)}
+                  onClick={() => handleCategoryChange(catSlug)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {getCategoryIcon(cat)}
-                        <span className="font-medium">
-                          {cat === 'all' ? 'Wszystkie' : 
-                           cat === 'auto' ? 'Samochody' : 'Motocykle'}
-                        </span>
+                        {getCategoryIcon(catSlug)}
+                        <span className="font-medium">{name}</span>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold">{stats.count.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">
-                          śr. {stats.avgPrice.toLocaleString()} CHF
-                        </div>
+                        {stats.avgPrice > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            śr. {stats.avgPrice.toLocaleString()} CHF
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -463,12 +499,13 @@ function OgloszeniaTabs() {
           {/* Listings Grid */}
           <div className="lg:col-span-3">            
             <VehicleList
-              listings={listings as any}
+              listings={listings}
               loading={loading}
               totalCount={totalCount}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
               category={category}
+              onClearFilters={handleClearFilters}
             />
           </div>
         </div>
