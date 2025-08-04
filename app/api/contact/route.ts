@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create Supabase client
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
 
       // Prepare contact message data
       const contactMessageData: ContactMessageInsert = {
@@ -206,9 +206,6 @@ export async function POST(request: NextRequest) {
             .update({ contact_count: (listing.contact_count || 0) + 1 })
             .eq('id', validatedData.listing_id)
             .then(() => {})
-            .catch((error: any) => {
-              console.error('Failed to update listing contact count:', error)
-            })
         }
       }
 

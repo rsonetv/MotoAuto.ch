@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
       // Return paginated response
       return createSuccessResponse(
         {
-          data: payments as PaymentWithRelations[],
+          data: payments as any as PaymentWithRelations[],
           pagination: paginationMeta,
           summary: summaryStats,
           filters: {
@@ -271,12 +271,12 @@ async function calculatePaymentSummary(
     }
 
     // Calculate statistics
-    const totalAmount = summaryData.reduce((sum, payment) => sum + payment.amount, 0)
-    const completedPayments = summaryData.filter(p => p.status === 'completed')
-    const completedAmount = completedPayments.reduce((sum, payment) => sum + payment.amount, 0)
+    const totalAmount = summaryData.reduce((sum: any, payment: any) => sum + payment.amount, 0)
+    const completedPayments = summaryData.filter((p: any) => p.status === 'completed')
+    const completedAmount = completedPayments.reduce((sum: any, payment: any) => sum + payment.amount, 0)
     
     // Group by currency
-    const byCurrency = summaryData.reduce((acc, payment) => {
+    const byCurrency = summaryData.reduce((acc: any, payment: any) => {
       if (!acc[payment.currency]) {
         acc[payment.currency] = { total: 0, completed: 0, count: 0 }
       }
@@ -289,7 +289,7 @@ async function calculatePaymentSummary(
     }, {} as Record<string, { total: number; completed: number; count: number }>)
 
     // Group by payment type
-    const byType = summaryData.reduce((acc, payment) => {
+    const byType = summaryData.reduce((acc: any, payment: any) => {
       if (!acc[payment.payment_type]) {
         acc[payment.payment_type] = { total: 0, count: 0 }
       }
@@ -299,7 +299,7 @@ async function calculatePaymentSummary(
     }, {} as Record<string, { total: number; count: number }>)
 
     // Group by status
-    const byStatus = summaryData.reduce((acc, payment) => {
+    const byStatus = summaryData.reduce((acc: any, payment: any) => {
       if (!acc[payment.status]) {
         acc[payment.status] = { count: 0, amount: 0 }
       }

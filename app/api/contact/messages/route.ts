@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       const query: ContactMessagesQuery = queryValidation.data
 
       // Create Supabase client
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
 
       // Check if user is admin (can see all messages)
       // For now, we'll use a simple check - in production you might want a dedicated admin role

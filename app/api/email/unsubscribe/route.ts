@@ -471,11 +471,11 @@ function generateUnsubscribePage(title: string, message: string, success: boolea
             <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
                 Sie können Ihre E-Mail-Einstellungen jederzeit in Ihrem Konto ändern.
             </p>
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'}" class="button">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'}" class="button">
                 Zurück zur Website
             </a>
         ` : `
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'}/kontakt" class="button">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'}/kontakt" class="button">
                 Kontakt Support
             </a>
         `}
@@ -483,9 +483,9 @@ function generateUnsubscribePage(title: string, message: string, success: boolea
         <div class="footer">
             <p>MotoAuto.ch - Ihr Marktplatz für Fahrzeuge in der Schweiz</p>
             <p style="margin-top: 8px;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'}/datenschutz" 
-                   style="color: #667eea; text-decoration: none;">Datenschutz</a> | 
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'}/agb" 
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'}/datenschutz"
+                   style="color: #667eea; text-decoration: none;">Datenschutz</a> |
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'}/agb"
                    style="color: #667eea; text-decoration: none;">AGB</a>
             </p>
         </div>

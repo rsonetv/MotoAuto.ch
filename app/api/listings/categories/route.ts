@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const includeCounts = searchParams.get('include_counts') === 'true'
     const language = searchParams.get('lang') || 'en'
     
-    const supabase = await createServerComponentClient(req)
+    const supabase = await createServerComponentClient(request)
 
     // Build base query
     let query = supabase

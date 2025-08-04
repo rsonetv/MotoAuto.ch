@@ -92,34 +92,41 @@ export function StickyTabs() {
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-                <div className="text-center py-6">
-                  <h2 className="text-2xl font-bold mb-4">
-                  {activeTab === "moto" 
-                    ? "Najnowsze motocykle" 
-                    : activeTab === "auto" 
-                      ? "Najnowsze samochody osobowe" 
-                      : "Najnowsze samochody ciężarowe"}
-                </h2>
-                <p className="text-muted-foreground mb-6">Przeglądaj najnowsze oferty w wybranej kategorii</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {[1, 2, 3, 4, 5, 6].map((index) => (
-                    <div key={index} className="bg-white dark:bg-card rounded-lg shadow-sm p-4 border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                      <div className="aspect-video bg-secondary/40 rounded-lg mb-4"></div>
-                      <h3 className="font-medium mb-2">Pojazd #{index}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Rocznik: 2020 | Przebieg: 45 000 km
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
+               </div>
+             </div>
+           ) : (
+             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+               <div className="text-center py-6">
+                 <h2 className="text-2xl font-bold mb-4">
+                   {activeTab === "moto"
+                     ? "Najnowsze motocykle"
+                     : activeTab === "auto"
+                     ? "Najnowsze samochody osobowe"
+                     : "Najnowsze samochody ciężarowe"}
+                 </h2>
+                 <p className="text-muted-foreground mb-6">
+                   Przeglądaj najnowsze oferty w wybranej kategorii
+                 </p>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   {[1, 2, 3, 4, 5, 6].map((index) => (
+                     <div
+                       key={index}
+                       className="bg-white dark:bg-card rounded-lg shadow-sm p-4 border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-300"
+                     >
+                       <div className="aspect-video bg-secondary/40 rounded-lg mb-4"></div>
+                       <h3 className="font-medium mb-2">Pojazd #{index}</h3>
+                       <p className="text-sm text-muted-foreground">
+                         Rocznik: 2020 | Przebieg: 45 000 km
+                       </p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+           )}
+         </div>
+       </motion.div>
+     </AnimatePresence>
+   </div>
+ )
 }

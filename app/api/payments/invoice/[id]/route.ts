@@ -109,11 +109,11 @@ export async function GET(request: NextRequest, { params }: InvoiceParams) {
 
       if (format === 'pdf') {
         // Return PDF as download
-        return new NextResponse(invoiceData.pdfBuffer, {
+        return new NextResponse(invoiceData.pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="invoice-${invoiceNumber}.pdf"`,
-            'Content-Length': invoiceData.pdfBuffer.length.toString()
+            'Content-Length': (invoiceData.pdfBuffer as any).length.toString()
           }
         })
       } else {
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest, { params }: InvoiceParams) {
         payment_id: payment.id,
         invoice_number: invoiceNumber,
         invoice_data: invoiceData.format === 'pdf' ? 
-          Buffer.from(generatedInvoice.pdfBuffer).toString('base64') : 
+          Buffer.from(generatedInvoice.pdfBuffer as any).toString('base64') :
           generatedInvoice.html,
         language: invoiceData.language,
         format: invoiceData.format,

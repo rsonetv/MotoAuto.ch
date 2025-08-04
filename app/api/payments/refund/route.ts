@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
           paymentIntentId: payment.payment_provider_id!,
           amount: refundAmount,
           currency: payment.currency,
-          reason: refundData.reason,
+          reason: refundData.reason as any,
           metadata: {
             payment_id: payment.id,
             user_id: user.id,

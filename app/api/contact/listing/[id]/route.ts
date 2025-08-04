@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
 
       // Verify listing exists and is active
       const { data: listing, error: listingError } = await supabase
@@ -245,9 +245,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         .update({ contact_count: (listing.contact_count || 0) + 1 })
         .eq('id', listingId)
         .then(() => {})
-        .catch((error: any) => {
-          console.error('Failed to update listing contact count:', error)
-        })
 
       // Return success response
       const successMessage = getSuccessMessage(validatedData.language)
@@ -309,7 +306,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Create Supabase client
-    const supabase = await createServerComponentClient(req)
+    const supabase = await createServerComponentClient(request)
 
     // Get listing information
     const { data: listing, error: listingError } = await supabase
@@ -355,9 +352,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         image: listing.images?.[0] || null,
         location: listing.location,
         seller: {
-          name: Array.isArray(listing.profiles) ? listing.profiles[0]?.full_name || 'Anonymous' : listing.profiles?.full_name || 'Anonymous',
-          is_dealer: Array.isArray(listing.profiles) ? listing.profiles[0]?.is_dealer || false : listing.profiles?.is_dealer || false,
-          dealer_name: Array.isArray(listing.profiles) ? listing.profiles[0]?.dealer_name : listing.profiles?.dealer_name
+          name: Array.isArray(listing.profiles) ? (listing.profiles[0] as any)?.full_name || 'Anonymous' : (listing.profiles as any)?.full_name || 'Anonymous',
+          is_dealer: Array.isArray(listing.profiles) ? (listing.profiles[0] as any)?.is_dealer || false : (listing.profiles as any)?.is_dealer || false,
+          dealer_name: Array.isArray(listing.profiles) ? (listing.profiles[0] as any)?.dealer_name : (listing.profiles as any)?.dealer_name
         }
       }
     })

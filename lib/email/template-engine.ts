@@ -67,13 +67,13 @@ export async function renderEmailTemplate(
     // Add common variables
     const templateVariables = {
       ...variables,
-      websiteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch',
+      websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch',
       supportEmail: process.env.ADMIN_EMAIL || 'support@motoauto.ch',
       currentYear: new Date().getFullYear(),
       language,
       // Add unsubscribe URL if user is provided
       unsubscribeUrl: variables.user?.id 
-        ? `${process.env.NEXT_PUBLIC_SITE_URL}/unsubscribe?token=${generateUnsubscribeToken(variables.user.id)}`
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe?token=${generateUnsubscribeToken(variables.user.id)}`
         : undefined
     }
 

@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
 
       // Check if message exists and user has permission to read it
       const { data: message, error: fetchError } = await supabase
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       }
 
       // Create Supabase client
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
 
       // Check if message exists and user has permission to modify it
       const { data: message, error: fetchError } = await supabase

@@ -433,7 +433,7 @@ export async function DELETE(
       const { error: updateProfileError } = await supabase
         .from('profiles')
         .update({ 
-          total_listings: Math.max(0, profile.total_listings - 1)
+          total_listings: Math.max(0, (profile.total_listings || 0) - 1)
         })
         .eq('id', user.id)
 

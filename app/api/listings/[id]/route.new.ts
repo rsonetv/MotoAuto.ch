@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerComponentClient } from '@/lib/supabase-api'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = await createServerComponentClient()
     const { data, error } = await supabase
       .from('listings')
       .select(`
@@ -65,6 +66,7 @@ export async function PUT(
     }
 
     const token = authHeader.replace('Bearer ', '')
+    const supabase = await createServerComponentClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
@@ -120,6 +122,7 @@ export async function DELETE(
     }
 
     const token = authHeader.replace('Bearer ', '')
+    const supabase = await createServerComponentClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {

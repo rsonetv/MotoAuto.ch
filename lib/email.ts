@@ -203,7 +203,7 @@ export async function sendContactConfirmation(
       currency: listing.currency
     } : null,
     supportEmail: ADMIN_EMAIL,
-    websiteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'
+    websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
   }
 
   const html = await renderEmailTemplate(template.template, variables)
@@ -243,10 +243,10 @@ export async function sendListingInquiryNotification(
       year: listing.year,
       price: listing.price,
       currency: listing.currency,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/ogloszenia/${listing.id}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/ogloszenia/${listing.id}`
     },
     contactId: contactMessage.id,
-    websiteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'
+    websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
   }
 
   const html = await renderEmailTemplate(template.template, variables)
@@ -286,9 +286,9 @@ export async function sendAdminNotification(
       title: listing.title,
       brand: listing.brand,
       model: listing.model,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/ogloszenia/${listing.id}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/ogloszenia/${listing.id}`
     } : null,
-    adminUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/contact/${contactMessage.id}`,
+    adminUrl: `${process.env.NEXT_PUBLIC_APP_URL}/admin/contact/${contactMessage.id}`,
     createdAt: contactMessage.created_at
   }
 
@@ -322,7 +322,7 @@ export async function sendContactResponse(
     responderName: responder?.full_name || 'MotoAuto.ch Support',
     contactId: contactMessage.id,
     supportEmail: ADMIN_EMAIL,
-    websiteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'
+    websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
   }
 
   const html = await renderEmailTemplate(template.template, variables)

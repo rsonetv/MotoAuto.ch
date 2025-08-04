@@ -1,0 +1,51 @@
+declare namespace NodeJS {
+  interface ProcessEnv {
+    NEXT_PUBLIC_SUPABASE_URL: string;
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
+    SUPABASE_URL: string;
+    SUPABASE_JWT_SECRET: string;
+    POSTGRES_URL: string;
+    POSTGRES_PRISMA_URL: string;
+    POSTGRES_URL_NON_POOLING: string;
+    POSTGRES_USER: string;
+    POSTGRES_PASSWORD?: string;
+    POSTGRES_HOST: string;
+    POSTGRES_DATABASE: string;
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY?: string;
+    HCAPTCHA_SECRET_KEY?: string;
+    NEXTAUTH_URL?: string;
+    NEXTAUTH_SECRET?: string;
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: string;
+    GOOGLE_MAPS_ID?: string;
+    NEXT_PUBLIC_APP_URL: string;
+    STRIPE_SECRET_KEY?: string;
+    STRIPE_WEBHOOK_SECRET?: string;
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
+    DATABASE_SETUP_API_KEY?: string;
+    SMTP_HOST?: string;
+    SMTP_PORT?: string;
+    SMTP_USER?: string;
+    SMTP_PASS?: string;
+    SMTP_FROM?: string;
+    ADMIN_EMAIL?: string;
+    EMAIL_PROVIDER?: 'smtp' | 'resend' | 'ses';
+    SMTP_SECURE?: string;
+    EMAIL_API_KEY?: string;
+    EMAIL_DOMAIN?: string;
+    EMAIL_REGION?: string;
+    SMTP_FROM_NAME?: string;
+    SMTP_REPLY_TO?: string;
+    EMAIL_MAX_RETRIES?: string;
+    EMAIL_RETRY_DELAY?: string;
+    EMAIL_RATE_LIMIT_MAX?: string;
+    EMAIL_RATE_LIMIT_WINDOW?: string;
+    REDIS_URL?: string;
+    REDIS_HOST?: string;
+    REDIS_PORT?: string;
+    REDIS_PASSWORD?: string;
+    SUPABASE_DB_URL?: string;
+  }
+}

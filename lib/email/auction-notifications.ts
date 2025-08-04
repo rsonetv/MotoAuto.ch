@@ -58,7 +58,7 @@ export async function sendOutbidNotification(
         year: listing.year || 0,
         mileage: listing.mileage || 0,
         currency: listing.currency,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje/${listing.id}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
         images: listing.images || []
       },
       auction: {
@@ -157,7 +157,7 @@ export async function sendAuctionEndingSoonNotifications(
         year: listing.year || 0,
         mileage: listing.mileage || 0,
         currency: listing.currency,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje/${listing.id}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
         images: listing.images || []
       },
       auction: {
@@ -259,7 +259,7 @@ export async function sendAuctionWonNotification(
         year: listing.year || 0,
         mileage: listing.mileage || 0,
         currency: listing.currency,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje/${listing.id}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
         images: listing.images || []
       },
       auction: {
@@ -289,7 +289,7 @@ export async function sendAuctionWonNotification(
         phone: seller?.phone || '',
         iban: '' // Would need to be stored in profile
       },
-      paymentUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/payment?auction=${auctionId}&type=commission`
+      paymentUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment?auction=${auctionId}&type=commission`
     }
 
     // Send notification
@@ -371,7 +371,7 @@ export async function sendAuctionLostNotifications(
         year: listing.year || 0,
         mileage: listing.mileage || 0,
         currency: listing.currency,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje/${listing.id}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
         images: listing.images || []
       },
       auction: {
@@ -385,8 +385,8 @@ export async function sendAuctionLostNotifications(
         totalBids: auction.total_bids || 0,
         endedAt: auction.ended_at || new Date().toISOString()
       },
-      searchUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje?brand=${encodeURIComponent(listing.brand)}&model=${encodeURIComponent(listing.model)}`,
-      websiteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://motoauto.ch'
+      searchUrl: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje?brand=${encodeURIComponent(listing.brand)}&model=${encodeURIComponent(listing.model)}`,
+      websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
     }
 
     // Send notifications to all losing bidders
@@ -488,7 +488,7 @@ export async function sendAuctionExtendedNotification(
         year: listing.year || 0,
         mileage: listing.mileage || 0,
         currency: listing.currency,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/aukcje/${listing.id}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
         images: listing.images || []
       },
       auction: {

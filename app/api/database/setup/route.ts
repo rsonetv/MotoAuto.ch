@@ -35,12 +35,12 @@ function validateSetupAuthorization(request: NextRequest): boolean {
 /**
  * Execute SQL statements safely with proper error handling
  */
-async function executeSQLStatements(statements: string[]): Promise<{
+async function executeSQLStatements(request: NextRequest, statements: string[]): Promise<{
   results: Array<{ statement: number; success: boolean; error?: string; sql?: string }>
   successCount: number
   errorCount: number
 }> {
-  const supabase = await createServerComponentClient(req)
+  const supabase = await createServerComponentClient(request)
   const results = []
   let successCount = 0
   let errorCount = 0
@@ -127,12 +127,12 @@ async function executeSQLStatements(statements: string[]): Promise<{
 /**
  * Verify database tables exist
  */
-async function verifyDatabaseTables(): Promise<{
+async function verifyDatabaseTables(request: NextRequest): Promise<{
   createdTables: string[]
   missingTables: string[]
   expectedTables: string[]
 }> {
-  const supabase = await createServerComponentClient(req)
+  const supabase = await createServerComponentClient(request)
   const expectedTables = ['categories', 'packages', 'profiles', 'listings', 'auctions', 'bids', 'payments', 'user_favorites']
   
   try {
@@ -167,8 +167,8 @@ async function verifyDatabaseTables(): Promise<{
 /**
  * Test basic database functionality
  */
-async function testDatabaseFunctionality(): Promise<Record<string, number | string>> {
-  const supabase = await createServerComponentClient(req)
+async function testDatabaseFunctionality(request: NextRequest): Promise<Record<string, number | string>> {
+  const supabase = await createServerComponentClient(request)
   const tableStats: Record<string, number | string> = {}
   const testTables = ['categories', 'packages', 'profiles']
   
@@ -235,13 +235,13 @@ export async function POST(request: NextRequest) {
     console.log(`🔧 Processing ${statements.length} database statements...`)
 
     // Execute statements with proper error handling
-    const { results, successCount, errorCount } = await executeSQLStatements(statements)
+    const { results, successCount, errorCount } = await executeSQLStatements(request, statements)
 
     console.log(`📊 Database setup completed: ${successCount} successful, ${errorCount} errors`)
 
     // Verify table creation
     console.log("🔍 Verifying table creation...")
-    const { createdTables, missingTables, expectedTables } = await verifyDatabaseTables()
+    const { createdTables, missingTables, expectedTables } = await verifyDatabaseTables(request)
 
     console.log("✅ Created tables:", createdTables)
     if (missingTables.length > 0) {
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
 
     // Test basic functionality
     console.log("🧪 Testing basic database functionality...")
-    const tableStats = await testDatabaseFunctionality()
+    const tableStats = await testDatabaseFunctionality(request)
 
     // Return comprehensive response
     const response = {
@@ -299,10 +299,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify database tables
-    const { createdTables, missingTables, expectedTables } = await verifyDatabaseTables()
+    const { createdTables, missingTables, expectedTables } = await verifyDatabaseTables(request)
 
     // Check for data in key tables
-    const tableStats = await testDatabaseFunctionality()
+    const tableStats = await testDatabaseFunctionality(request)
 
     const response = {
       success: missingTables.length === 0,

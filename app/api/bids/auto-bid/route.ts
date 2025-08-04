@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
           .eq('id', autoBidData.listing_id)
 
         // Check if reserve price is met
-        const reserveMet = !auctionData.auctions.reserve_price || initialBidAmount >= auctionData.auctions.reserve_price
+        const reserveMet = !auctionData.auctions[0].reserve_price || initialBidAmount >= auctionData.auctions[0].reserve_price
 
         // Update auction statistics
         await supabase

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
       // Check rate limiting (max 5 bids per minute)
       // Get recent bids for rate limiting
-      const supabase = await createServerComponentClient(req)
+      const supabase = await createServerComponentClient(request)
       const { data: recentBids } = await supabase
         .from('bids')
         .select('placed_at')
@@ -139,10 +139,10 @@ export async function POST(request: NextRequest) {
       const timeUntilEnd = endTime.getTime() - now.getTime()
       const fiveMinutes = 5 * 60 * 1000
       const shouldExtend = timeUntilEnd <= fiveMinutes &&
-                          auctionData.auctions.extended_count < auctionData.auctions.max_extensions
+                          auctionData.auctions[0].extended_count < auctionData.auctions[0].max_extensions
 
       let newEndTime: string | undefined
-      let extendedCount = auctionData.auctions.extended_count
+      let extendedCount = auctionData.auctions[0].extended_count
 
       if (shouldExtend) {
         const extensionMinutes = auctionData.auto_extend_minutes || 5
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
         .eq('id', bidData.listing_id)
 
       // Check if reserve price is met
-      const reserveMet = !auctionData.auctions.reserve_price || bidData.amount >= auctionData.auctions.reserve_price
+      const reserveMet = !auctionData.auctions[0].reserve_price || bidData.amount >= auctionData.auctions[0].reserve_price
 
       // Update auction statistics
       await supabase

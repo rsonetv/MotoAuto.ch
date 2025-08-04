@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         if (stripePaymentIntent.status === 'succeeded') {
           paymentStatus = 'completed'
           completedAt = new Date().toISOString()
-        } else if (stripePaymentIntent.status === 'payment_failed') {
+        } else if (stripePaymentIntent.status === 'requires_payment_method') {
           paymentStatus = 'failed'
           failureReason = 'Payment failed during confirmation'
         }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           .from('payments')
           .update({
             status: paymentStatus,
-            payment_method: stripePaymentIntent.payment_method?.type || null,
+            payment_method: typeof stripePaymentIntent.payment_method === 'object' ? stripePaymentIntent.payment_method?.type || null : null,
             completed_at: completedAt,
             failure_reason: failureReason,
             metadata: {
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           status: stripePaymentIntent.status,
           amount: payment.amount,
           currency: payment.currency,
-          payment_method: stripePaymentIntent.payment_method?.type,
+          payment_method: typeof stripePaymentIntent.payment_method === 'object' ? stripePaymentIntent.payment_method?.type : null,
           client_secret: stripePaymentIntent.client_secret,
           next_action: stripePaymentIntent.next_action,
           // Service activation info
