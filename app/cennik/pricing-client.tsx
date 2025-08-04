@@ -8,7 +8,7 @@ import {
   Check, Crown, Star, Zap, X, Users, TrendingUp, Clock, 
   Award, Info, Phone, Mail 
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -863,10 +863,13 @@ export default function PricingClient() {
     fetchPackages()
   }, [])
 
+  const router = useRouter()
+  const params = useParams()
+  const locale = params.locale
   const handlePackageSelect = (packageId: string) => {
     setSelectedPackage(packageId)
     // Redirect to payment or show payment modal
-    window.location.href = `/payment?package=${packageId}&lang=${language}`
+    router.push(`/${locale}/dashboard/payments?package=${packageId}`)
   }
 
   const handleLanguageChange = (newLanguage: Language) => {

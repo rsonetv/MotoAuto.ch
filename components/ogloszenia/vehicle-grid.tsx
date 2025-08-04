@@ -101,7 +101,7 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="overflow-hidden">
+          <Card key={i} className="overflow-hidden border border-gray-100 dark:border-gray-700 rounded-lg">
             <Skeleton className="h-48 w-full" />
             <CardContent className="p-4">
               <Skeleton className="h-6 w-3/4 mb-2" />
@@ -145,10 +145,10 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group"
+            className="bg-white dark:bg-card rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group border border-gray-100 dark:border-gray-700"
           >
             <Link href={`/ogloszenia/${listing.id}`}>
-              <div className="relative h-48 bg-gray-200 overflow-hidden">
+              <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                 {listing.main_image ? (
                   <img
                     src={listing.main_image}
@@ -156,7 +156,7 @@ export function VehicleGrid({ category, listings: propListings }: VehicleGridPro
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
+                  <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-300">
                     Brak zdjęcia
                   </div>
                 )}

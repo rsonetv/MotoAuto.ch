@@ -3,9 +3,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
+import { clientEnv } from '@/lib/env.client'
 
 // Stripe configuration
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(clientEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 // Payment context types
 interface PaymentContextType {

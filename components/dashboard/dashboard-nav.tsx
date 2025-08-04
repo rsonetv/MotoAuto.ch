@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -18,54 +18,53 @@ import {
 
 export function DashboardNav() {
   const pathname = usePathname()
-
   const navigation = [
     {
       name: "Przegląd",
-      href: "/dashboard",
+      href: `/dashboard`,
       icon: LayoutGrid,
-      current: pathname === "/dashboard",
+      current: pathname === `/dashboard`,
     },
     {
       name: "Moje ogłoszenia",
-      href: "/dashboard/listings",
+      href: `/dashboard/listings`,
       icon: Car,
-      current: pathname === "/dashboard/listings",
+      current: pathname === `/dashboard/listings`,
       badge: "3" // Liczba aktywnych ogłoszeń
     },
     {
       name: "Moje licytacje",
-      href: "/dashboard/bids",
+      href: `/dashboard/bids`,
       icon: Gavel,
-      current: pathname === "/dashboard/bids",
+      current: pathname === `/dashboard/bids`,
       badge: "2" // Liczba aktywnych licytacji
     },
     {
       name: "Pakiety",
-      href: "/dashboard/packages",
+      href: `/dashboard/packages`,
       icon: Package,
-      current: pathname === "/dashboard/packages",
+      current: pathname === `/dashboard/packages`,
     },
     {
       name: "Profil",
-      href: "/dashboard/profile",
+      href: `/dashboard/profile`,
       icon: User,
-      current: pathname === "/dashboard/profile",
+      current: pathname === `/dashboard/profile`,
     },
     {
       name: "Płatności",
-      href: "/dashboard/payments",
+      href: `/dashboard/payments`,
       icon: CreditCard,
-      current: pathname === "/dashboard/payments",
+      current: pathname === `/dashboard/payments`,
     },
   ]
 
   const secondaryNavigation = [
   {
     name: "Ustawienia",
-    href: "/dashboard/settings",
+    href: `/dashboard/settings`,
     icon: Settings,
-    current: pathname === "/dashboard/settings",
+    current: pathname === `/dashboard/settings`,
   },
   {
     name: "Wyloguj",

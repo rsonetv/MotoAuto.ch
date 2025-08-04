@@ -3,6 +3,7 @@ import { createServerComponentClient } from "@/lib/supabase-api"
 import { verifyWebhookSignature } from "@/lib/stripe"
 import { createErrorResponse, createSuccessResponse } from "@/lib/auth-middleware"
 import type { Database } from "@/lib/database.types"
+import { validateRuntimeEnv } from "@/lib/env"
 
 type Payment = Database['public']['Tables']['payments']['Row']
 
@@ -23,17 +24,18 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature
     let event
     try {
+      const { STRIPE_WEBHOOK_SECRET } = validateRuntimeEnv()
       event = verifyWebhookSignature(
         body,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        STRIPE_WEBHOOK_SECRET
       )
     } catch (error: any) {
       console.error('Webhook signature verification failed:', error.message)
       return createErrorResponse(`Webhook signature verification failed: ${error.message}`, 400)
     }
 
-    const supabase = await createServerComponentClient(req)
+    const supabase = await createServerComponentClient(request)
 
     // Handle different event types
     switch (event.type) {

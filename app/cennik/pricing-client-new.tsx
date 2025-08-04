@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Check, Crown, Star, Zap } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 
 const packages = [
   {
@@ -132,10 +132,12 @@ const additionalServices = [
 export default function PricingClient() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale
 
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId)
-    router.push(`/payment?package=${packageId}`)
+    router.push(`/${locale}/dashboard/payments?package=${packageId}`)
   }
 
   return (

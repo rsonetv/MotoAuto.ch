@@ -1,328 +1,93 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { loadStripe } from "@stripe/stripe-js"
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { CreditCard, Building, Wallet } from "lucide-react"
-import { toast } from "sonner"
+import React from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Card, CardContent } from '@/components/ui/card'
+import { CheckCircle, Shield } from 'lucide-react'
+import { PaymentProvider } from '@/lib/providers/payment-provider'
+import { PaymentFlow } from '@/components/payments/payment-flow'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Hardcoded Polish translations
+const t = {
+  title: 'Płatność',
+  subtitle: 'Bezpieczna płatność za ogłoszenie pojazdu',
+  back: 'Powrót',
+  swissMarketTitle: 'Funkcje szwajcarskiego rynku',
+  swissVat: 'Szwajcarski VAT (7.7%)',
+  swissPayments: 'Szwajcarskie metody płatności',
+  invoiceGeneration: 'Automatyczne generowanie faktur',
+  paymentMethods: 'Metody płatności',
+  creditCard: 'Karta kredytowa/debetowa',
+  creditCardDesc: 'Visa, MasterCard, Maestro',
+  twint: 'TWINT',
+  twintDesc: 'Szwajcarska płatność mobilna',
+  postfinance: 'PostFinance',
+  postfinanceDesc: 'Karta PostFinance',
+  bankTransfer: 'Przelew bankowy',
+  bankTransferDesc: 'Tradycyjny przelew',
+  securePayment: 'Bezpieczna płatność z szyfrowaniem SSL',
+  pciCompliant: 'Zgodne z PCI-DSS',
+};
 
-const packages = {
-  "private": { name: "Private Seller", price: 0 },
-  "dealer-lite": { name: "Dealer Lite", price: 50 },
-  "dealer-starter": { name: "Dealer Starter", price: 100 },
-  "dealer-pro": { name: "Dealer Pro", price: 300 },
-  "dealer-enterprise": { name: "Dealer Enterprise", price: 800 }
-}
-
-function PaymentForm() {
-  const stripe = useStripe()
-  const elements = useElements()
+export default function PaymentsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const packageId = searchParams.get('package') || 'dealer-lite'
-  
-  const [loading, setLoading] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('card')
-  const [clientSecret, setClientSecret] = useState('')
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [billingInfo, setBillingInfo] = useState({
-    email: '',
-    fullName: '',
-    cardName: ''
-  })
 
-  const selectedPackage = packages[packageId as keyof typeof packages]
+  // Extract parameters from URL
+  const packageId = searchParams.get('packageId') // Corrected from 'package'
+  const listingId = searchParams.get('listing')
+  const userType = (searchParams.get('type') as 'private' | 'dealer') || 'private'
+  const returnUrl = searchParams.get('return') || '/dashboard/packages'
+  const locale = 'pl'; // Hardcode locale
 
-  useEffect(() => {
-    if (selectedPackage && selectedPackage.price > 0) {
-      // Create payment intent
-      fetch('/api/payments/create-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify({
-          amount: selectedPackage.price,
-          currency: 'chf',
-          package_id: packageId,
-          payment_type: 'package_subscription'
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.client_secret) {
-          setClientSecret(data.client_secret)
-        }
-      })
-      .catch(error => {
-        console.error('Error creating payment intent:', error)
-        toast.error('Błąd podczas inicjowania płatności')
-      })
-    }
-  }, [packageId, selectedPackage])
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    
-    if (!stripe || !elements) {
-      return
-    }
-
-    if (!agreedToTerms) {
-      toast.error('Musisz zaakceptować regulamin i politykę prywatności')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      if (selectedPackage.price === 0) {
-        // Free package - just redirect to dashboard
-        toast.success('Pakiet aktywowany!')
-        router.push('/dashboard')
-        return
-      }
-
-      if (paymentMethod === 'card') {
-        const cardElement = elements.getElement(CardElement)
-        
-        if (!cardElement) {
-          throw new Error('Card element not found')
-        }
-
-        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: billingInfo.cardName,
-              email: billingInfo.email
-            }
-          }
-        })
-
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        if (paymentIntent.status === 'succeeded') {
-          toast.success('Płatność zakończona pomyślnie!')
-          router.push('/dashboard?payment=success')
-        }
-      } else {
-        // Handle other payment methods (bank transfer, PayPal)
-        toast.info('Przekierowanie do wybranej metody płatności...')
-      }
-    } catch (error) {
-      console.error('Payment error:', error)
-      toast.error('Błąd podczas przetwarzania płatności')
-    } finally {
-      setLoading(false)
-    }
+  const handlePaymentComplete = (payment: any) => {
+    const successUrl = new URL(returnUrl, window.location.origin)
+    successUrl.searchParams.set('payment_status', 'success')
+    successUrl.searchParams.set('payment_id', payment.id)
+    router.push(successUrl.toString())
   }
 
-  if (!selectedPackage) {
-    return <div>Nie znaleziono pakietu</div>
+  const handlePaymentCancel = () => {
+    router.push(returnUrl)
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Order Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Podsumowanie zamówienia</CardTitle>
-              <CardDescription>
-                Finalizuj wybór pakietu
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="font-medium">{selectedPackage.name}</span>
-                  <span className="font-bold">{selectedPackage.price} CHF</span>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Kwota do zapłaty:</span>
-                    <span>{selectedPackage.price} CHF</span>
-                  </div>
-                </div>
+    <div className="space-y-8">
+      {/* Swiss Market Features Banner */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Shield className="h-5 w-5 text-blue-600" />
+              <h3 className="font-medium text-blue-900">{t.swissMarketTitle}</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>{t.swissVat}</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>{t.swissPayments}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>{t.invoiceGeneration}</span>
+              </div>
+            </div>
+        </CardContent>
+      </Card>
 
-          {/* Payment Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Dane płatności</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Payment Method Selection */}
-                <div>
-                  <Label className="text-base font-medium mb-3 block">
-                    Metoda płatności
-                  </Label>
-                  <RadioGroup 
-                    value={paymentMethod} 
-                    onValueChange={setPaymentMethod}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="card" id="card" />
-                      <CreditCard className="h-5 w-5" />
-                      <div>
-                        <Label htmlFor="card" className="font-medium">
-                          💳 Karta kredytowa/debetowa
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Visa, MasterCard, Maestro
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg opacity-50">
-                      <RadioGroupItem value="bank" id="bank" disabled />
-                      <Building className="h-5 w-5" />
-                      <div>
-                        <Label htmlFor="bank" className="font-medium">
-                          🏛️ Przelew bankowy
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Tradycyjny przelew
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg opacity-50">
-                      <RadioGroupItem value="paypal" id="paypal" disabled />
-                      <Wallet className="h-5 w-5" />
-                      <div>
-                        <Label htmlFor="paypal" className="font-medium">
-                          🅿️ PayPal
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Bezpieczne płatności online
-                        </p>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* Card Details */}
-                {paymentMethod === 'card' && selectedPackage.price > 0 && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="card-element">Dane karty</Label>
-                      <div className="mt-1 p-3 border rounded-md">
-                        <CardElement
-                          options={{
-                            style: {
-                              base: {
-                                fontSize: '16px',
-                                color: '#374151',
-                                '::placeholder': {
-                                  color: '#6B7280',
-                                },
-                              },
-                            },
-                          }}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="cardName">Imię i nazwisko na karcie</Label>
-                      <Input
-                        id="cardName"
-                        value={billingInfo.cardName}
-                        onChange={(e) => setBillingInfo({...billingInfo, cardName: e.target.value})}
-                        placeholder="Jan Kowalski"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Billing Information */}
-                <div>
-                  <Label htmlFor="email">Email dla faktury</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={billingInfo.email}
-                    onChange={(e) => setBillingInfo({...billingInfo, email: e.target.value})}
-                    placeholder="jan.kowalski@email.com"
-                    required
-                  />
-                </div>
-
-                {/* Terms Acceptance */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="terms"
-                    checked={agreedToTerms}
-                    onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                  />
-                  <Label htmlFor="terms" className="text-sm">
-                    Akceptuję{" "}
-                    <a href="/regulamin" className="text-primary hover:underline">
-                      regulamin serwisu
-                    </a>{" "}
-                    i{" "}
-                    <a href="/polityka-prywatnosci" className="text-primary hover:underline">
-                      politykę prywatności
-                    </a>
-                  </Label>
-                </div>
-
-                {/* Submit Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.back()}
-                    className="flex-1"
-                  >
-                    Powrót
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading || (!stripe && selectedPackage.price > 0)}
-                    className="flex-1"
-                  >
-                    {loading ? 'Przetwarzanie...' : 
-                     selectedPackage.price === 0 ? 'Aktywuj pakiet' : 'Zapłać i aktywuj'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Payment Flow */}
+      <PaymentProvider options={{ locale: locale }}>
+        <PaymentFlow
+          listingId={listingId || undefined}
+          initialPackageId={packageId || undefined}
+          userType={userType}
+          language={locale}
+          onComplete={handlePaymentComplete}
+          onCancel={handlePaymentCancel}
+        />
+      </PaymentProvider>
     </div>
-  )
-}
-
-export default function PaymentPage() {
-  return (
-    <>
-      <Header />
-      <Elements stripe={stripePromise}>
-        <PaymentForm />
-      </Elements>
-      <Footer />
-    </>
   )
 }

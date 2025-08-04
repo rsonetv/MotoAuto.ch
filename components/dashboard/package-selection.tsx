@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
@@ -12,7 +12,6 @@ export function PackageSelection() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
   useEffect(() => {
     async function fetchPackages() {
       try {
@@ -43,7 +42,8 @@ export function PackageSelection() {
   }, []);
 
   const handleSelectPackage = (packageId: string) => {
-    router.push(`/dashboard/payments?package=${packageId}`);
+    const returnUrl = `/dashboard/packages`;
+    router.push(`/dashboard/payments?packageId=${packageId}&return=${encodeURIComponent(returnUrl)}`);
   };
 
   if (loading) {
@@ -67,7 +67,7 @@ export function PackageSelection() {
               {pkg.price} <span className="text-lg font-normal text-muted-foreground">CHF/miesiąc</span>
             </div>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {pkg.features.map((feature, index) => (
+              {pkg.features.map((feature: string, index: number) => (
                 <li key={index} className="flex items-center">
                   <CheckCircle className="h-4 w-4 mr-2 text-green-500 dark:text-green-400" />
                   {feature}

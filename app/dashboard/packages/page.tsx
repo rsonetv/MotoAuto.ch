@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { createClientComponentClient } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
 interface PackageOption {
   id: string
@@ -122,7 +122,7 @@ export default function PackagesPage() {
       }
     } else {
       // Płatny pakiet - przekieruj do płatności
-      router.push(`/payment?package=${packageId}&price=${price}`)
+      router.push(`/dashboard/payments?packageId=${packageId}&price=${price}`)
     }
   }
 

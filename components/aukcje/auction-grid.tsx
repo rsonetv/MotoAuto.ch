@@ -49,12 +49,12 @@ export function AuctionGrid() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-            <div className="h-48 bg-gray-300"></div>
+          <div key={i} className="bg-white dark:bg-card rounded-lg shadow-md overflow-hidden animate-pulse border border-gray-100 dark:border-gray-700">
+            <div className="h-48 bg-gray-300 dark:bg-gray-700"></div>
             <div className="p-4 space-y-3">
-              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-              <div className="h-8 bg-gray-300 rounded"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+              <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
             </div>
           </div>
         ))}
@@ -101,7 +101,7 @@ function AuctionCard({ auction, index }: { auction: any; index: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group"
+      className="bg-white dark:bg-card rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group border border-gray-100 dark:border-gray-700"
     >
       <div className="relative overflow-hidden">
         <img

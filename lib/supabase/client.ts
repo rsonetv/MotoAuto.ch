@@ -2,11 +2,11 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { logger } from '@/lib/logger'
-import { env } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export function createClient() {
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = clientEnv.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   // Log the Supabase URL to confirm which environment is being used.
   logger.info(`Initializing Supabase client for URL: ${supabaseUrl}`)

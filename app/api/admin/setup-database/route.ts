@@ -3,12 +3,13 @@ import { readFileSync } from "fs"
 import { join } from "path"
 import { supabaseAdmin } from "@/lib/supabase-admin"
 import { env } from '@/lib/env'
+import { clientEnv } from "@/lib/env.client"
 
 export async function POST(request: NextRequest) {
   try {
     // The env object from lib/env.ts already validates this at startup.
     // This check is now redundant, but we'll keep it for clarity.
-    if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!clientEnv.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error("❌ Missing required environment variables")
       return NextResponse.json(
         {

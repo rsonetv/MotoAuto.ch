@@ -445,8 +445,8 @@ export async function POST(request: NextRequest) {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
-            free_listings_used: profile.free_listings_used + 1,
-            total_listings: profile.total_listings + 1
+            free_listings_used: (profile.free_listings_used ?? 0) + 1,
+            total_listings: (profile.total_listings ?? 0) + 1
           })
           .eq('id', user.id)
 
@@ -458,7 +458,7 @@ export async function POST(request: NextRequest) {
         // Update total listings count
         const { error: updateError } = await supabase
           .from('profiles')
-          .update({ total_listings: profile.total_listings + 1 })
+          .update({ total_listings: (profile.total_listings ?? 0) + 1 })
           .eq('id', user.id)
 
         if (updateError) {
