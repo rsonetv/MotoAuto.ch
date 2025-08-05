@@ -114,6 +114,184 @@
     position: relative;
     z-index: 2;
   }
+
+  /* Advanced Vehicle Search Components */
+  .advanced-search {
+    --primary: 210 100% 20%;      /* Navy #1a365d */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 207 90% 54%;     /* Blue #3182ce */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 214 32% 91%;        /* Light Gray #e2e8f0 */
+    --accent-foreground: 210 100% 20%;
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --input: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 100% 20%;
+  }
+
+  /* Performance-optimized animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .smooth-transform {
+      transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .smooth-opacity {
+      transition: opacity 150ms ease-in-out;
+    }
+    
+    .bounce-in {
+      animation: bounceIn 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Touch-optimized components */
+  .touch-optimized {
+    min-height: 44px;
+    min-width: 44px;
+    border-radius: 8px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.95);
+    transition: transform 150ms;
+  }
+
+  /* Gallery optimizations */
+  .gallery-container {
+    contain: layout style paint;
+    will-change: transform;
+  }
+
+  .gallery-image {
+    object-fit: cover;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  .gallery-thumbnail {
+    contain: strict;
+    content-visibility: auto;
+  }
+
+  /* Voice search animation */
+  .voice-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .5;
+    }
+  }
+
+  /* Auction live indicators */
+  .auction-live-indicator {
+    position: relative;
+  }
+
+  .auction-live-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background: hsl(120 100% 40%);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  /* Widget drag and drop */
+  .widget-dragging {
+    z-index: 1000;
+    transform: rotate(5deg);
+    box-shadow: 0 10px 25px hsl(210 100% 20% / 0.2);
+  }
+
+  .widget-drop-zone {
+    border: 2px dashed hsl(214 32% 91%);
+    background: hsl(0 0% 100% / 0.5);
+  }
+
+  /* FAB button styling */
+  .fab-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: hsl(207 90% 54%);
+    color: hsl(0 0% 100%);
+    box-shadow: 0 4px 12px hsl(210 100% 20% / 0.2);
+    transition: all 0.2s ease-in-out;
+    z-index: 50;
+  }
+
+  .fab-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px hsl(210 100% 20% / 0.3);
+  }
+
+  /* Swipe indicator */
+  .swipe-indicator {
+    position: relative;
+  }
+
+  .swipe-indicator::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, hsl(var(--muted-foreground)), transparent);
+    border-radius: 2px;
+  }
+
+  /* Filter chip scroll container */
+  .filter-chips-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .filter-chips-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Loading states */
+  .skeleton {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Performance monitoring */
+  .performance-critical {
+    contain: strict;
+    content-visibility: auto;
+    contain-intrinsic-size: 300px;
+  }
 }
 
 /* Print-friendly styles for legal pages */

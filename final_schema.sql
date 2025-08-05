@@ -641,11 +641,11 @@ CREATE POLICY "Contact messages are insertable by everyone"
 DROP POLICY IF EXISTS "Contact messages are updatable by admins only" ON public.contact_messages;
 CREATE POLICY "Contact messages are updatable by admins only" 
   ON public.contact_messages FOR UPDATE USING (
-    auth.uid() IN (SELECT id FROM public.admin_users)
+    (auth.uid() IN (SELECT id FROM public.admin_users))
   );
 
 DROP POLICY IF EXISTS "Contact messages are deletable by admins only" ON public.contact_messages;
 CREATE POLICY "Contact messages are deletable by admins only" 
   ON public.contact_messages FOR DELETE USING (
-    auth.uid() IN (SELECT id FROM public.admin_users)
+    (auth.uid() IN (SELECT id FROM public.admin_users))
   );
