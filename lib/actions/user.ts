@@ -1,90 +1,83 @@
-"use server"
+'use server'
 
-import { revalidatePath } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
-import { z } from "zod"
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
-const profileFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Imię i nazwisko musi mieć co najmniej 2 znaki.",
-  }),
-  avatar: z.string().url({ message: "Proszę podać prawidłowy adres URL." }).optional(),
-})
-
-export async function updateProfile(values: z.infer<typeof profileFormSchema>) {
+export async function getUsers() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error("Użytkownik nie jest uwierzytelniony.")
-  }
-
-  const { error } = await supabase
-    .from("users")
-    .update({
-      full_name: values.name,
-      avatar_url: values.avatar,
-    })
-    .eq("id", user.id)
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(
+      `
+      id,
+      full_name,
+      role,
+      is_verified,
+      users:auth_users (
+        email,
+        created_at
+      )
+    `
+    )
 
   if (error) {
-    throw new Error(`Błąd podczas aktualizacji profilu: ${error.message}`)
+    console.error('Error fetching users:', error)
+    return []
   }
 
-  revalidatePath("/dashboard/settings")
-  return { message: "Profil został pomyślnie zaktualizowany." }
+  // The type from supabase is a bit complex, so we can simplify it here.
+  // Also, the join is one-to-one, so we can flatten the structure.
+  return data.map((profile) => ({
+    ...profile,
+    // @ts-ignore
+    email: profile.users.email,
+    // @ts-ignore
+    created_at: profile.users.created_at,
+    // @ts-ignore
+    ...(!Array.isArray(profile.users) && { users: undefined }),
+  }))
 }
 
-const passwordFormSchema = z.object({
-  new_password: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków."),
-})
-
-export async function updatePassword(values: z.infer<typeof passwordFormSchema>) {
+export async function updateUserRole(userId: string, newRole: string) {
   const supabase = await createClient()
-  const { error } = await supabase.auth.updateUser({
-    password: values.new_password,
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role: newRole })
+    .eq('id', userId)
+
+  if (error) {
+    console.error('Error updating user role:', error)
+    throw new Error('Error updating user role')
+  }
+
+  revalidatePath('/admin/users')
+}
+
+export async function suspendUser(userId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    user_metadata: { status: 'suspended' },
   })
 
   if (error) {
-    throw new Error(`Błąd podczas aktualizacji hasła: ${error.message}`)
+    console.error('Error suspending user:', error)
+    throw new Error('Error suspending user')
   }
 
-  return { message: "Hasło zostało pomyślnie zaktualizowane." }
+  revalidatePath('/admin/users')
 }
 
-const notificationsFormSchema = z.object({
-  new_offers: z.boolean().default(false),
-  bid_updates: z.boolean().default(true),
-  newsletter: z.boolean().default(false),
-})
-
-export async function updateNotificationSettings(
-  values: z.infer<typeof notificationsFormSchema>
-) {
+export async function verifyUserKyc(userId: string) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error("Użytkownik nie jest uwierzytelniony.")
-  }
-
   const { error } = await supabase
-    .from("notification_settings")
-    .update({
-      new_offers: values.new_offers,
-      bid_updates: values.bid_updates,
-      newsletter: values.newsletter,
-    })
-    .eq("user_id", user.id)
+    .from('profiles')
+    .update({ is_verified: true })
+    .eq('id', userId)
 
   if (error) {
-    throw new Error(`Błąd podczas aktualizacji ustawień powiadomień: ${error.message}`)
+    console.error('Error verifying user KYC:', error)
+    throw new Error('Error verifying user KYC')
   }
 
-  revalidatePath("/dashboard/settings")
-  return { message: "Ustawienia powiadomień zostały pomyślnie zaktualizowane." }
+  revalidatePath('/admin/users')
 }

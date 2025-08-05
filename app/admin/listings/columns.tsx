@@ -1,8 +1,12 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Listing } from '@/lib/schemas/listing';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Listing } from '@/lib/schemas/listing'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  featureListing,
+  updateListingStatus,
+} from '@/lib/actions/listing'
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -82,9 +86,9 @@ export const columns: ColumnDef<Listing>[] = [
 			const status = row.original.status;
 			let variant: 'default' | 'secondary' | 'destructive' | 'outline' =
 				'secondary';
-			if (status === 'Active') variant = 'default';
-			if (status === 'Rejected') variant = 'destructive';
-			if (status === 'Sold') variant = 'outline';
+			if (status === 'active') variant = 'default'
+			if (status === 'rejected') variant = 'destructive'
+			if (status === 'suspended') variant = 'outline'
 
 			return <Badge variant={variant}>{status}</Badge>;
 		},
@@ -131,8 +135,28 @@ export const columns: ColumnDef<Listing>[] = [
 							Copy listing ID
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>Approve</DropdownMenuItem>
-						<DropdownMenuItem>Reject</DropdownMenuItem>
+						<DropdownMenuItem
+						        onClick={() => updateListingStatus(listing.id, 'active')}
+						      >
+						        Approve
+						      </DropdownMenuItem>
+						      <DropdownMenuItem
+						        onClick={() => updateListingStatus(listing.id, 'rejected')}
+						      >
+						        Reject
+						      </DropdownMenuItem>
+						      <DropdownMenuItem
+						        onClick={() => updateListingStatus(listing.id, 'suspended')}
+						      >
+						        Suspend
+						      </DropdownMenuItem>
+						      <DropdownMenuSeparator />
+						      <DropdownMenuItem
+						        onClick={() => featureListing(listing.id, !listing.is_featured)}
+						      >
+						        {listing.is_featured ? 'Unfeature' : 'Feature'}
+						      </DropdownMenuItem>
+						      <DropdownMenuSeparator />
 						<DropdownMenuItem>View Details</DropdownMenuItem>
 						<DropdownMenuItem>Edit SEO</DropdownMenuItem>
 					</DropdownMenuContent>

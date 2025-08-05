@@ -13,10 +13,29 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { User } from '@/lib/schemas/user';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  updateUserRole,
+  suspendUser,
+  verifyUserKyc,
+} from '@/lib/actions/user'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import Link from 'next/link'
 
-export const columns: ColumnDef<User>[] = [
+// We can define a more specific type for the user data in the table
+export type UserData = {
+  id: string
+  full_name: string | null
+  email: string
+  role: string
+  is_verified: boolean
+  created_at: string
+  // This is a nested object in the original query
+  profile?: {
+    avatar_url?: string
+  }
+}
+
+export const columns: ColumnDef<UserData>[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -40,7 +59,7 @@ export const columns: ColumnDef<User>[] = [
 		accessorKey: 'email',
 		header: 'User',
 		cell: ({ row }) => {
-			const user = row.original;
+			const user = row.original
 			return (
 				<div className="flex items-center space-x-2">
 					<Avatar>
@@ -50,11 +69,11 @@ export const columns: ColumnDef<User>[] = [
 						</AvatarFallback>
 					</Avatar>
 					<div>
-						<div className="font-medium">{user.profile?.full_name || 'N/A'}</div>
+						<div className="font-medium">{user.full_name || 'N/A'}</div>
 						<div className="text-sm text-muted-foreground">{user.email}</div>
 					</div>
 				</div>
-			);
+			)
 		},
 	},
 	{
@@ -62,12 +81,14 @@ export const columns: ColumnDef<User>[] = [
 		header: 'Role',
 	},
 	{
-		accessorKey: 'kyc_status',
+		accessorKey: 'is_verified',
 		header: 'KYC Status',
+		cell: ({ row }) => (row.original.is_verified ? 'Verified' : 'Not Verified'),
 	},
 	{
-		accessorKey: 'last_sign_in_at',
-		header: 'Last Login',
+		accessorKey: 'created_at',
+		header: 'Date Joined',
+		cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
 	},
 	{
 		id: 'actions',
@@ -84,16 +105,28 @@ export const columns: ColumnDef<User>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => console.log('View profile', user.id)}>
-							View Profile
+						<DropdownMenuItem asChild>
+							<Link href={`/admin/users/${user.id}`}>View Profile</Link>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={() => console.log('Edit user', user.id)}>
-							Edit User
+						<DropdownMenuItem
+							onClick={() =>
+								updateUserRole(
+									user.id,
+									user.role === 'admin' ? 'user' : 'admin'
+								)
+							}
+						>
+							{user.role === 'admin' ? 'Make User' : 'Make Admin'}
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => console.log('Suspend user', user.id)}>
+						<DropdownMenuItem onClick={() => suspendUser(user.id)}>
 							Suspend User
 						</DropdownMenuItem>
+						{!user.is_verified && (
+							<DropdownMenuItem onClick={() => verifyUserKyc(user.id)}>
+								Verify KYC
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);

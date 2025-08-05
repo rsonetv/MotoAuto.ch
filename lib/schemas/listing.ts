@@ -8,10 +8,11 @@ export const listingSchema = z.object({
     name: z.string(),
     email: z.string().email(),
   }),
-  status: z.enum(["Active", "Pending Review", "Rejected", "Sold"]),
+  status: z.enum(['active', 'pending', 'rejected', 'suspended']),
   flags: z.number().int().min(0),
   created_at: z.string().datetime(),
   image_url: z.string().url().optional(),
-});
+  is_featured: z.boolean().optional(),
+ });
 
 export type Listing = z.infer<typeof listingSchema>;
