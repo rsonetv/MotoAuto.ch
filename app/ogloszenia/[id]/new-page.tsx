@@ -29,31 +29,7 @@ import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { pl } from "date-fns/locale"
 import type { Database } from "@/lib/database.types"
-
-type Listing = Database['public']['Tables']['listings']['Row'] & {
-  profiles?: {
-    id: string;
-    full_name: string | null;
-    dealer_name: string | null;
-    is_dealer: boolean;
-    location: string | null;
-    phone: string | null;
-    email: string | null;
-    avatar_url?: string | null;
-    bio?: string | null;
-    website?: string | null;
-    verification_status?: string;
-  };
-  categories?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  images?: string[];
-  views_count?: number;
-  favorites_count?: number;
-  is_premium?: boolean;
-}
+import { Listing } from "@/types/listings"
 
 export default function VehicleDetailPage() {
   const params = useParams()
@@ -109,7 +85,7 @@ export default function VehicleDetailPage() {
         return
       }
 
-      setListing(data)
+      setListing(data as unknown as Listing)
 
       // Update views count (only once per session)
       if (!viewsUpdated) {
@@ -372,7 +348,7 @@ export default function VehicleDetailPage() {
           {/* Similar Vehicles */}
           <div className="mt-12">
             <SimilarVehicles 
-              currentListing={listing}
+              currentListingId={listing.id}
               category={categorySlug}
             />
           </div>

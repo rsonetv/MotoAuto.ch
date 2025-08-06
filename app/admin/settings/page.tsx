@@ -1,3 +1,4 @@
+'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageSettings from "@/components/admin/settings/package-settings";
 import LanguageSettings from "@/components/admin/settings/language-settings";

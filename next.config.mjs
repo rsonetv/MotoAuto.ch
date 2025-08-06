@@ -17,21 +17,23 @@ const nextConfig = {
     ]
   },
 
-  webpack(config) {
+  webpack(config, { isServer }) {
     // Make sure the plugins array exists
-    config.plugins = config.plugins || []
+    config.plugins = config.plugins || [];
 
-    // Import webpack dynamically
-    const webpack = require('webpack');
+    // Add the MiniCssExtractPlugin
+    if (!isServer) {
+      config.plugins.push(new (require('mini-css-extract-plugin'))());
+    }
 
     // Provide global.self → globalThis for libraries that expect it
     config.plugins.push(
-      new webpack.DefinePlugin({
+      new (require('webpack').DefinePlugin)({
         "global.self": "globalThis",
-      }),
-    )
+      })
+    );
 
-    return config
+    return config;
   },
 
   images: {

@@ -19,130 +19,57 @@ import {
   Eye,
   Users
 } from 'lucide-react'
-import AuctionTimer from '@/components/aukcje/AuctionTimer'
-import BidForm from '@/components/aukcje/BidForm'
-import BidHistory from '@/components/aukcje/BidHistory'
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import Image from 'next/image'
-
-// Mock data - w prawdziwej aplikacji pobierane z API na podstawie ID
-const mockAuctionData = {
-  id: '101',
-  title: 'Porsche 911 Turbo S',
-  category: 'auto',
-  description: `Niesamowity Porsche 911 Turbo S w perfekcyjnym stanie. Pojazd regularnie serwisowany w autoryzowanym serwisie Porsche, pełna dokumentacja serwisowa dostępna.
-
-Wyposażenie:
-• Sport Chrono Package
-• PASM (Porsche Active Suspension Management)
-• Sport Exhaust System
-• Carbon Ceramic Brakes (PCCB)
-• Adaptive Cruise Control
-• Bose Sound System
-• Sport Seats Plus
-• Alcantara Interior Package
-
-Pojazd bezwypadkowy, pierwszy właściciel, kupiony w salon Porsche Centrum Zürich. Wszystkie serwisy wykonywane zgodnie z harmonogramem.`,
-
-  images: [
-    'https://images.unsplash.com/photo-1544829099-b9a0c5303bea?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop'
-  ],
-
-  currentBid: 125000,
-  startingBid: 1,
-  reservePrice: 140000,
-  reserveMet: false,
-  minIncrement: 1000,
-  endsAt: '2025-07-29T18:00:00Z', // Updated to tomorrow
-  softClose: true,
-  extensionSec: 300,
-
-  location: 'Lausanne, VD',
-  year: 2021,
-  mileage: 25000,
-  fuel: 'Benzyna',
-  transmission: 'PDK',
-  power: '650 KM',
-
-  seller: {
-    name: 'Porsche Centrum Lausanne',
-    type: 'dealer',
-    rating: 4.9,
-    verified: true
-  },
-
-  bidCount: 23,
-  watchCount: 89,
-  viewCount: 456
-}
-
-const mockBids = [
-  {
-    id: '1',
-    amount: 125000,
-    bidder: { id: '1', username: 'Markus Weber' },
-    timestamp: '2025-07-25T16:30:00Z',
-    isWinning: true
-  },
-  {
-    id: '2',
-    amount: 124000,
-    bidder: { id: '2', username: 'Anna Müller' },
-    timestamp: '2025-07-25T16:15:00Z',
-    isWinning: false
-  },
-  {
-    id: '3',
-    amount: 123000,
-    bidder: { id: '3', username: 'Peter Schmidt' },
-    timestamp: '2025-07-25T15:45:00Z',
-    isWinning: false
-  }
-]
+import { createClientComponentClient } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+import LiveAuctionInterface from '@/components/auction/LiveAuctionInterface'
+import { Auction } from '@/types/auctions'
 
 export default function AuctionDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isWatching, setIsWatching] = useState(false)
-  const [auctionData, setAuctionData] = useState(mockAuctionData)
-  const [bids, setBids] = useState(mockBids)
-  const [isLoggedIn] = useState(true) // Mock login state
+  const [auctionData, setAuctionData] = useState<Auction | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleBidSubmit = async (amount: number) => {
-    try {
-      // Tutaj byłoby API call
-      const newBid = {
-        id: Date.now().toString(),
-        amount,
-        bidder: { id: 'current-user', username: 'Ty' },
-        timestamp: new Date().toISOString(),
-        isWinning: true
-      }
-
-      // Aktualizuj poprzednie oferty
-      const updatedBids = bids.map(bid => ({ ...bid, isWinning: false }))
-      setBids([newBid, ...updatedBids])
+  useEffect(() => {
+    const fetchAuctionDetails = async () => {
+      if (!params.id) return
       
-      // Aktualizuj current bid
-      setAuctionData(prev => ({ 
-        ...prev, 
-        currentBid: amount,
-        bidCount: prev.bidCount + 1,
-        reserveMet: amount >= prev.reservePrice
-      }))
-
-    } catch (error) {
-      throw new Error('Nie udało się złożyć oferty. Spróbuj ponownie.')
+      try {
+        setLoading(true)
+        const supabase = createClientComponentClient()
+        
+        const { data, error } = await supabase
+          .from('listings')
+          .select(`
+            *,
+            profiles (
+              *
+            )
+          `)
+          .eq('id', params.id)
+          .single()
+        
+        if (error) throw error
+        
+        setAuctionData(data as unknown as Auction)
+        
+      } catch (err: any) {
+        console.error('Error fetching auction details:', err)
+        setError(err.message || 'Nie udało się pobrać szczegółów aukcji')
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+    
+    fetchAuctionDetails()
+  }, [params.id])
 
-  const handleTimeExtended = (newEndTime: string) => {
-    setAuctionData(prev => ({ ...prev, endsAt: newEndTime }))
-  }
 
   const toggleWatch = () => {
     setIsWatching(!isWatching)
@@ -158,8 +85,12 @@ export default function AuctionDetailPage() {
     }).format(amount)
   }
 
-  const getCommissionAmount = () => {
-    return Math.min(auctionData.currentBid * 0.05, 500)
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (error || !auctionData) {
+    return <div>Error: {error}</div>
   }
 
   return (
@@ -189,7 +120,7 @@ export default function AuctionDetailPage() {
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm" onClick={toggleWatch}>
                       <Heart className={`w-4 h-4 mr-1 ${isWatching ? 'fill-red-500 text-red-500' : ''}`} />
-                      {auctionData.watchCount}
+                      {auctionData.watch_count}
                     </Button>
                     <Button variant="outline" size="sm">
                       <Share2 className="w-4 h-4 mr-1" />
@@ -200,7 +131,7 @@ export default function AuctionDetailPage() {
                 
                 <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                   <Badge variant="secondary">
-                    {auctionData.category === 'auto' ? '🚗 Samochody' : '🏍️ Motocykle'}
+                    {auctionData.category === 'car' ? '🚗 Samochody' : '🏍️ Motocykle'}
                   </Badge>
                   <span className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
@@ -208,11 +139,11 @@ export default function AuctionDetailPage() {
                   </span>
                   <span className="flex items-center">
                     <Eye className="w-4 h-4 mr-1" />
-                    {auctionData.viewCount} wyświetleń
+                    {auctionData.views} wyświetleń
                   </span>
                   <span className="flex items-center">
                     <Users className="w-4 h-4 mr-1" />
-                    {auctionData.bidCount} ofert
+                    {auctionData.bid_count} ofert
                   </span>
                 </div>
               </div>
@@ -222,7 +153,7 @@ export default function AuctionDetailPage() {
                 <CardContent className="p-0">
                   <div className="relative">
                     <Image
-                      src={auctionData.images[currentImageIndex]}
+                      src={auctionData.images ? auctionData.images[currentImageIndex] : ''}
                       alt={`${auctionData.title} - zdjęcie ${currentImageIndex + 1}`}
                       width={800}
                       height={600}
@@ -230,7 +161,7 @@ export default function AuctionDetailPage() {
                     />
                     
                     {/* Image Navigation */}
-                    {auctionData.images.length > 1 && (
+                    {auctionData.images && auctionData.images.length > 1 && (
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                         <div className="flex space-x-2">
                           {auctionData.images.map((_, index) => (
@@ -250,7 +181,7 @@ export default function AuctionDetailPage() {
                   </div>
                   
                   {/* Thumbnail Strip */}
-                  {auctionData.images.length > 1 && (
+                  {auctionData.images && auctionData.images.length > 1 && (
                     <div className="p-4 border-t">
                       <div className="flex space-x-2 overflow-x-auto">
                         {auctionData.images.map((image, index) => (
@@ -292,7 +223,7 @@ export default function AuctionDetailPage() {
                     </div>
                     <div className="text-center">
                       <Gauge className="w-8 h-8 mx-auto text-primary mb-2" />
-                      <div className="font-semibold">{auctionData.mileage.toLocaleString()} km</div>
+                      <div className="font-semibold">{auctionData.mileage?.toLocaleString()} km</div>
                       <div className="text-sm text-gray-500">Przebieg</div>
                     </div>
                     <div className="text-center">
@@ -328,102 +259,8 @@ export default function AuctionDetailPage() {
 
             {/* Right Column - Bidding */}
             <div className="space-y-6">
-              {/* Auction Timer */}
-              <AuctionTimer
-                endsAt={auctionData.endsAt}
-                softClose={auctionData.softClose}
-                extensionSec={auctionData.extensionSec}
-                onTimeExtended={handleTimeExtended}
-              />
-
-              {/* Current Status */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-primary mb-2">
-                      {formatCurrency(auctionData.currentBid)}
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Aktualna najwyższa oferta
-                    </p>
-                    
-                    <div className="flex justify-center items-center space-x-4 text-sm">
-                      <span>{auctionData.bidCount} ofert</span>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span className="flex items-center">
-                        {auctionData.reserveMet ? (
-                          <span className="text-green-600 dark:text-green-400">
-                            ✓ Cena minimalna osiągnięta
-                          </span>
-                        ) : (
-                          <span className="text-orange-600 dark:text-orange-400">
-                            <AlertTriangle className="w-4 h-4 mr-1 inline" />
-                            Cena minimalna nieosiągnięta
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Bid Form */}
-              <BidForm
-                currentBid={auctionData.currentBid}
-                minIncrement={auctionData.minIncrement}
-                reservePrice={auctionData.reservePrice}
-                reserveMet={auctionData.reserveMet}
-                currency="CHF"
-                isLoggedIn={isLoggedIn}
-                onSubmit={handleBidSubmit}
-              />
-
-              {/* Seller Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sprzedawca</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold">{auctionData.seller.name}</span>
-                        {auctionData.seller.verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            ✓ Zweryfikowany
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Ocena: {auctionData.seller.rating}/5 ⭐
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Kontakt
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Commission Info */}
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Prowizja aukcji:</strong> {formatCurrency(getCommissionAmount())} 
-                  ({Math.min(5, (getCommissionAmount() / auctionData.currentBid) * 100).toFixed(1)}% z aktualnej oferty, max. 500 CHF)
-                </AlertDescription>
-              </Alert>
+              <LiveAuctionInterface auctionId={params.id as string} />
             </div>
-          </div>
-
-          {/* Bid History */}
-          <div className="mt-8">
-            <BidHistory
-              auctionId={auctionData.id}
-              bids={bids}
-              currency="CHF"
-              isLive={true}
-            />
           </div>
         </div>
       </div>

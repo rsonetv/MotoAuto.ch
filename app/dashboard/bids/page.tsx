@@ -151,7 +151,8 @@ export default function BidsManagementPage() {
           .eq('user_id', user.id)
           .eq('listings.sale_type', 'auction')
 
-        setWatchedAuctions(watchlistData?.map(w => w.listings).filter(Boolean) || [])
+        const auctions = watchlistData?.map(w => w.listings).filter(Boolean) as any[]
+        setWatchedAuctions(auctions || [])
       }
     } catch (error) {
       console.error('Error fetching bids data:', error)

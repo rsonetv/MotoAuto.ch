@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { VehicleGallery } from "@/components/ogloszenia/vehicle-gallery"
+import ImageGallery from "@/components/ui/image-gallery/ImageGallery"
 import { VehicleDetails } from "@/components/ogloszenia/vehicle-details"
 import { ContactPanel } from "@/components/ogloszenia/contact-panel"
 import { SimilarVehicles } from "@/components/ogloszenia/similar-vehicles"
@@ -25,20 +25,7 @@ import {
 } from "lucide-react"
 import { createClientComponentClient } from "@/lib/supabase"
 import type { Database } from "@/lib/database.types"
-
-type Listing = Database['public']['Tables']['listings']['Row'] & {
-  profiles?: {
-    id: string;
-    full_name: string | null;
-    dealer_name: string | null;
-    is_dealer: boolean;
-    avatar_url: string | null;
-    email: string | null;
-    phone: string | null;
-    rating: number | null;
-    listings_count: number | null;
-  }
-}
+import { Listing } from "@/types/listings"
 
 export default function VehicleDetailsPage() {
   const params = useParams<{ id: string }>()
@@ -53,7 +40,7 @@ export default function VehicleDetailsPage() {
       
       try {
         setLoading(true)
-        const supabase = createClientComponentClient<Database>()
+        const supabase = createClientComponentClient()
         
         const { data, error } = await supabase
           .from('listings')
@@ -85,7 +72,7 @@ export default function VehicleDetailsPage() {
         setVehicle({
           ...data,
           views: (data.views || 0) + 1
-        })
+        } as unknown as Listing)
         
       } catch (err: any) {
         console.error('Error fetching vehicle details:', err)
@@ -209,7 +196,7 @@ export default function VehicleDetailsPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           <div className="lg:col-span-2 space-y-6">
-            <VehicleGallery images={vehicle.images} title={vehicle.title} />
+            <ImageGallery images={vehicle.images ? vehicle.images.map(img => ({ src: img, alt: vehicle.title || 'Vehicle image', thumbnail: img, is360: false })) : []} />
             <VehicleDetails listing={vehicle} />
           </div>
           
@@ -224,7 +211,7 @@ export default function VehicleDetailsPage() {
           <h2 className="text-2xl font-bold mb-6">Podobne ogłoszenia</h2>
           <SimilarVehicles 
             currentListingId={vehicle.id}
-            category={vehicle.category_id}
+            category={vehicle.category}
             make={vehicle.brand}
             model={vehicle.model} 
           />

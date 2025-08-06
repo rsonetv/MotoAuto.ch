@@ -126,12 +126,10 @@ export async function GET(request: NextRequest) {
           postal_code,
           canton,
           images,
-          is_auction,
           auction_end_time,
           current_bid,
           bid_count,
           views,
-          favorites_count,
           status,
           created_at,
           updated_at,
@@ -192,9 +190,6 @@ export async function GET(request: NextRequest) {
       }
 
       // Apply auction filter
-      if (query.is_auction !== undefined) {
-        dbQuery = dbQuery.eq('is_auction', query.is_auction)
-      }
 
       // Apply price range filters
       if (query.price_min !== undefined) {
@@ -266,7 +261,6 @@ export async function GET(request: NextRequest) {
               ...(query.fuel_type && { fuel_type: query.fuel_type }),
               ...(query.transmission && { transmission: query.transmission }),
               ...(query.condition && { condition: query.condition }),
-              ...(query.is_auction !== undefined && { is_auction: query.is_auction }),
               ...(query.canton && { canton: query.canton }),
               ...(query.postal_code && { postal_code: query.postal_code }),
             }).filter(([_, value]) => value !== undefined)
@@ -317,7 +311,6 @@ export async function GET(request: NextRequest) {
             fuel_type: query.fuel_type,
             transmission: query.transmission,
             condition: query.condition,
-            is_auction: query.is_auction,
             price_range: query.price_min || query.price_max ? {
               min: query.price_min,
               max: query.price_max

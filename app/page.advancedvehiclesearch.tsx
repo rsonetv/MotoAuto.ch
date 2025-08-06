@@ -1,11 +1,33 @@
 "use client"
 
+import { useState } from "react"
 import { AdvancedVehicleSearch } from "@/components/advanced-vehicle-search"
+import { SearchResults } from "@/components/advanced-vehicle-search/components/SearchResults"
 import { mockRootProps } from "@/components/advanced-vehicle-search/advancedVehicleSearchMockData"
+import { Listing } from "@/types/listings"
 
 export default function AdvancedVehicleSearchPreview() {
-  const handleSearch = (filters: any) => {
-    console.log('Search triggered with filters:', filters)
+  const [results, setResults] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+
+  const handleSearch = async (filters: any) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const queryParams = new URLSearchParams(filters).toString()
+      const response = await fetch(`/api/listings/search?${queryParams}`)
+      if (!response.ok) {
+        throw new Error("Failed to fetch search results")
+      }
+      const data = await response.json()
+      console.log('API Response Data:', JSON.stringify(data, null, 2));
+      setResults(data.listings || data || [])
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleFiltersChange = (filters: any) => {
@@ -32,6 +54,9 @@ export default function AdvancedVehicleSearchPreview() {
           quickFilters={mockRootProps.quickFilters}
           onSearch={handleSearch}
           onFiltersChange={handleFiltersChange}
+          results={results}
+          loading={loading}
+          error={error}
         />
       </div>
     </div>

@@ -81,3 +81,38 @@ export async function verifyUserKyc(userId: string) {
 
   revalidatePath('/admin/users')
 }
+export async function updateNotificationSettings(data: any) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('profiles').update(data).eq('id', (await supabase.auth.getUser()).data.user?.id!)
+
+  if (error) {
+    console.error('Error updating notification settings:', error)
+    throw new Error('Error updating notification settings')
+  }
+
+  revalidatePath('/dashboard/settings')
+}
+
+export async function updatePassword(data: any) {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser(data)
+
+  if (error) {
+    console.error('Error updating password:', error)
+    throw new Error('Error updating password')
+  }
+
+  revalidatePath('/dashboard/settings')
+}
+
+export async function updateProfile(data: any) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('profiles').update(data).eq('id', (await supabase.auth.getUser()).data.user?.id!)
+
+  if (error) {
+    console.error('Error updating profile:', error)
+    throw new Error('Error updating profile')
+  }
+
+  revalidatePath('/dashboard/settings')
+}

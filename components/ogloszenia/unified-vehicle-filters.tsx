@@ -98,41 +98,52 @@ const TRANSMISSIONS = [
 const CONDITIONS = [
   { value: "new", label: "Nowy" },
   { value: "excellent", label: "Doskonały" },
-  { value: "very_good", label: "Bardzo dobry" },
   { value: "good", label: "Dobry" },
-  { value: "fair", label: "Przeciętny" },
+  { value: "fair", label: "Średni" },
+  { value: "for_parts", label: "Na części" },
   { value: "damaged", label: "Uszkodzony" }
 ]
 
 const BODY_TYPES = [
   { value: "sedan", label: "Sedan" },
-  { value: "suv", label: "SUV" },
-  { value: "coupe", label: "Coupe" },
   { value: "kombi", label: "Kombi" },
+  { value: "suv", label: "SUV" },
   { value: "hatchback", label: "Hatchback" },
+  { value: "coupe", label: "Coupe" },
+  { value: "kabriolet", label: "Kabriolet" },
+  { value: "van", label: "Van" },
+  { value: "minivan", label: "Minivan" },
+  { value: "inny", label: "Inny" }
 ]
 
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('de-CH').format(price);
+const formatPrice = (value: number) => {
+  return new Intl.NumberFormat('de-CH').format(value);
 }
 
-export function UnifiedVehicleFilters({ filters, category, categories, onChange }: VehicleFiltersProps) {
-  const currentYear = new Date().getFullYear();
-  const minYear = 1995;
+export function UnifiedVehicleFilters({ filters, onChange, category, categories }: VehicleFiltersProps) {
+  const [availableBrands, setAvailableBrands] = useState(BRANDS.auto);
+  const [priceRange, setPriceRange] = useState([filters.priceMin || 0, filters.priceMax || 500000]);
+  const [yearRange, setYearRange] = useState([filters.yearMin || 1980, filters.yearMax || new Date().getFullYear()]);
+  const [mileage, setMileage] = useState(filters.mileageMax || 300000);
+  const [locationInput, setLocationInput] = useState(filters.location || "");
+  const [radius, setRadius] = useState(filters.radius || 0);
+
   const maxPrice = 500000;
-  
-  const [priceRange, setPriceRange] = useState([filters.priceMin || 0, filters.priceMax || maxPrice])
-  const [yearRange, setYearRange] = useState([filters.yearMin || minYear, filters.yearMax || currentYear])
-  const [mileage, setMileage] = useState(filters.mileageMax || 200000)
-  const [radius, setRadius] = useState(filters.radius || 0)
-  const [locationInput, setLocationInput] = useState(filters.location || "")
-  
-  const availableBrands = category === 'moto' ? BRANDS.moto : BRANDS.auto
+  const currentYear = new Date().getFullYear();
+  const minYear = 1980;
+
+  useEffect(() => {
+    if (category === 'moto') {
+      setAvailableBrands(BRANDS.moto);
+    } else {
+      setAvailableBrands(BRANDS.auto);
+    }
+  }, [category]);
 
   useEffect(() => {
     setPriceRange([filters.priceMin || 0, filters.priceMax || maxPrice]);
     setYearRange([filters.yearMin || minYear, filters.yearMax || currentYear]);
-    setMileage(filters.mileageMax || 200000);
+    setMileage(filters.mileageMax || 300000);
     setRadius(filters.radius || 0);
     setLocationInput(filters.location || "");
   }, [filters]);

@@ -1,4 +1,5 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+export const dynamic = 'force-dynamic'
 import { cookies } from "next/headers"
 import { Auction } from "@/lib/schemas/auction"
 import { columns } from "./columns"

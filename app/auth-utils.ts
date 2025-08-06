@@ -6,8 +6,8 @@ import type { Database } from '@/lib/database.types'
  * This is a wrapper for creating a Supabase client for server components
  * It uses the approach recommended in the Supabase docs for Next.js App Router
  */
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
   
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

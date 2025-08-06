@@ -30,6 +30,10 @@ const nextConfig = {
       }),
     )
 
+    // Add rules for CSS modules
+    config.module = config.module || {}
+    config.module.rules = config.module.rules || []
+    
     return config
   },
 

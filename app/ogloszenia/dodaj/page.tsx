@@ -39,9 +39,7 @@ const listingSchema = z.object({
   description: z.string().min(50, "Opis musi mieć co najmniej 50 znaków"),
   price: z.number().min(1, "Cena musi być większa od 0"),
   currency: z.string().default("CHF"),
-  vehicleType: z.enum(["car", "motorcycle", "auction"], {
-    required_error: "Wybierz typ pojazdu"
-  }),
+  vehicleType: z.enum(["car", "motorcycle", "auction"]),
   brand: z.string().min(1, "Wybierz markę"),
   model: z.string().min(1, "Wybierz model"),
   year: z.number().min(1900).max(new Date().getFullYear() + 1),
@@ -83,7 +81,6 @@ export default function DodajOgloszeniePage() {
   } = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
     defaultValues: {
-      currency: "CHF",
       vehicleType: "car"
     }
   })
