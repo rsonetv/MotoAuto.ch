@@ -4,9 +4,6 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-07-30.basil",
-})
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -16,12 +13,15 @@ export const config = {
   },
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-07-30.basil",
+  })
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const buf = await req.text()
   const sig = req.headers.get("stripe-signature")!
 
