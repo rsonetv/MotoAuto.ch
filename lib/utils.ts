@@ -51,3 +51,16 @@ export function slugify(text: string) {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
 }
+
+export function getStatusIndicator(status: string) {
+  switch (status) {
+    case 'ACTIVE':
+      return 'bg-green-500';
+    case 'ENDED_SUCCESS':
+      return 'bg-blue-500';
+    case 'ENDED_NO_SALE':
+      return 'bg-red-500';
+    default:
+      return 'bg-gray-500';
+  }
+}

@@ -1,5 +1,13 @@
 import { z } from "zod"
-import { BidStatus, Currency } from "@/lib/database.types"
+
+export enum BidStatus {
+  ACTIVE = 'active',
+  OUTBID = 'outbid',
+  WINNING = 'winning',
+  WON = 'won',
+  LOST = 'lost',
+  RETRACTED = 'retracted',
+}
 
 // Swiss bid increment rules based on current bid amount
 export const SwissBidIncrements = {
@@ -33,24 +41,23 @@ export const placeBidSchema = z.object({
   is_auto_bid: z
     .boolean()
     .default(false),
-  max_auto_bid: z
+  max_bid: z
     .number()
-    .positive("Maximum auto-bid must be positive")
-    .multipleOf(0.01, "Maximum auto-bid must be in valid currency format")
-    .max(10000000, "Maximum auto-bid cannot exceed 10,000,000 CHF")
+    .positive("Maximum bid must be positive")
+    .multipleOf(0.01, "Maximum bid must be in valid currency format")
+    .max(10000000, "Maximum bid cannot exceed 10,000,000 CHF")
     .optional(),
 })
 .refine(
-  (data: any) => {
-    // If auto-bid is enabled, max_auto_bid must be provided and greater than amount
+  (data) => {
     if (data.is_auto_bid) {
-      return data.max_auto_bid && data.max_auto_bid >= data.amount
+      return data.max_bid !== undefined && data.max_bid >= data.amount;
     }
-    return true
+    return true;
   },
   {
-    message: "Maximum auto-bid must be provided and greater than or equal to bid amount when auto-bidding is enabled",
-    path: ["max_auto_bid"],
+    message: "Maximum bid must be provided and be greater than or equal to the bid amount when auto-bidding.",
+    path: ["max_bid"],
   }
 )
 
@@ -103,18 +110,18 @@ export const auctionBidsQuerySchema = z.object({
     .regex(/^\d+$/, "Page must be a number")
     .transform(Number)
     .refine((n: number) => n >= 1, "Page must be at least 1")
-    .default("1"),
+    .default(1),
   limit: z
     .string()
     .regex(/^\d+$/, "Limit must be a number")
     .transform(Number)
     .refine((n: number) => n >= 1 && n <= 100, "Limit must be between 1 and 100")
-    .default("50"),
+    .default(50),
   include_retracted: z
     .string()
     .regex(/^(true|false)$/, "include_retracted must be 'true' or 'false'")
     .transform((s: string) => s === "true")
-    .default("false"),
+    .default(false),
   sort_order: z
     .enum(["asc", "desc"])
     .default("desc"), // Most recent bids first
@@ -127,13 +134,13 @@ export const myBidsQuerySchema = z.object({
     .regex(/^\d+$/, "Page must be a number")
     .transform(Number)
     .refine((n: number) => n >= 1, "Page must be at least 1")
-    .default("1"),
+    .default(1),
   limit: z
     .string()
     .regex(/^\d+$/, "Limit must be a number")
     .transform(Number)
     .refine((n: number) => n >= 1 && n <= 100, "Limit must be between 1 and 100")
-    .default("20"),
+    .default(20),
   status: z
     .enum([
       BidStatus.ACTIVE,
@@ -151,7 +158,7 @@ export const myBidsQuerySchema = z.object({
     .string()
     .regex(/^(true|false)$/, "include_auto_bids must be 'true' or 'false'")
     .transform((s: string) => s === "true")
-    .default("true"),
+    .default(true),
   sort_by: z
     .enum(["placed_at", "amount", "auction_end_time"])
     .default("placed_at"),

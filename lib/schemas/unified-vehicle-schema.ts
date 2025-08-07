@@ -27,6 +27,7 @@ const baseSchema = z.object({
   // Aukcja (opcjonalne)
   auctionEndDate: z.date().optional(),
   minBidIncrement: z.coerce.number().positive("Kwota musi być dodatnia.").optional(),
+  reservePrice: z.coerce.number().positive("Cena minimalna musi być dodatnia.").optional(),
 
   // Dane pojazdu
   brand: z.string().min(1, "Marka jest wymagana."),
@@ -53,6 +54,7 @@ const baseSchema = z.object({
     .array(fileSchema)
     .min(1, "Wymagane jest co najmniej jedno zdjęcie.")
     .max(12, "Można dodać maksymalnie 12 zdjęć."),
+  images360: z.array(fileSchema).optional(),
 
   // Lokalizacja
   location: z.object({
@@ -62,16 +64,11 @@ const baseSchema = z.object({
   }),
 
   // Opcje dodatkowe
-  warranty: z.boolean().default(false),
-  warrantyMonths: z.coerce.number().optional(),
 })
 
 const carSchema = baseSchema.extend({
   mainCategory: z.literal("SAMOCHODY"),
   bodyType: z.string().min(1, "Rodzaj nadwozia jest wymagany."),
-  driveType: z.string().min(1, "Rodzaj napędu jest wymagany."),
-  doors: z.coerce.number().int().min(2).max(5).optional(),
-  seats: z.coerce.number().int().min(1).max(9).optional(),
 })
 
 const motorcycleSchema = baseSchema.extend({

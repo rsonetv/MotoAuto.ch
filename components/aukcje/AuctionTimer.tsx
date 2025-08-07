@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { clsx } from 'clsx';
 
 interface AuctionTimerProps {
   endsAt: string; // ISO datetime
@@ -85,24 +86,63 @@ export default function AuctionTimer({
     );
   }
 
+  const getTimerColorClasses = (timeLeft: TimeLeft) => {
+    const totalHours = timeLeft.days * 24 + timeLeft.hours;
+    if (totalHours < 1) {
+      return {
+        bg: 'bg-red-50 dark:bg-red-900/10',
+        border: 'border-red-200 dark:border-red-800',
+        text: 'text-red-600 dark:text-red-400',
+        label: 'OSTATNIA GODZINA!',
+      };
+    }
+    if (totalHours < 24) {
+      return {
+        bg: 'bg-amber-50 dark:bg-amber-900/10',
+        border: 'border-amber-200 dark:border-amber-800',
+        text: 'text-amber-600 dark:text-amber-400',
+        label: 'MNIEJ NIŻ 24H!',
+      };
+    }
+    return {
+      bg: 'bg-white dark:bg-gray-800',
+      border: 'border-gray-200 dark:border-gray-700',
+      text: 'text-primary',
+      label: 'Do końca aukcji:',
+    };
+  };
+
+  const [prevSeconds, setPrevSeconds] = useState(timeLeft.seconds);
+  const [isFlipping, setIsFlipping] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft.seconds !== prevSeconds) {
+      setIsFlipping(true);
+      const timeout = setTimeout(() => setIsFlipping(false), 500);
+      setPrevSeconds(timeLeft.seconds);
+      return () => clearTimeout(timeout);
+    }
+  }, [timeLeft.seconds, prevSeconds]);
+
+  const colorClasses = getTimerColorClasses(timeLeft);
   const isLastMinutes = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes < 5;
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      isLastMinutes 
-        ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' 
-        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-    }`}>
+    <div className={clsx(
+      "p-4 rounded-lg border transition-colors duration-500",
+      colorClasses.bg,
+      colorClasses.border
+    )}>
       <div className="text-center">
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-          {isLastMinutes ? 'OSTATNIE MINUTY!' : 'Do końca aukcji:'}
+          {colorClasses.label}
         </p>
         
         <div className="flex justify-center space-x-2 text-2xl font-mono font-bold">
           {timeLeft.days > 0 && (
             <>
               <div className="flex flex-col items-center">
-                <span className={isLastMinutes ? 'text-red-600 dark:text-red-400' : 'text-brand'}>
+                <span className={colorClasses.text}>
                   {formatTime(timeLeft.days)}
                 </span>
                 <span className="text-xs text-gray-500">dni</span>
@@ -112,7 +152,7 @@ export default function AuctionTimer({
           )}
           
           <div className="flex flex-col items-center">
-            <span className={isLastMinutes ? 'text-red-600 dark:text-red-400' : 'text-primary'}>
+            <span className={colorClasses.text}>
               {formatTime(timeLeft.hours)}
             </span>
             <span className="text-xs text-gray-500">godz</span>
@@ -120,18 +160,29 @@ export default function AuctionTimer({
           <span className="self-start mt-1">:</span>
           
           <div className="flex flex-col items-center">
-            <span className={isLastMinutes ? 'text-red-600 dark:text-red-400' : 'text-primary'}>
+            <span className={colorClasses.text}>
               {formatTime(timeLeft.minutes)}
             </span>
             <span className="text-xs text-gray-500">min</span>
           </div>
           <span className="self-start mt-1">:</span>
           
-          <div className="flex flex-col items-center">
-            <span className={isLastMinutes ? 'text-red-600 dark:text-red-400' : 'text-primary'}>
+          <div className="flex flex-col items-center relative overflow-hidden h-8">
+            <span className={clsx(
+              colorClasses.text,
+              "transition-transform duration-500",
+              { 'translate-y-full': isFlipping }
+            )}>
+              {formatTime(prevSeconds)}
+            </span>
+            <span className={clsx(
+              colorClasses.text,
+              "absolute top-0 transition-transform duration-500",
+              { '-translate-y-full': !isFlipping }
+            )}>
               {formatTime(timeLeft.seconds)}
             </span>
-            <span className="text-xs text-gray-500">sek</span>
+            <span className="text-xs text-gray-500 mt-8">sek</span>
           </div>
         </div>
         

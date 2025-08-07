@@ -9,18 +9,26 @@ import {
 import { 
   withOptionalAuth, 
   createErrorResponse,
-  createSuccessResponse
+  createSuccessResponse,
+  withAuth
 } from "@/lib/auth-middleware"
 import type { Database } from "@/lib/database.types"
+import { z } from "zod"
 
-type BidWithProfile = Database['public']['Tables']['bids']['Row'] & {
+type BidWithProfile = {
+  id: string;
+  amount: number;
+  is_auto_bid: boolean | null;
+  status: "active" | "outbid" | "winning" | "won";
+  placed_at: string;
+  user_id: string;
   profiles: {
-    full_name: string | null
-    avatar_url: string | null
-    is_dealer: boolean
-    dealer_name: string | null
-  } | null
-}
+    full_name: string | null;
+    avatar_url: string | null;
+    is_dealer: boolean;
+    dealer_name: string | null;
+  } | null;
+};
 
 type AuctionWithDetails = Database['public']['Tables']['listings']['Row'] & {
   profiles: {
@@ -55,7 +63,19 @@ type AuctionWithDetails = Database['public']['Tables']['listings']['Row'] & {
     payment_received: boolean
     pickup_arranged: boolean
   }[]
-  bids: BidWithProfile[]
+  bids: BidWithProfile[],
+  auction_edits: Database['public']['Tables']['auction_edits']['Row'][],
+  auction_questions: {
+    id: number
+    question: string
+    answer: string | null
+    created_at: string
+    answered_at: string | null
+    profiles: {
+      full_name: string | null
+      avatar_url: string | null
+    } | null
+  }[]
 }
 
 /**
@@ -118,7 +138,7 @@ export async function GET(
             name_pl,
             slug
           ),
-          auctions!inner (
+          auctions (
             id,
             starting_price,
             reserve_met,
@@ -231,6 +251,41 @@ export async function GET(
         isWatched = !!watchData
       }
 
+      // Get edit history
+      const { data: edits, error: editsError } = await supabase
+        .from('auction_edits')
+        .select('*')
+        .eq('listing_id', auction.id)
+        .order('edited_at', { ascending: false })
+
+      if (editsError) {
+        console.error('Error fetching edit history:', editsError)
+        // Non-critical, so we don't fail the request
+      }
+
+      // Get public questions and answers
+      const { data: questions, error: questionsError } = await supabase
+        .from('auction_questions')
+        .select(`
+          id,
+          question,
+          answer,
+          created_at,
+          answered_at,
+          profiles (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('auction_id', auctionId)
+        .eq('is_public', true)
+        .order('created_at', { ascending: true });
+
+      if (questionsError) {
+        console.error('Error fetching auction questions:', questionsError);
+        // Non-critical, so we don't fail the request
+      }
+
       // Prepare response data
       const responseData = {
         id: auctionDetails.id,
@@ -321,6 +376,8 @@ export async function GET(
         
         // Bid history
         bids: processedBids,
+        edit_history: edits || [],
+        questions: questions || [],
         
         // Commission information (for transparency)
         commission_rate: 0.05,
@@ -335,4 +392,113 @@ export async function GET(
       return createErrorResponse('Internal server error', 500)
     }
   })
+}
+
+const auctionUpdateSchema = z.object({
+  description: z.string().min(10, "Description must be at least 10 characters long.").optional(),
+  // Add other editable fields here in the future
+  // title: z.string().min(5).optional(),
+});
+
+/**
+ * PATCH /api/auctions/[id]
+ * Update auction details.
+ * Only the owner of the auction can update it.
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return withAuth(request, async (req, { user, profile }) => {
+    try {
+      const auctionId = params.id;
+
+      if (!auctionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(auctionId)) {
+        return createErrorResponse('Invalid auction ID format', 400);
+      }
+
+      const body = await request.json();
+      const validation = auctionUpdateSchema.safeParse(body);
+
+      if (!validation.success) {
+        return createErrorResponse('Invalid input data', 400, validation.error.format());
+      }
+
+      const supabase = await createServerComponentClient(req);
+
+      // Get the listing_id from the auction id
+      const { data: auctionData, error: auctionError } = await supabase
+        .from('auctions')
+        .select('listing_id')
+        .eq('id', auctionId)
+        .single();
+
+      if (auctionError || !auctionData) {
+        return createErrorResponse('Auction not found', 404);
+      }
+
+      const listingId = auctionData.listing_id;
+
+      // Get the current listing to check ownership and get old values
+      const { data: currentListing, error: listingError } = await supabase
+        .from('listings')
+        .select('user_id, description')
+        .eq('id', listingId)
+        .single();
+
+      if (listingError || !currentListing) {
+        return createErrorResponse('Listing not found', 404);
+      }
+
+      // Check if the user is the owner of the listing
+      if (currentListing.user_id !== user.id) {
+        return createErrorResponse('You are not authorized to edit this auction', 403);
+      }
+
+      const { description } = validation.data;
+      const editsToInsert = [];
+
+      // Compare description and create an edit record if it has changed
+      if (description && description !== currentListing.description) {
+        editsToInsert.push({
+          listing_id: listingId,
+          user_id: user.id,
+          field_name: 'description',
+          old_value: currentListing.description,
+          new_value: description,
+        });
+      }
+
+      // If there are changes, insert them into the auction_edits table
+      if (editsToInsert.length > 0) {
+        const { error: editsError } = await supabase
+          .from('auction_edits')
+          .insert(editsToInsert);
+
+        if (editsError) {
+          console.error('Error saving edit history:', editsError);
+          return createErrorResponse('Could not save edit history', 500);
+        }
+      }
+
+      // Update the listing with the new data
+      const { data: updatedListing, error: updateError } = await supabase
+        .from('listings')
+        .update({ description, updated_at: new Date().toISOString() })
+        .eq('id', listingId)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating listing:', updateError);
+        return createErrorResponse('Could not update auction', 500);
+      }
+
+      return createSuccessResponse(updatedListing, 200);
+
+    } catch (error) {
+      console.error('Unexpected error in PATCH /api/auctions/[id]:', error);
+      return createErrorResponse('Internal server error', 500);
+    }
+  });
 }

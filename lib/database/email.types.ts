@@ -276,6 +276,8 @@ export type EmailNotificationType =
   | 'auction_won'
   | 'auction_lost'
   | 'auction_extended'
+  | 'new_question_posted'
+  | 'question_answered'
   | 'watchlist_update'
   | 'watchlist_ending'
   | 'account_welcome'
@@ -357,6 +359,13 @@ export interface EmailTemplateVariables {
   }
   userBid?: {
     amount: number
+  }
+  question?: {
+    id: number
+    text: string
+    answer?: string
+    author?: string
+    url: string
   }
   // Common variables
   websiteUrl?: string

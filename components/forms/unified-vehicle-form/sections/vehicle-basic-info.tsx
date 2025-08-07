@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Car, Bike, Truck, Wand2 } from "lucide-react"
+import { Car, Bike, Truck, Wand2, Lightbulb } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { VEHICLE_CATEGORIES, VEHICLE_MODELS } from "@/lib/constants"
 import type { UnifiedVehicleFormValues } from "@/lib/schemas/unified-vehicle-schema"
@@ -231,6 +232,13 @@ export function VehicleBasicInfo() {
             </FormItem>
           )}
         />
+       <Alert>
+         <Lightbulb className="h-4 w-4" />
+         <AlertTitle>Stwórz wyczerpujący opis</AlertTitle>
+         <AlertDescription>
+           Im więcej szczegółów, tym lepiej! Podaj informacje o historii serwisowej, ewentualnych usterkach, unikalnych cechach czy przeprowadzonych modyfikacjach. To buduje zaufanie.
+         </AlertDescription>
+       </Alert>
       </CardContent>
     </Card>
   )

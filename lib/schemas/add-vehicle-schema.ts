@@ -71,6 +71,10 @@ const baseSchema = z.object({
   transportOptions: z.array(z.string()).optional(),
   warranty: z.boolean().default(false),
   warrantyMonths: z.coerce.number().optional(),
+
+  // Weryfikacja
+  requestVerification: z.boolean().default(false),
+  promotion_requested: z.boolean().default(false),
 })
 
 const carSchema = baseSchema.extend({

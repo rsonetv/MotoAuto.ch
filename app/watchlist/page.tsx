@@ -1,15 +1,13 @@
-import { Metadata } from "next"
-import { WatchlistDashboard } from "@/components/favorites"
+import WatchlistClient from '@/components/watchlist/watchlist-client';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: "My Watchlist | MotoAuto.ch",
-  description: "Manage your favorite listings and auctions on MotoAuto.ch",
-}
+export default async function WatchlistPage() {
+  const t = await getTranslations('Watchlist');
 
-export default function WatchlistPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <WatchlistDashboard />
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">{t('title')}</h1>
+      <WatchlistClient />
     </div>
-  )
+  );
 }

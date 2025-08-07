@@ -63,35 +63,36 @@ export default function AuctionPage({
   const [currentBid, setCurrentBid] = useState(auction.current_bid);
   const [auctionEndTime, setAuctionEndTime] = useState(auction.ends_at);
 
-  const handleNewBid = async (amount: number) => {
-    // Symulacja API call
-    console.log(`Składanie oferty: ${amount} ${auction.currency || 'CHF'}`);
-    
-    // W rzeczywistej aplikacji tutaj byłby request do API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Aktualizacja stanu po udanej ofercie
-    const newBid = {
-      id: `bid-${Date.now()}`,
-      amount,
-      bidder: {
-        id: 'current-user',
-        username: 'TwojaOferta',
-        avatar: undefined
+  const handleNewBid = async (amount: number, isAutoBid: boolean, maxBid?: number) => {
+    console.log(`Submitting bid:`, { amount, isAutoBid, maxBid });
+
+    const response = await fetch('/api/bids', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      timestamp: new Date().toISOString(),
-      isWinning: true,
-      isRetracted: false
-    };
+      body: JSON.stringify({
+        listing_id: auction.id,
+        auction_id: auctionId,
+        amount,
+        is_auto_bid: isAutoBid,
+        max_bid: maxBid,
+      }),
+    });
 
-    // Oznacz poprzednie oferty jako nie wygrywające
-    const updatedBids = currentBids.map(bid => ({
-      ...bid,
-      isWinning: false
-    }));
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to place bid');
+    }
 
-    setCurrentBids([newBid, ...updatedBids]);
-    setCurrentBid(amount);
+    const result = await response.json();
+    
+    // The WebSocket event should ideally update the UI, but for now, we can do a simple refresh
+    // or update state based on the response.
+    console.log('Bid placed successfully', result);
+    // This part would be replaced by WebSocket updates
+    setCurrentBid(result.auction_updated.current_bid);
+    // You might want to refetch bids here or handle it via WebSocket
   };
 
   const handleTimeExtended = (newEndTime: string) => {

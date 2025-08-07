@@ -1,4 +1,4 @@
-import { ContactMessage, ContactResponse, Listing, Profile } from "@/lib/database.types"
+import { ContactMessage, ContactResponse, Listing, Profile } from "@/types/database.types"
 import { EmailTemplateInput } from "@/lib/schemas/contact-api-schema"
 
 // Email configuration
@@ -81,6 +81,42 @@ const EMAIL_TEMPLATES = {
     en: {
       subject: 'New Contact Request - MotoAuto.ch Admin',
       template: 'admin-notification-en'
+    }
+  },
+  auction_ended_winner: {
+    de: {
+      subject: 'Herzlichen Glückwunsch! Sie haben eine Auktion gewonnen - MotoAuto.ch',
+      template: 'auction-ended-winner-de'
+    },
+    fr: {
+      subject: 'Félicitations ! Vous avez remporté une enchère - MotoAuto.ch',
+      template: 'auction-ended-winner-fr'
+    },
+    pl: {
+      subject: 'Gratulacje! Wygrałeś aukcję - MotoAuto.ch',
+      template: 'auction-ended-winner-pl'
+    },
+    en: {
+      subject: 'Congratulations! You have won an auction - MotoAuto.ch',
+      template: 'auction-ended-winner-en'
+    }
+  },
+  auction_ended_seller: {
+    de: {
+      subject: 'Ihr Fahrzeug wurde erfolgreich verkauft! - MotoAuto.ch',
+      template: 'auction-ended-seller-de'
+    },
+    fr: {
+      subject: 'Votre véhicule a été vendu avec succès ! - MotoAuto.ch',
+      template: 'auction-ended-seller-fr'
+    },
+    pl: {
+      subject: 'Twój pojazd został pomyślnie sprzedany! - MotoAuto.ch',
+      template: 'auction-ended-seller-pl'
+    },
+    en: {
+      subject: 'Your vehicle has been successfully sold! - MotoAuto.ch',
+      template: 'auction-ended-seller-en'
     }
   }
 }
@@ -338,6 +374,88 @@ export async function sendContactResponse(
 }
 
 /**
+ * Send email to auction winner
+ */
+export async function sendAuctionEndedWinnerEmail(
+  winner: Profile,
+  seller: Profile,
+  listing: Listing
+): Promise<EmailResult> {
+  const language = winner.preferred_language as keyof typeof EMAIL_TEMPLATES.auction_ended_winner
+  const template = EMAIL_TEMPLATES.auction_ended_winner[language] || EMAIL_TEMPLATES.auction_ended_winner.pl
+
+  const variables = {
+    winnerName: winner.full_name || winner.email,
+    listing: {
+      title: listing.title,
+      brand: listing.brand,
+      model: listing.model,
+      year: listing.year,
+      price: listing.current_bid,
+      currency: listing.currency,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/ogloszenia/${listing.id}`
+    },
+    seller: {
+      name: seller.full_name,
+      email: seller.email,
+      phone: seller.phone
+    },
+    websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
+  }
+
+  const html = await renderEmailTemplate(template.template, variables)
+  const text = generateTextFromHtml(html)
+
+  return sendEmail({
+    to: winner.email,
+    subject: template.subject,
+    html,
+    text
+  })
+}
+
+/**
+ * Send email to seller after successful auction
+ */
+export async function sendAuctionEndedSellerEmail(
+  seller: Profile,
+  winner: Profile,
+  listing: Listing
+): Promise<EmailResult> {
+  const language = seller.preferred_language as keyof typeof EMAIL_TEMPLATES.auction_ended_seller
+  const template = EMAIL_TEMPLATES.auction_ended_seller[language] || EMAIL_TEMPLATES.auction_ended_seller.pl
+
+  const variables = {
+    sellerName: seller.full_name || seller.email,
+    listing: {
+      title: listing.title,
+      brand: listing.brand,
+      model: listing.model,
+      year: listing.year,
+      price: listing.current_bid,
+      currency: listing.currency,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/ogloszenia/${listing.id}`
+    },
+    winner: {
+      name: winner.full_name,
+      email: winner.email,
+      phone: winner.phone
+    },
+    websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
+  }
+
+  const html = await renderEmailTemplate(template.template, variables)
+  const text = generateTextFromHtml(html)
+
+  return sendEmail({
+    to: seller.email,
+    subject: template.subject,
+    html,
+    text
+  })
+}
+
+/**
  * Render email template with variables
  */
 async function renderEmailTemplate(templateName: string, variables: Record<string, any>): Promise<string> {
@@ -445,6 +563,48 @@ async function renderEmailTemplate(templateName: string, variables: Record<strin
         <a href="${variables.adminUrl}" class="button">Manage in Admin</a>
       `
       break
+
+   case 'auction-ended-winner-pl':
+     content = `
+       <h2>Gratulacje, wygrałeś aukcję!</h2>
+       <p>Drogi ${variables.winnerName},</p>
+       <p>Z przyjemnością informujemy, że wygrałeś aukcję na pojazd:</p>
+       <div class="listing-info">
+         <h3>Pojazd:</h3>
+         <p><strong>${variables.listing.brand} ${variables.listing.model}</strong></p>
+         <p>Rok: ${variables.listing.year} | Zwycięska oferta: ${variables.listing.price} ${variables.listing.currency}</p>
+         <a href="${variables.listing.url}" class="button">Zobacz ogłoszenie</a>
+       </div>
+       <div class="listing-info">
+         <h3>Dane kontaktowe sprzedawcy:</h3>
+         <p><strong>Imię:</strong> ${variables.seller.name}</p>
+         <p><strong>Email:</strong> ${variables.seller.email}</p>
+         ${variables.seller.phone ? `<p><strong>Telefon:</strong> ${variables.seller.phone}</p>` : ''}
+       </div>
+       <p>Prosimy o kontakt ze sprzedawcą w celu sfinalizowania transakcji.</p>
+     `
+     break
+
+   case 'auction-ended-seller-pl':
+     content = `
+       <h2>Twój pojazd został sprzedany!</h2>
+       <p>Drogi ${variables.sellerName},</p>
+       <p>Gratulacje! Twój pojazd został pomyślnie sprzedany na aukcji:</p>
+       <div class="listing-info">
+         <h3>Pojazd:</h3>
+         <p><strong>${variables.listing.brand} ${variables.listing.model}</strong></p>
+         <p>Rok: ${variables.listing.year} | Zwycięska oferta: ${variables.listing.price} ${variables.listing.currency}</p>
+         <a href="${variables.listing.url}" class="button">Zobacz ogłoszenie</a>
+       </div>
+       <div class="listing-info">
+         <h3>Dane kontaktowe kupującego:</h3>
+         <p><strong>Imię:</strong> ${variables.winner.name}</p>
+         <p><strong>Email:</strong> ${variables.winner.email}</p>
+         ${variables.winner.phone ? `<p><strong>Telefon:</strong> ${variables.winner.phone}</p>` : ''}
+       </div>
+       <p>Kupujący został poinstruowany, aby się z Tobą skontaktować. Możesz również nawiązać kontakt, aby przyspieszyć transakcję.</p>
+     `
+     break
       
     default:
       content = `

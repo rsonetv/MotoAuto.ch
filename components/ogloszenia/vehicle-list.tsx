@@ -46,6 +46,7 @@ export type Listing = Database['public']['Tables']['listings']['Row'] & {
   views_count?: number;
   favorites_count?: number;
   is_premium?: boolean;
+  is_featured?: boolean;
   fuel_type?: string;
   transmission?: string;
   body_type?: string;
@@ -191,8 +192,8 @@ function VehicleCard({ listing, onFavoriteToggle }: VehicleCardProps) {
   }
 
   return (
-    <Card className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-      <div onClick={handleCardClick}>
+    <Card className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${listing.is_featured ? 'border-2 border-yellow-500' : ''}`}>
+      <div onClick={handleCardClick} className="relative">
         {/* Image Section */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
           <Image
@@ -204,8 +205,14 @@ function VehicleCard({ listing, onFavoriteToggle }: VehicleCardProps) {
           
           {/* Overlay Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {listing.is_featured && (
+              <Badge className="bg-yellow-400 text-black">
+                <Star className="mr-1 h-3 w-3" />
+                Promowana
+              </Badge>
+            )}
             {listing.is_premium && (
-              <Badge className="bg-yellow-500 text-white">
+              <Badge className="bg-blue-500 text-white">
                 <Star className="mr-1 h-3 w-3" />
                 Premium
               </Badge>

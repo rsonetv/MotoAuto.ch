@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
           bid_count,
           views,
           status,
+          is_featured,
           created_at,
           updated_at,
           profiles:user_id (
@@ -242,6 +243,9 @@ export async function GET(request: NextRequest) {
       const sortColumn = query.sort_by
       const sortOrder = query.sort_order === 'asc' ? { ascending: true } : { ascending: false }
       
+      // Always sort by featured first
+      dbQuery = dbQuery.order('is_featured', { ascending: false })
+
       if (sortColumn === 'auction_end_time') {
         // Special handling for auction end time - nulls last
         dbQuery = dbQuery.order('auction_end_time', { ...sortOrder, nullsFirst: false })
@@ -389,6 +393,7 @@ export async function POST(request: NextRequest) {
         views: 0,
         favorites_count: 0,
         contact_count: 0,
+        promotion_requested: listingData.promotion_requested || false,
         created_at: now,
         updated_at: now,
         // Set auction end time if it's an auction

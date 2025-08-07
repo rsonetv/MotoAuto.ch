@@ -6,6 +6,7 @@ import { Toaster } from "sonner"
 import { QueryProvider } from "@/lib/providers/query-provider"
 import { AuthProvider } from "@/lib/providers/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import ComparisonToolbar from "@/components/ui/comparison-toolbar"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -44,6 +45,7 @@ export default function RootLayout({
             <AuthProvider>
               {children}
               <Toaster position="top-right" />
+              <ComparisonToolbar />
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

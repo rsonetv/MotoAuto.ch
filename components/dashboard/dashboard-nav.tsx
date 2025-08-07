@@ -40,6 +40,18 @@ export function DashboardNav() {
       badge: "2" // Liczba aktywnych licytacji
     },
     {
+       name: "Wygrane aukcje",
+       href: `/dashboard/won-auctions`,
+       icon: Gavel,
+       current: pathname === `/dashboard/won-auctions`,
+     },
+     {
+       name: "Sprzedane pojazdy",
+       href: `/dashboard/sold-vehicles`,
+       icon: Car,
+       current: pathname === `/dashboard/sold-vehicles`,
+     },
+    {
       name: "Pakiety",
       href: `/dashboard/packages`,
       icon: Package,

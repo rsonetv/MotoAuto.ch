@@ -569,3 +569,344 @@ export async function scheduleAuctionEndingNotifications(): Promise<void> {
     console.error('Failed to schedule auction ending notifications:', error)
   }
 }
+
+/**
+ * Send new question notification to the seller
+ */
+export async function sendNewQuestionNotification(
+  auctionId: number,
+  questionId: number
+): Promise<void> {
+  try {
+    // Get auction, listing, and question details
+    const { data: question, error: questionError } = await supabaseAdmin
+      .from('auction_questions')
+      .select(`
+        *,
+        auctions (
+          id,
+          user_id,
+          listings (
+            id, title, brand, model, year, currency, images
+          )
+        ),
+        profiles (
+          full_name,
+          email
+        )
+      `)
+      .eq('id', questionId)
+      .single();
+
+    if (questionError || !question) {
+      console.error('Failed to get question details:', questionError);
+      return;
+    }
+
+    const auction = question.auctions;
+    if (!auction) {
+      console.error('No auction found for question:', questionId);
+      return;
+    }
+
+    const listing = auction.listings;
+    if (!listing) {
+      console.error('No listing found for auction:', auction.id);
+      return;
+    }
+    
+    const questioner = question.profiles;
+
+    // Prepare template variables
+    const templateVariables: EmailTemplateVariables = {
+      user: {
+        id: auction.user_id, // Seller's ID
+        name: '', // Will be filled by email service
+        email: '', // Will be filled by email service
+        language: 'de' // Default, will be overridden
+      },
+      listing: {
+        id: listing.id,
+        title: listing.title,
+        brand: listing.brand,
+        model: listing.model,
+        year: listing.year || 0,
+        currency: listing.currency,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
+        images: listing.images || []
+      },
+      auction: {
+        id: auction.id.toString(),
+      },
+      question: {
+        id: question.id,
+        text: question.question,
+        author: questioner?.full_name || 'Użytkownik',
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}#question-${question.id}`
+      }
+    };
+
+    // Send notification
+    await sendNotificationEmail(
+      auction.user_id,
+      'new_question_posted',
+      templateVariables,
+      { priority: 6 }
+    );
+
+    console.log(`✅ New question notification sent to seller ${auction.user_id} for auction ${auction.id}`);
+
+  } catch (error) {
+    console.error('Failed to send new question notification:', error);
+  }
+}
+
+/**
+ * Send notification to user when their question is answered
+ */
+export async function sendQuestionAnsweredNotification(
+  questionId: number
+): Promise<void> {
+  try {
+    // Get question, answer, and user details
+    const { data: question, error: questionError } = await supabaseAdmin
+      .from('auction_questions')
+      .select(`
+        *,
+        auctions (
+          id,
+          listings (
+            id, title, brand, model, year, currency, images
+          )
+        )
+      `)
+      .eq('id', questionId)
+      .single();
+
+    if (questionError || !question) {
+      console.error('Failed to get question details for answer notification:', questionError);
+      return;
+    }
+
+    const auction = question.auctions;
+    if (!auction) {
+      console.error('No auction found for question:', questionId);
+      return;
+    }
+
+    const listing = auction.listings;
+    if (!listing) {
+      console.error('No listing found for auction:', auction.id);
+      return;
+    }
+
+    // Prepare template variables
+    const templateVariables: EmailTemplateVariables = {
+      user: {
+        id: question.user_id, // Questioner's ID
+        name: '', // Will be filled by email service
+        email: '', // Will be filled by email service
+        language: 'de' // Default, will be overridden
+      },
+      listing: {
+        id: listing.id,
+        title: listing.title,
+        brand: listing.brand,
+        model: listing.model,
+        year: listing.year || 0,
+        currency: listing.currency,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
+        images: listing.images || []
+      },
+      auction: {
+        id: auction.id.toString(),
+      },
+      question: {
+        id: question.id,
+        text: question.question,
+        answer: question.answer || '',
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}#question-${question.id}`
+      }
+    };
+
+    // Send notification
+    await sendNotificationEmail(
+      question.user_id,
+      'question_answered',
+      templateVariables,
+      { priority: 6 }
+    );
+
+    console.log(`✅ Question answered notification sent to user ${question.user_id} for question ${question.id}`);
+
+  } catch (error) {
+    console.error('Failed to send question answered notification:', error);
+  }
+}
+/**
+ * Send notification to seller when auction ends with reserve not met
+ */
+export async function sendAuctionReserveNotMetEmail(
+  sellerId: string,
+  auctionId: string
+): Promise<void> {
+  try {
+    // Get auction and listing details
+    const { data: auction, error: auctionError } = await supabaseAdmin
+      .from('auctions')
+      .select(`
+        *,
+        listings (
+          id, title, brand, model, year, mileage, currency,
+          fuel_type, images, user_id, current_bid, reserve_price
+        )
+      `)
+      .eq('id', auctionId)
+      .single()
+
+    if (auctionError || !auction) {
+      console.error('Failed to get auction details:', auctionError)
+      return
+    }
+
+    const listing = auction.listings
+    if (!listing) {
+      console.error('No listing found for auction:', auctionId)
+      return
+    }
+
+    // Prepare template variables
+    const templateVariables: EmailTemplateVariables = {
+      user: {
+        id: sellerId,
+        name: '', // Will be filled by email service
+        email: '', // Will be filled by email service
+        language: 'de' // Default, will be overridden by user preferences
+      },
+      listing: {
+        id: listing.id,
+        title: listing.title,
+        brand: listing.brand,
+        model: listing.model,
+        year: listing.year || 0,
+        mileage: listing.mileage || 0,
+        currency: listing.currency,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
+        images: listing.images || []
+      },
+      auction: {
+        id: auctionId,
+        currentBid: listing.current_bid || 0,
+        reservePrice: listing.reserve_price || 0,
+        decisionDeadline: auction.decision_deadline || new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      },
+      dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/listings`
+    }
+
+    // Send notification
+    await sendNotificationEmail(
+      sellerId,
+      'auction_reserve_not_met',
+      templateVariables,
+      { priority: 8 } // High priority for decision required
+    )
+
+    console.log(`✅ Reserve not met notification sent to seller ${sellerId} for auction ${auctionId}`)
+
+  } catch (error) {
+    console.error('Failed to send reserve not met notification:', error)
+  }
+}
+/**
+ * Send notification to bidders when an auction is relisted
+ */
+export async function sendAuctionRelistedEmail(
+  auctionId: string
+): Promise<void> {
+  try {
+    // Get auction and listing details
+    const { data: auction, error: auctionError } = await supabaseAdmin
+      .from('auctions')
+      .select(`
+        *,
+        listings (
+          id, title, brand, model, year, mileage, currency,
+          fuel_type, images, user_id
+        )
+      `)
+      .eq('id', auctionId)
+      .single()
+
+    if (auctionError || !auction) {
+      console.error('Failed to get auction details:', auctionError)
+      return
+    }
+
+    const listing = auction.listings
+    if (!listing) {
+      console.error('No listing found for auction:', auctionId)
+      return
+    }
+
+    // Get all unique bidders for this auction
+    const { data: bidders, error: biddersError } = await supabaseAdmin
+      .from('bids')
+      .select('user_id')
+      .eq('auction_id', auctionId)
+      .neq('user_id', listing.user_id) // Don't notify the seller
+
+    if (biddersError) {
+      console.error('Failed to get bidders:', biddersError)
+      return
+    }
+
+    const uniqueBidders = [...new Set(bidders?.map(b => b.user_id) || [])]
+
+    // Prepare base template variables
+    const baseTemplateVariables = {
+      listing: {
+        id: listing.id,
+        title: listing.title,
+        brand: listing.brand,
+        model: listing.model,
+        year: listing.year || 0,
+        mileage: listing.mileage || 0,
+        currency: listing.currency,
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/aukcje/${listing.id}`,
+        images: listing.images || []
+      },
+      auction: {
+        id: auctionId,
+        endTime: auction.ended_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      websiteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://motoauto.ch'
+    }
+
+    // Send notifications to all bidders
+    const notificationPromises = uniqueBidders.map(async (userId) => {
+      const templateVariables: EmailTemplateVariables = {
+        ...baseTemplateVariables,
+        user: {
+          id: userId,
+          name: '', // Will be filled by email service
+          email: '', // Will be filled by email service
+          language: 'de' // Default, will be overridden by user preferences
+        }
+      }
+
+      return sendNotificationEmail(
+        userId,
+        'auction_relisted',
+        templateVariables,
+        { priority: 5 }
+      )
+    })
+
+    await Promise.all(notificationPromises)
+
+    console.log(`✅ Auction relisted notifications sent to ${uniqueBidders.length} users for auction ${auctionId}`)
+
+  } catch (error) {
+    console.error('Failed to send auction relisted notifications:', error)
+  }
+}

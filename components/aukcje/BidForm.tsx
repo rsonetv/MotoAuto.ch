@@ -12,7 +12,7 @@ interface BidFormProps {
   reserveMet: boolean;
   currency?: string;
   isLoggedIn: boolean;
-  onSubmit: (amount: number) => Promise<void>;
+  onSubmit: (amount: number, isAutoBid: boolean, maxBid?: number) => Promise<void>;
   onLoginRequired?: () => void;
 }
 
@@ -29,6 +29,9 @@ export default function BidForm({
   const [bidAmount, setBidAmount] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>('');
+  const [isAutoBid, setIsAutoBid] = useState(false);
+  const [maxBid, setMaxBid] = useState<string>('');
+
 
   const minBidAmount = currentBid + minIncrement;
   const maxBidAmount = 999999; // Maksymalna kwota oferty
@@ -42,6 +45,7 @@ export default function BidForm({
     }
 
     const amount = parseFloat(bidAmount);
+    const maxBidAmountValue = isAutoBid ? parseFloat(maxBid) : undefined;
     setError('');
 
     // Walidacja kwoty
@@ -60,10 +64,23 @@ export default function BidForm({
       return;
     }
 
+    if (isAutoBid) {
+      if (!maxBidAmountValue || isNaN(maxBidAmountValue)) {
+        setError('Podaj prawidłową maksymalną kwotę');
+        return;
+      }
+      if (maxBidAmountValue < amount) {
+        setError('Maksymalna oferta musi być wyższa lub równa Twojej ofercie.');
+        return;
+      }
+    }
+
     try {
       setIsSubmitting(true);
-      await onSubmit(amount);
-      setBidAmount(''); // Wyczyść formularz po udanej ofercie
+      await onSubmit(amount, isAutoBid, maxBidAmountValue);
+      setBidAmount('');
+      setMaxBid('');
+      setIsAutoBid(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Wystąpił błąd podczas składania oferty');
     } finally {
@@ -131,6 +148,41 @@ export default function BidForm({
             </div>
           </div>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="auto-bid-switch"
+            checked={isAutoBid}
+            onChange={(e) => setIsAutoBid(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <label htmlFor="auto-bid-switch" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Licytuj inteligentnie (Proxy Bidding)
+          </label>
+        </div>
+
+        {isAutoBid && (
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              System automatycznie będzie przebijał oferty innych za Ciebie, do podanej niżej maksymalnej kwoty.
+            </p>
+            <div className="relative">
+              <Input
+                type="number"
+                value={maxBid}
+                onChange={(e) => setMaxBid(e.target.value)}
+                placeholder="Twoja maksymalna oferta"
+                min={minBidAmount}
+                disabled={isSubmitting || !isLoggedIn}
+                className="pr-16"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 text-sm">{currency}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Szybkie oferty */}
         <div className="grid grid-cols-3 gap-2">

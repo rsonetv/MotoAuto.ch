@@ -46,10 +46,11 @@ import {
 } from "lucide-react"
 import { createClientComponentClient } from "@/lib/supabase"
 import type { Database } from "@/lib/database.types"
-
-type Listing = Database['public']['Tables']['listings']['Row']
-
-export function UserListings() {
+import { DecisionInterface } from "./decision-interface"
+ 
+ type Listing = Database['public']['Tables']['listings']['Row']
+ 
+ export function UserListings() {
   const router = useRouter()
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
@@ -60,7 +61,8 @@ export function UserListings() {
     active: 0,
     expired: 0,
     sold: 0,
-    draft: 0
+    draft: 0,
+    decision: 0
   })
   
   useEffect(() => {
@@ -89,7 +91,8 @@ export function UserListings() {
         supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'active'),
         supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'expired'),
         supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'sold'),
-        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'draft')
+        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'draft'),
+        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'ENDED_RESERVE_NOT_MET')
       ])
       
       setStats({
@@ -97,7 +100,8 @@ export function UserListings() {
         active: statusCounts[0].count || 0,
         expired: statusCounts[1].count || 0,
         sold: statusCounts[2].count || 0,
-        draft: statusCounts[3].count || 0
+        draft: statusCounts[3].count || 0,
+        decision: statusCounts[4].count || 0
       })
       
       // Filter by status if needed
@@ -176,6 +180,27 @@ export function UserListings() {
     }
   }
   
+  const handleAction = async (action: string, listingId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/auctions/${listingId}/${action}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action}`);
+      }
+
+      // Refresh listings
+      fetchListings();
+    } catch (err: any) {
+      console.error(`Error performing action ${action}:`, err);
+      alert(`Nie udało się wykonać akcji. Spróbuj ponownie.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -188,6 +213,8 @@ export function UserListings() {
         return <Badge variant="outline" className="flex items-center gap-1"><Clock className="h-3 w-3" /> Szkic</Badge>
       case 'suspended':
         return <Badge variant="outline" className="flex items-center gap-1 bg-red-50 text-red-700 hover:bg-red-50"><XCircle className="h-3 w-3" /> Zawieszone</Badge>
+      case 'ENDED_RESERVE_NOT_MET':
+        return <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 text-yellow-700 hover:bg-yellow-50"><Clock className="h-3 w-3" /> Wymaga decyzji</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -215,17 +242,23 @@ export function UserListings() {
         <Button onClick={() => router.push('/ogloszenia/dodaj')}>Dodaj ogłoszenie</Button>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => setActiveTab('all')}>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-muted-foreground text-sm">Wszystkie ogłoszenia</div>
+            <div className="text-muted-foreground text-sm">Wszystkie</div>
           </CardContent>
         </Card>
         <Card className="bg-green-50 hover:bg-green-100 transition-colors cursor-pointer" onClick={() => setActiveTab('active')}>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-700">{stats.active}</div>
             <div className="text-green-700/70 text-sm">Aktywne</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-50 hover:bg-yellow-100 transition-colors cursor-pointer" onClick={() => setActiveTab('ENDED_RESERVE_NOT_MET')}>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-yellow-700">{stats.decision}</div>
+            <div className="text-yellow-700/70 text-sm">Wymaga decyzji</div>
           </CardContent>
         </Card>
         <Card className="bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer" onClick={() => setActiveTab('expired')}>
@@ -250,10 +283,11 @@ export function UserListings() {
       
       <div>
         <h3 className="text-lg font-medium mb-4">
-          {activeTab === 'all' ? 'Wszystkie ogłoszenia' : 
+          {activeTab === 'all' ? 'Wszystkie ogłoszenia' :
            activeTab === 'active' ? 'Aktywne ogłoszenia' :
            activeTab === 'expired' ? 'Wygasłe ogłoszenia' :
-           activeTab === 'sold' ? 'Sprzedane ogłoszenia' : 'Szkice ogłoszeń'}
+           activeTab === 'sold' ? 'Sprzedane ogłoszenia' :
+           activeTab === 'ENDED_RESERVE_NOT_MET' ? 'Aukcje wymagające decyzji' : 'Szkice ogłoszeń'}
         </h3>
         
         {loading ? (
@@ -291,92 +325,98 @@ export function UserListings() {
         ) : (
           <div className="space-y-4">
             {listings.map(listing => (
-              <Card key={listing.id} className="overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                  <div className="md:col-span-3 relative">
-                    <div className="aspect-video md:aspect-square relative overflow-hidden">
-                      <Image
-                        src={listing.images && listing.images.length > 0 ? listing.images[0] : '/placeholder.jpg'}
-                        alt={listing.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-9 p-4 pt-0 md:pt-4 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-medium line-clamp-1">{listing.title}</h3>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(listing.status)}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Akcje</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/ogloszenia/${listing.id}`)}>
-                              <Eye className="mr-2 h-4 w-4" /> Podgląd
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/ogloszenia/edytuj/${listing.id}`)}>
-                              <Pencil className="mr-2 h-4 w-4" /> Edytuj
-                            </DropdownMenuItem>
-                            {listing.status === 'expired' && (
-                              <DropdownMenuItem onClick={() => handleExtend(listing.id)}>
-                                <Calendar className="mr-2 h-4 w-4" /> Przedłuż
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleDelete(listing.id)} className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4" /> Usuń
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Car className="h-4 w-4" />
-                        {listing.brand} {listing.model}
-                      </div>
-                      {listing.year && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {listing.year}
+              <div key={listing.id}>
+                {listing.status === 'ENDED_RESERVE_NOT_MET' ? (
+                  <DecisionInterface listing={listing} onAction={handleAction} />
+                ) : (
+                  <Card className="overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <div className="md:col-span-3 relative">
+                        <div className="aspect-video md:aspect-square relative overflow-hidden">
+                          <Image
+                            src={listing.images && listing.images.length > 0 ? listing.images[0] : '/placeholder.jpg'}
+                            alt={listing.title}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        {listing.views || 0} wyświetleń
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MessageSquare className="h-4 w-4" />
-                        {listing.contact_count || 0} kontaktów
+                      <div className="md:col-span-9 p-4 pt-0 md:pt-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-medium line-clamp-1">{listing.title}</h3>
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(listing.status)}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Akcje</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => router.push(`/ogloszenia/${listing.id}`)}>
+                                  <Eye className="mr-2 h-4 w-4" /> Podgląd
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/ogloszenia/edytuj/${listing.id}`)}>
+                                  <Pencil className="mr-2 h-4 w-4" /> Edytuj
+                                </DropdownMenuItem>
+                                {listing.status === 'expired' && (
+                                  <DropdownMenuItem onClick={() => handleExtend(listing.id)}>
+                                    <Calendar className="mr-2 h-4 w-4" /> Przedłuż
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={() => handleDelete(listing.id)} className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" /> Usuń
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Car className="h-4 w-4" />
+                            {listing.brand} {listing.model}
+                          </div>
+                          {listing.year && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {listing.year}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            {listing.views || 0} wyświetleń
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="h-4 w-4" />
+                            {listing.contact_count || 0} kontaktów
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="text-lg font-bold">
+                            {listing.price.toLocaleString()} {listing.currency}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Dodano: {formatDistanceToNow(new Date(listing.created_at), { addSuffix: true, locale: pl })}
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 pt-2">
+                          <Button size="sm" onClick={() => router.push(`/ogloszenia/${listing.id}`)}>
+                            Podgląd
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => router.push(`/ogloszenia/edytuj/${listing.id}`)}>
+                            Edytuj
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="text-lg font-bold">
-                        {listing.price.toLocaleString()} {listing.currency}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Dodano: {formatDistanceToNow(new Date(listing.created_at), { addSuffix: true, locale: pl })}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button size="sm" onClick={() => router.push(`/ogloszenia/${listing.id}`)}>
-                        Podgląd
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/ogloszenia/edytuj/${listing.id}`)}>
-                        Edytuj
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+                  </Card>
+                )}
+              </div>
             ))}
           </div>
         )}

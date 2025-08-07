@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, CalendarIcon } from "lucide-react"
+import { DollarSign, CalendarIcon, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { pl } from "date-fns/locale"
@@ -164,6 +165,45 @@ export function VehiclePricing() {
                         />
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Reserve Price */}
+            <div className="rounded-lg border border-red-500 bg-red-50 p-4">
+              <FormField
+                control={control}
+                name="reservePrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Cena minimalna (opcjonalnie)</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Lock className="h-4 w-4 text-gray-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              Ta cena jest niewidoczna dla kupujących. Gwarantuje, że nie musisz sprzedać pojazdu
+                              poniżej tej wartości.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="np. 30000"
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                        }
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

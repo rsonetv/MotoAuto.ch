@@ -1,15 +1,17 @@
 "use client"
 
-import { useFormContext } from "react-hook-form"
+import { useFormContext, Controller } from "react-hook-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, Clock, DollarSign, Car, FileText, MapPin, Shield } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { CheckCircle, Clock, DollarSign, Car, FileText, MapPin, Shield, ShieldCheck, Star } from "lucide-react"
 import type { AddVehicleFormValues } from "@/lib/schemas/add-vehicle-schema"
 import Image from "next/image"
 
 export function Step5Summary() {
-  const { getValues } = useFormContext<AddVehicleFormValues>()
+  const { getValues, control } = useFormContext<AddVehicleFormValues>()
   const values = getValues()
 
   const renderValue = (value: any) => {
@@ -358,6 +360,84 @@ export function Step5Summary() {
           </div>
         </AlertDescription>
       </Alert>
+
+      {/* Promocja aukcji */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            Promuj swoje ogłoszenie
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <Star className="h-4 w-4 !text-yellow-600" />
+            <AlertDescription>
+              <div className="flex items-start space-x-4">
+                <Controller
+                  name="promotion_requested"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="promotion-requested-checkbox"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="mt-1"
+                    />
+                  )}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="promotion-requested-checkbox" className="font-semibold text-yellow-900">
+                    Chcę promować moją aukcję
+                  </Label>
+                  <p className="text-sm text-yellow-800">
+                    Twoja aukcja będzie wyróżniona na liście i stronie głównej, co znacząco zwiększy jej widoczność. Skontaktujemy się z Tobą w sprawie szczegółów płatności.
+                  </p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+
+      {/* Weryfikacja techniczna */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-blue-600" />
+            Dodatkowa weryfikacja techniczna
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert className="border-blue-200 bg-blue-50">
+            <ShieldCheck className="h-4 w-4 !text-blue-600" />
+            <AlertDescription>
+              <div className="flex items-start space-x-4">
+                <Controller
+                  name="requestVerification"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="request-verification-checkbox"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="mt-1"
+                    />
+                  )}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="request-verification-checkbox" className="font-semibold text-blue-900">
+                    Chcę zamówić płatny raport techniczny od partnera (99 {values.currency})
+                  </Label>
+                  <p className="text-sm text-blue-800">
+                    Zwiększ zaufanie kupujących i przyspiesz sprzedaż. Nasz partner wykona szczegółową inspekcję pojazdu, a raport zostanie dołączony do Twojego ogłoszenia.
+                  </p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
 
       <Alert>
         <CheckCircle className="h-4 w-4" />

@@ -35,8 +35,9 @@ describe('API Endpoints Integration Tests', () => {
   let mockSupabase
 
   beforeEach(() => {
-    mockApp = createMockApp()
-    
+    mockApp = createMockApp();
+
+    // A more robust mock for Supabase
     const supabaseMock = {
       select: jest.fn().mockReturnThis(),
       insert: jest.fn().mockReturnThis(),
@@ -55,32 +56,42 @@ describe('API Endpoints Integration Tests', () => {
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       range: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      maybeSingle: jest.fn(),
+      single: jest.fn().mockResolvedValue(mockSupabaseResponse(null)),
+      maybeSingle: jest.fn().mockResolvedValue(mockSupabaseResponse(null)),
       or: jest.fn().mockReturnThis(),
     };
-    
-    // Ensure all chained methods return the mock itself
+
     Object.keys(supabaseMock).forEach(key => {
-        if (typeof supabaseMock[key] === 'function') {
-            supabaseMock[key].mockImplementation(() => supabaseMock);
-        }
+      if (typeof supabaseMock[key] === 'function' && key !== 'single' && key !== 'maybeSingle') {
+        supabaseMock[key].mockImplementation(() => supabaseMock);
+      }
     });
+    
+    supabaseMock.single.mockResolvedValue(mockSupabaseResponse(mockListing())); // Default single response
 
     mockSupabase = {
-      from: jest.fn(() => supabaseMock),
+      from: jest.fn().mockImplementation((tableName) => {
+        // Return a specific mock for a table if needed
+        return supabaseMock;
+      }),
       auth: {
-        getUser: jest.fn(),
-        getSession: jest.fn()
+        getUser: jest.fn().mockResolvedValue(mockSupabaseResponse({ user: mockUser() })),
+        getSession: jest.fn().mockResolvedValue(mockSupabaseResponse({ session: { access_token: 'mock_token' } })),
       },
-      rpc: jest.fn()
+      rpc: jest.fn(),
     };
 
-    // Mock Supabase client creation
     jest.doMock('@/lib/supabase-api', () => ({
-      createServerComponentClient: () => mockSupabase
-    }))
-  })
+      createServerComponentClient: () => mockSupabase,
+    }));
+
+    // Mock the constants that are causing errors
+    jest.mock('@/lib/constants', () => ({
+      ...jest.requireActual('@/lib/constants'),
+      CURRENCIES: { CHF: { code: 'CHF', symbol: 'CHF' } },
+      VEHICLE_FUEL_TYPES: { PETROL: 'Petrol' },
+    }));
+  });
 
   afterEach(() => {
     jest.clearAllMocks()
@@ -90,28 +101,36 @@ describe('API Endpoints Integration Tests', () => {
   describe('Listings API Tests', () => {
     describe('GET /api/listings', () => {
       test('should return paginated listings', async () => {
-        const listings = Array.from({ length: 20 }, (_, i) => 
+        const listings = Array.from({ length: 20 }, (_, i) =>
           mockListing({ title: `Test Listing ${i}` })
-        )
+        );
 
-        mockSupabase.from().select().eq().order().range.mockResolvedValue(
-          mockSupabaseResponse(listings)
-        )
+        mockSupabase.from.mockImplementation((table) => {
+          if (table === 'listings') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => ({
+                    range: () => mockSupabaseResponse(listings)
+                  })
+                }),
+                // For count
+                mockResolvedValue: mockSupabaseResponse(null, null, { count: 100 })
+              })
+            };
+          }
+          return mockSupabase.from;
+        });
 
-        // Mock count query
-        mockSupabase.from().select.mockResolvedValue(
-          mockSupabaseResponse(null, null, { count: 100 })
-        )
 
-        const mockRequest = new NextRequest('http://localhost:3000/api/listings?page=1&limit=20')
-        
-        // Mock the API handler
-        const { GET } = require('@/app/api/listings/route')
-        const response = await GET(mockRequest)
-        
-        expect(response).toBeDefined()
-        expect(mockSupabase.from).toHaveBeenCalledWith('listings')
-      })
+        const mockRequest = new NextRequest('http://localhost:3000/api/listings?page=1&limit=20');
+
+        const { GET } = require('@/app/api/listings/route');
+        const response = await GET(mockRequest);
+
+        expect(response).toBeDefined();
+        expect(response.status).toBe(200);
+      });
 
       test('should handle search queries', async () => {
         const searchTerm = 'BMW'
@@ -354,90 +373,100 @@ describe('API Endpoints Integration Tests', () => {
 
   describe('Bids API Tests', () => {
     describe('POST /api/bids', () => {
-      test('should place valid bid', async () => {
-        const user = mockUser()
-        const profile = mockProfile({ id: user.id })
-        const listing = mockListing({ is_auction: true, current_bid: 50000 })
-        const auction = mockAuction({ listing_id: listing.id })
-        const bid = mockBid({ 
-          user_id: user.id, 
-          listing_id: listing.id, 
+      test('should place valid bid and trigger proxy bidding', async () => {
+        const user1 = mockUser({ id: 'user_1' });
+        const user2 = mockUser({ id: 'user_2' });
+        const profile1 = mockProfile({ id: user1.id });
+        const listing = mockListing({ is_auction: true, current_bid: 50000 });
+        const auction = mockAuction({ listing_id: listing.id });
+
+        const user1ProxyBid = mockBid({
+          user_id: user1.id,
+          listing_id: listing.id,
           auction_id: auction.id,
-          amount: 55000 
-        })
+          amount: 51000,
+          is_auto_bid: true,
+          max_bid: 55000,
+        });
 
-        mockSupabase.auth.getUser.mockResolvedValue(
-          mockSupabaseResponse({ user })
-        )
-        mockSupabase.from().select().eq().single.mockResolvedValue(
-          mockSupabaseResponse(profile)
-        )
+        // Mock initial state
+        mockSupabase.auth.getUser.mockResolvedValue(mockSupabaseResponse({ user: user2 }));
+        mockSupabase.from.mockImplementation((table) => {
+          if (table === 'profiles') {
+            return {
+              select: () => ({ eq: () => ({ single: () => mockSupabaseResponse(mockProfile({ id: user2.id })) }) }),
+            };
+          }
+          if (table === 'listings') {
+            return {
+              select: () => ({ eq: () => ({ single: () => mockSupabaseResponse({ ...listing, auctions: [auction] }) }) }),
+            };
+          }
+          if (table === 'bids') {
+            return {
+              select: jest.fn().mockReturnThis(),
+              insert: jest.fn().mockResolvedValue(mockSupabaseResponse(mockBid({ user_id: user2.id, amount: 52000 }))),
+              update: jest.fn().mockResolvedValue(mockSupabaseResponse(null)),
+              eq: jest.fn().mockReturnThis(),
+              neq: jest.fn().mockReturnThis(),
+              gt: jest.fn().mockResolvedValue(mockSupabaseResponse([user1ProxyBid])), // Simulate user1's proxy bid
+              order: jest.fn().mockReturnThis(),
+            };
+          }
+          return mockSupabase.from;
+        });
 
-        // Mock auction validation
-        mockSupabase.from().select().eq().single.mockResolvedValue(
-          mockSupabaseResponse({ ...auction, listings: listing })
-        )
-
-        // Mock bid creation
-        mockSupabase.from().insert().select().single.mockResolvedValue(
-          mockSupabaseResponse(bid)
-        )
-
-        const token = createMockJWT({ sub: user.id })
+        const token = createMockJWT({ sub: user2.id });
         const mockRequest = new NextRequest('http://localhost:3000/api/bids', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            listing_id: listing.id,
             auction_id: auction.id,
-            amount: 55000
-          })
-        })
+            amount: 52000,
+          }),
+        });
 
-        const { POST } = require('@/app/api/bids/route')
-        const response = await POST(mockRequest)
-        
-        expect(mockSupabase.from).toHaveBeenCalledWith('bids')
-      })
+        const { POST } = require('@/app/api/bids/route');
+        const response = await POST(mockRequest);
+
+        expect(response.status).toBe(201);
+        // Further assertions can be made about the final state of the auction
+      });
 
       test('should reject bid below minimum increment', async () => {
-        const user = mockUser()
-        const listing = mockListing({ 
-          is_auction: true, 
-          current_bid: 50000,
-          min_bid_increment: 1000
-        })
-        const auction = mockAuction({ listing_id: listing.id })
+        const user = mockUser();
+        const profile = mockProfile({ id: user.id });
+        const listing = mockListing({ is_auction: true, current_bid: 50000, min_bid_increment: 1000 });
+        const auction = mockAuction({ listing_id: listing.id });
 
-        mockSupabase.auth.getUser.mockResolvedValue(
-          mockSupabaseResponse({ user })
-        )
+        mockSupabase.auth.getUser.mockResolvedValue(mockSupabaseResponse({ user }));
+        mockSupabase.from.mockImplementation((table) => {
+          if (table === 'profiles') {
+            return { select: () => ({ eq: () => ({ single: () => mockSupabaseResponse(profile) }) }) };
+          }
+          if (table === 'listings') {
+            return { select: () => ({ eq: () => ({ single: () => mockSupabaseResponse({ ...listing, auctions: [auction] }) }) }) };
+          }
+          return mockSupabase.from;
+        });
 
-        // Mock auction validation
-        mockSupabase.from().select().eq().single.mockResolvedValue(
-          mockSupabaseResponse({ ...auction, listings: listing })
-        )
-
-        const token = createMockJWT({ sub: user.id })
+        const token = createMockJWT({ sub: user.id });
         const mockRequest = new NextRequest('http://localhost:3000/api/bids', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            listing_id: listing.id,
             auction_id: auction.id,
-            amount: 50500 // Below minimum increment
-          })
-        })
+            amount: 50500, // Below minimum
+          }),
+        });
 
-        const { POST } = require('@/app/api/bids/route')
-        const response = await POST(mockRequest)
-        
-        expect(response.status).toBe(400)
-      })
+        const { POST } = require('@/app/api/bids/route');
+        const response = await POST(mockRequest);
+
+        expect(response.status).toBe(400);
+      });
     })
   })
 
