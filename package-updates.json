@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "next-intl": "^3.22.0"
+  },
+  "scripts": {
+    "build:i18n": "next build",
+    "build:analyze": "ANALYZE=true next build", 
+    "extract:translations": "next-intl extract",
+    "check:translations": "next-intl check",
+    "i18n:missing": "next-intl check --missing",
+    "migrate:i18n": "chmod +x scripts/migrate-i18n.sh && ./scripts/migrate-i18n.sh"
+  }
+}

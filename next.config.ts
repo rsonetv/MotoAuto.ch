@@ -1,4 +1,7 @@
+import createNextIntlPlugin from 'next-intl/plugin';
 import { DefinePlugin, type Configuration as WebpackConfig } from "webpack"
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,6 +17,22 @@ const nextConfig = {
       {
         source: "/how-it-works",
         destination: "/faq",
+        permanent: true,
+      },
+      // Legacy redirects for old static pages to new locale structure
+      {
+        source: "/aukcje",
+        destination: "/pl/aukcje",
+        permanent: true,
+      },
+      {
+        source: "/cennik", 
+        destination: "/pl/cennik",
+        permanent: true,
+      },
+      {
+        source: "/ogloszenia",
+        destination: "/pl/ogloszenia", 
         permanent: true,
       },
     ]
@@ -43,9 +62,9 @@ const nextConfig = {
   },
 
   typescript: {
-    // Allow production builds even with type-errors (CI should still fail if needed)
+    // Allow production builds even with type-errors for now (should be false in production)
     ignoreBuildErrors: true,
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig);

@@ -1,0 +1,326 @@
+name: i18n Build and Deploy
+
+on:
+  push:
+    branches: [ main, develop, feature/complete-i18n-implementation ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+jobs:
+  # Job 1: Lint and Type Check
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run TypeScript check
+        run: pnpm typecheck
+
+      - name: Check i18n translations
+        run: pnpm check:translations
+        continue-on-error: true
+
+  # Job 2: Build for each locale
+  build-locales:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    strategy:
+      matrix:
+        locale: [pl, de, fr, en, it]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application for ${{ matrix.locale }}
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_DEFAULT_LOCALE: ${{ matrix.locale }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.locale }}
+          path: .next/
+          retention-days: 1
+
+  # Job 3: Run tests
+  test:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test:ci
+
+      - name: Run integration tests
+        run: pnpm test:integration
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # Job 4: i18n specific tests
+  i18n-tests:
+    runs-on: ubuntu-latest
+    needs: build-locales
+    strategy:
+      matrix:
+        locale: [pl, de, fr, en, it]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.locale }}
+          path: .next/
+
+      - name: Test locale ${{ matrix.locale }} routes
+        run: |
+          pnpm start &
+          sleep 10
+
+          # Test locale-specific routes
+          if [ "${{ matrix.locale }}" = "pl" ]; then
+            curl -f http://localhost:3000/ || exit 1
+            curl -f http://localhost:3000/cennik || exit 1
+            curl -f http://localhost:3000/ogloszenia || exit 1
+          else
+            curl -f http://localhost:3000/${{ matrix.locale }}/ || exit 1
+            curl -f http://localhost:3000/${{ matrix.locale }}/cennik || exit 1
+            curl -f http://localhost:3000/${{ matrix.locale }}/ogloszenia || exit 1
+          fi
+
+          # Kill the server
+          pkill -f "next start" || true
+
+  # Job 5: Lighthouse performance tests
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: build-locales
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        locale: [pl, de, en]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts  
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.locale }}
+          path: .next/
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000${{ matrix.locale == 'pl' && '' || format('/{0}', matrix.locale) }}
+            http://localhost:3000${{ matrix.locale == 'pl' && '' || format('/{0}', matrix.locale) }}/cennik
+          configPath: ./lighthouse.config.js
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # Job 6: Deploy to staging/production
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-locales, test, i18n-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          merge-multiple: false
+
+      - name: Deploy to Vercel (Staging)
+        if: github.ref == 'refs/heads/develop'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_TEAM_ID }}
+
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_TEAM_ID }}
+
+      - name: Update Supabase Edge Functions
+        run: |
+          npx supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          npx supabase functions deploy auto-translate --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+  # Job 7: Post-deployment checks
+  post-deploy:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Check all locale endpoints
+        run: |
+          locales=("" "de" "fr" "en" "it")
+          base_url="https://motoauto.ch"
+
+          for locale in "${locales[@]}"; do
+            if [ -z "$locale" ]; then
+              url="$base_url/"
+              echo "Testing Polish (default): $url"
+            else
+              url="$base_url/$locale/"
+              echo "Testing $locale: $url"  
+            fi
+
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            if [ "$response" -eq 200 ]; then
+              echo "✅ $url responded with 200"
+            else
+              echo "❌ $url responded with $response"
+              exit 1
+            fi
+          done
+
+      - name: Run smoke tests
+        run: |
+          # Test critical paths
+          curl -f https://motoauto.ch/cennik
+          curl -f https://motoauto.ch/de/preise  
+          curl -f https://motoauto.ch/fr/prix
+          curl -f https://motoauto.ch/en/pricing
+          curl -f https://motoauto.ch/it/prezzi
+
+      - name: Notify deployment success
+        run: |
+          echo "🎉 i18n deployment successful!"
+          echo "All 5 locales are working correctly"

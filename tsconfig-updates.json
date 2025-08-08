@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "i18n/*": ["./i18n/*"],
+      "messages/*": ["./messages/*"],
+      "types/i18n": ["./types/i18n.ts"],
+      "types/database-i18n": ["./types/database-i18n.ts"],
+      "lib/i18n/*": ["./lib/i18n/*"],
+      "lib/database/*": ["./lib/database/*"]
+    }
+  },
+  "include": [
+    "i18n/**/*",
+    "messages/**/*", 
+    "types/i18n.ts",
+    "types/database-i18n.ts",
+    "lib/i18n/**/*",
+    "lib/database/**/*",
+    "components/i18n/**/*"
+  ]
+}
